@@ -998,10 +998,12 @@ class LON_requests extends PdoDataAccess{
 	 * @param type $TanzilCompute
 	 * @return boolean
 	 */
-	static function TotalAddedToBackPay($RequestID, $PartObj = null)
+	static function TotalAddedToBackPay($RequestID, $PartObj = null, $TotalAmount = 0)
 	{
 		$PartObj = $PartObj == null ? LON_ReqParts::GetValidPartObj($RequestID) : $PartObj;
 		/*@var $PartObj LON_ReqParts */
+		
+		$zarib = $TotalAmount/$PartObj->PartAmount;
 		
 		$amount = 0;
 		
@@ -1017,7 +1019,7 @@ class LON_requests extends PdoDataAccess{
 		if($PartObj->AgentReturn == "INSTALLMENT")
 			$amount += $result["AgentWage"];
 		
-		return round($amount);		
+		return round($amount*$zarib);		
 	}
 	
 	/**
@@ -2510,14 +2512,14 @@ class LON_installments extends PdoDataAccess{
 				}
 			}		
 		}
-		else
+		if($partObj->ComputeMode == "PERCENT")
 		{
 			PdoDataAccess::runquery("delete from LON_installments "
 				. "where RequestID=? AND history='NO' AND IsDelayed='NO'", array($RequestID));
 
-			//$TotalAmount = LON_requests::GetPurePayedAmount($RequestID) + LON_requests::TotalAddedToBackPay($RequestID);
 			$TotalAmount = LON_payments::GetTotalPureAmount($partObj->RequestID, $partObj);
-			$allPay = ComputeInstallmentAmount($TotalAmount,$partObj->InstallmentCount, $partObj->PayInterval);
+			$TotalAmount += LON_requests::TotalAddedToBackPay($partObj->RequestID, $partObj, $TotalAmount);
+			$allPay = $TotalAmount/$partObj->InstallmentCount;
 
 			if($partObj->InstallmentCount > 1)
 				$allPay = LON_Computes::roundUp($allPay,-3);
