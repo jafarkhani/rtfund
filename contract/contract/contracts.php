@@ -5,12 +5,12 @@
 //-----------------------------
 require_once '../header.inc.php';
 require_once inc_dataGrid;
-
+/*echo 'That isssss';*/
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
 //...................................................
 require_once 'contracts.js.php';
-
+/*$dt = 23;*/
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "contract.data.php?task=SelectContracts", "div_dg");
 
 $dg->addColumn("", "TemplateID", "", true);
