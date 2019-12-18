@@ -222,10 +222,12 @@ class manage_payment_calculation extends PdoDataAccess
 				
 				$resS = PdoDataAccess::runquery($query) ; 
 		
-          echo PdoDataAccess::GetLatestQueryString()."---<br>" ;
-          if($this->__MONTH == 7 ) 
-              die();
-          
+	if( $fields['SessionItem'] ==  1 && !empty($resS[0]['TotalHour']) ) 
+    {
+                        $fields['param2'] = $resS[0]['TotalHour'] .':'.$resS[0]['TotalMin'] ;//$time_slice ; 					
+
+    }
+            
                 if(isset($resS[0]['TotalMin']) && $resS[0]['TotalMin'] > 0 ){
                  $resS[0]['TotalHour'] += round(($resS[0]['TotalMin']/60),2) ;
                                 }
@@ -239,7 +241,7 @@ class manage_payment_calculation extends PdoDataAccess
 				 
 				 
 					$time_slice = ( !empty($resS[0]['TotalHour']) ?  $resS[0]['TotalHour'] : 0  )   ; 
-					$fields['param2'] = $time_slice ; 					
+				/*	$fields['param2'] = $resS[0]['TotalHour'] .':'.$resS[0]['TotalMin'] ; */ 				
 					
 				}
 			
@@ -788,12 +790,16 @@ $Remainder = $this->subRow['receipt'] ;
 			
 				if( $resAtt['attend'] > 0 )
 				{
-					$this->__START_NORMALIZE_TAX_MONTH =  $t ; 
+					$this->__START_NORMALIZE_TAX_MONTH =  $t ;                     
 					break ;					 
 				}
 			
 			}
-		
+            
+            if($this->staffRow['emp_state'] == 4 )
+            {
+                $this->__START_NORMALIZE_TAX_MONTH = $this->__MONTH ; 
+            }
 //..........................
 	/*	$year_avg_tax_include = ( (($this->cur_staff_id == $this->taxRow['staff_id']) ? $this->taxRow['sum_tax_include'] : 0 ) + 
 		$this->sum_tax_include + $this->taxHisRow['payed_tax_value'] - ( empty($this->payment_items[7]['get_value']) ? 0 : (($this->payment_items[7]['get_value'] * 2) / 7 ) ) ) / ($this->__MONTH - $this->__START_NORMALIZE_TAX_MONTH + 1); */
@@ -811,6 +817,8 @@ $Remainder = $this->subRow['receipt'] ;
 		reset($this->tax_tables);
 
 		for($m = $this->__START_NORMALIZE_TAX_MONTH; $m <= $this->__MONTH; $m++ ) {
+            
+//echo $m.'----ff--' ;
 			$begin_month_date = DateModules::shamsi_to_miladi($this->__YEAR."/".$m."/1") ; 			
 			$end_month_date = DateModules::shamsi_to_miladi($this->__YEAR."/".$m."/".DateModules::DaysOfMonth($this->__YEAR,$m)) ;	
 
@@ -846,7 +854,7 @@ $Remainder = $this->subRow['receipt'] ;
 	//	echo $year_avg_tax_include .'---'.$tax_table_row['from_value'] .'****'. $year_avg_tax_include ."****". $tax_table_row['to_value'].'---<br>' ; 
 					if( $year_avg_tax_include >= $tax_table_row['from_value'] && $year_avg_tax_include <= $tax_table_row['to_value'] ) {
 						$sum_normalized_tax += ( $year_avg_tax_include - $tax_table_row['from_value'] ) * $tax_table_row['coeficient'];						
-		//echo ( $year_avg_tax_include - $tax_table_row['from_value'] ) .'-----'. $tax_table_row['coeficient'];
+//echo  $this->__MONTH.'***'.$year_avg_tax_include .'***'. $tax_table_row['from_value'] .'-----'. $tax_table_row['coeficient'].'---<br>';
 					}
 					else if($year_avg_tax_include > $tax_table_row['to_value']){
 						$sum_normalized_tax += ( $tax_table_row['to_value'] - $tax_table_row['from_value'] ) * $tax_table_row['coeficient'];											
@@ -855,9 +863,9 @@ $Remainder = $this->subRow['receipt'] ;
 				
 			}
 		}
-	//	 die();
-	//	echo $sum_normalized_tax .'****'.$this->taxRow['sum_tax'];
-	//	die();
+	
+//echo $sum_normalized_tax .'****'.$this->taxRow['sum_tax'];
+//die();
 	
 	//	$this->__START_NORMALIZE_TAX_MONTH =  1 ;
 		

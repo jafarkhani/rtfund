@@ -251,9 +251,10 @@ if (isset($_REQUEST["show"])) {
 	$Item_1 = $Item_2 = $Item_3 = $Item_4 = $Item_5 = $Item_6 = $Item_7 = $Item_8 = $Item_9 = $Item_10 = 0;
 	$Item_11 = $Item_12 = $Item_13 = $Item_14 = $Item_14_1 = $Item_15 = $Item_16 = $Item_17 = 0;
 	$Item_18 = $Item_19 = $Item_20 = $Item_23 = $Item_24 = $Item_25 = 0;
-	$Item2_1 = $Item2_2 = $Item2_3 = $Item2_4 = 0;
-	$Item3_1 = 0;
-	$Item4_1 = $Item4_2 = $Item4_3 = $Item4_4 = $Item4_5 = $Item4_6 = $Item4_7 = $Item4_8 = 0;
+	$Item_2_1 = $Item_2_2 = $Item_2_3 = $Item_2_4 = 0;
+    $Item_h_8 = $Item_m_8 = 0 ; 
+	$Item_3_1 = 0;
+	$Item_4_1 = $Item_4_2 = $Item_4_3 = $Item_4_4 = $Item_4_5 = $Item_4_6 = $Item_4_7 = $Item_4_8 = 0;
 
 	$PY = $dataTable[0]['pay_year'];
 	$PM = $dataTable[0]['pay_month'];
@@ -409,11 +410,11 @@ if (isset($_REQUEST["show"])) {
 		$Item_6 += $dataTable[$i]['item6'];
 		$Item_7 += $dataTable[$i]['item7'];
 		// 	$Item_8 += $dataTable[$i]['item8'];
-		/*		 * ************************* */
-		$iparr = split("\.", $dataTable[$i]['item8']);
+		/*************************** */
+		$iparr = preg_split("/\./", $dataTable[$i]['item8']); 
 
 		$Item_h_8 += $iparr[0];
-		$Item_m_8 += $iparr[1];
+		$Item_m_8 += (!empty($iparr[1]) ? $iparr[1] : 0 );
 		/*		 * ************************* */
 		$Item_9 += $dataTable[$i]['item9'];
 		$Item_10 += $dataTable[$i]['item10'];

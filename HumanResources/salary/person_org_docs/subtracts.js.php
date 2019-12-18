@@ -136,7 +136,7 @@ Subtract.prototype.OperationMenu = function(e)
 	
 	op_menu.add({text: 'سابقه گردش',iconCls: 'history', handler : function(){SubtractObj.ShowHistory();} });
 	
-	if(record.data.IsEditable)
+	//if(record.data.IsEditable)
 		op_menu.add({text: 'حذف',iconCls: 'remove', handler : function(){SubtractObj.Remove();} });	
 	
 	op_menu.showAt(e.pageX-120, e.pageY);

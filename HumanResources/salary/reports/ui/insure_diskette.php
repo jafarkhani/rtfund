@@ -145,7 +145,8 @@ if(isset($_REQUEST["task"]))
 							                                pit.pay_month = p.pay_month AND pit.staff_id = p.staff_id AND
 															pit.payment_type = p.payment_type)
 							INNER JOIN HRM_writs w ON ( p.writ_id = w.writ_id AND
-														p.writ_ver = w.writ_ver AND p.staff_id = w.staff_id )			 INNER JOIN HRM_staff s ON p.staff_id = s.staff_id 
+														p.writ_ver = w.writ_ver AND p.staff_id = w.staff_id )			 
+                                                        INNER JOIN HRM_staff s ON p.staff_id = s.staff_id 
                                                         INNER JOIN HRM_persons pr ON s.PersonID = pr.PersonID				
 							LEFT JOIN BSC_jobs bj ON bj.JobID = w.job_id
 							
@@ -192,8 +193,9 @@ if(isset($_REQUEST["task"]))
    THEN (pai.param7) ELSE '-'  END) work_sheet,
   '-' description ,
   /* SUM(pai.pay_value + pai.diff_pay_value * pai.diff_value_coef) monthly_fee,*/
-  SUM(if(pai.salary_item_type_id not in (5,6),(pai.pay_value + pai.diff_pay_value * pai.diff_value_coef), 0 ) ) monthly_fee,
-  SUM(if(pai.salary_item_type_id  in (5,6),(pai.pay_value + pai.diff_pay_value * pai.diff_value_coef), 0 ) ) monthly_premium,
+   SUM(if(pai.salary_item_type_id in (1),(pai.pay_value + pai.diff_pay_value * pai.diff_value_coef), 0 ) ) monthly_fee,
+   SUM(if(pai.salary_item_type_id not in (1),(pai.pay_value + pai.diff_pay_value * pai.diff_value_coef), 0 ) ) monthly_premium_fee,
+   SUM(if(pai.salary_item_type_id not in (1,17,30),(pai.pay_value + pai.diff_pay_value * pai.diff_value_coef), 0 ) ) monthly_premium,
    SUM(pai.pay_value + pai.diff_pay_value * pai.diff_value_coef) pay,
    SUM(CASE WHEN (pai.salary_item_type_id = 7 )
    THEN (pai.param1 + pai.diff_param1 * pai.diff_param1_coef) END) monthly_insure_include,
@@ -246,7 +248,7 @@ if(isset($_REQUEST["task"]))
                w.contract_start_date,w.contract_end_date, w.ouid, w.salary_pay_proc,
                pa.start_date, pa.end_date  ");
 									 
-	echo   PdoDataAccess::GetLatestQueryString() ; 		die()			 ; 
+	
 								  
 	PdoDataAccess::runquery('ALTER TABLE HRM_temp_insure_list ADD INDEX(staff_id);');
 	
@@ -278,6 +280,8 @@ if(isset($_REQUEST["task"]))
 					work_sheet ,issue_date,
 					description ,
 					round(monthly_fee) monthly_fee ,
+                    round(monthly_premium) monthly_premium ,
+                    round(monthly_premium_fee) monthly_premium_fee ,
 					round(pay) pay ,
 					round(monthly_insure_include) monthly_insure_include ,
 					round(worker_insure_include) worker_insure_include ,
@@ -288,14 +292,13 @@ if(isset($_REQUEST["task"]))
 				
 				from HRM_temp_insure_list s
 				where  (pay_year = ".$_POST['pay_year'].") AND
-					   (pay_month = ".$_POST['pay_month'].")  AND staff_id = 12
+					   (pay_month = ".$_POST['pay_month'].")  
 					  
 				order by pay_year,pay_month,daily_work_place_no,plname,pfname   
                                  " ; 
 									
 		$res = PdoDataAccess::runquery($query) ; 	
-/*echo PdoDataAccess::GetLatestQueryString() ;
-die();*/
+
 		$qry = " select bi.Title month_title 
                         from  Basic_Info bi 
                                 where  bi.typeid = 78 AND InfoID = ".$_POST["pay_month"] ; 
@@ -307,7 +310,7 @@ die();*/
 	
 	
 		$counter =$work_sheet = $daily_fee = $monthly_fee = 0 ; 
-		$monthly_premium = $monthly_insure_include = $pay = $worker_insure_include =$other_gets = 0 ; 
+		$monthly_premium = $monthly_insure_include = $pay = $worker_insure_include =$other_gets =$monthly_premium_fee = 0 ; 
 		$pure_pay = $employer_insure_value = $unemployment_insure_value = 0  ; 
 		$record = "" ;	
                 copyDbfFiles();
@@ -401,6 +404,7 @@ die();*/
 			$daily_fee += $res[$i]['daily_fee']; 
 			$monthly_fee += $res[$i]['monthly_fee']; 
 			$monthly_premium += $res[$i]['monthly_premium'];  
+            $monthly_premium_fee += $res[$i]['monthly_premium_fee'];   
 			$monthly_insure_include += $res[$i]['monthly_insure_include']; 
 			$pay += $res[$i]['pay'];
 			$worker_insure_include += $res[$i]['worker_insure_include'];
@@ -517,7 +521,7 @@ die();*/
 				<td rowspan="2">ردیف </td>
 				<td colspan="9" align="center" >مشخصات بیمه شده</td>
 				<td colspan="3" align="center" >روزهای کارکردماه</td>
-				<td colspan="5" align="center" >دستمزد/حقوق مزایا(ریال)</td>
+				<td colspan="6" align="center" >دستمزد/حقوق مزایا(ریال)</td>
 				<td rowspan="2" >حق بیمه <br>سهم بیمه شده</td>
 				<td rowspan="2" >سایر کسور</td>		
 				<td rowspan="2" >مانده قابل پرداخت</td>
@@ -539,11 +543,12 @@ die();*/
 				<td>روزهای کارکرد</td>
 				<td>دستمزد روزانه</td>
 				<td>دستمزد ماهانه</td>
+                <td>مزایا ماهانه</td>
 				<td>مزایای ماهانه مشمول</td>
 				<td>جمع دستمزد و مزاياي ماهانه مشمول</td>
 				<td>جمع دستمزد و مزایای ماهانه مشمول و غیر مشمول</td>							
 			</tr>' ; 
-		$sumWorkSheet = $sumDailyFee = $sumMonthlyFee = $sumMonthlyPremium = $UEInsurevalue =  0 ; 
+		$sumWorkSheet = $sumDailyFee = $sumMonthlyFee = $sumMonthlyPremium = $UEInsurevalue = $sumMonthlyPremiumFee =  0 ; 
 		$sumMInsureInc = $sumPay = $sumWInsureInc = $sumOtherPay = $sumPurePay = $EInsurevalue = 0 ;	
 		for($i=0;$i< count($res) ;$i++)
 		{
@@ -608,9 +613,10 @@ die();*/
 			echo "<td>".$res[$i]['work_sheet']."</td>
 				  <td>".number_format(round($res[$i]['daily_fee']), 0, '.', ',')."</td> 
 				  <td>".number_format(round($res[$i]['monthly_fee']), 0, '.', ',')."</td>
+                  <td>".number_format(round($res[$i]['monthly_premium_fee']), 0, '.', ',')."</td>   
 				  <td>".number_format(round($res[$i]['monthly_premium']), 0, '.', ',')."</td>
-				  <td>".number_format(round($res[$i]['monthly_insure_include']), 0, '.', ',')."</td>
-				  <td>".number_format(round($res[$i]['pay']), 0, '.', ',')."</td>
+				  <td>".number_format(round($res[$i]['monthly_insure_include']), 0, '.', ',')."</td>				 
+                  <td>".number_format(round($res[$i]['pay']), 0, '.', ',')."</td>
 				  <td>".number_format(round($res[$i]['worker_insure_include']), 0, '.', ',')."</td>
 				  <td>".number_format(round($res[$i]['other_gets']), 0, '.', ',')."</td>
 				  <td>".number_format(round($res[$i]['pure_pay']), 0, '.', ',')."</td>
@@ -620,6 +626,7 @@ die();*/
 			$sumWorkSheet +=  $res[$i]['work_sheet'];
 			$sumDailyFee += $res[$i]['daily_fee'] ; 
 			$sumMonthlyFee += $res[$i]['monthly_fee'] ;
+            $sumMonthlyPremiumFee += $res[$i]['monthly_premium_fee'] ;//monthly_premium_fee
 			$sumMonthlyPremium += $res[$i]['monthly_premium'] ;
 			$sumMInsureInc +=  $res[$i]['monthly_insure_include'] ;
 			$sumPay += $res[$i]['pay'] ;
@@ -635,6 +642,7 @@ die();*/
 				  <td>".number_format(round($sumWorkSheet), 0, '.', ',')."</td>
 				  <td>".number_format(round($sumDailyFee), 0, '.', ',')."</td>
 				  <td>".number_format(round($sumMonthlyFee), 0, '.', ',')."</td>
+                  <td>".number_format(round($sumMonthlyPremiumFee), 0, '.', ',')."</td>
 				  <td>".number_format(round($sumMonthlyPremium), 0, '.', ',')."</td>
 				  <td>".number_format(round($sumMInsureInc), 0, '.', ',')."</td>
 				  <td>".number_format(round($sumPay), 0, '.', ',')."</td>

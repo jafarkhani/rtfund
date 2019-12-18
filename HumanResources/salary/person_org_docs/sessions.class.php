@@ -26,7 +26,7 @@ class manage_Session extends PdoDataAccess
 					from HRM_sessions s
 						 inner join HRM_persons p on s.PersonID = p.refPersonID
 						 inner join HRM_salary_item_types sit on s.salary_item_type_id = sit.salary_item_type_id
-				 " ; 
+				 " .$where.",s.PersonID" ; 
                 
 	 	return parent::runquery($query);
 	 }

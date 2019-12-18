@@ -126,15 +126,14 @@ $drp_emp_state = manage_domains::DRP_EMP_STATE_WST("emp_state", $objWrt->emp_sta
 $drp_emp_mode = manage_domains::DRP_EMP_MODE_WST("emp_mode", $objWrt->emp_mode , "" , $event);
 
 if(!$is_new_corrective)
-{ 	
-	echo "***" ; die(); 		    
+{ 				    
 	$prior_writ_object = $objWrt->get_prior_writ(); 
-	      
+	/*      
 	if ($prior_writ_object)
-	{
-		$dg = new sadaf_datagrid("PreW",$js_prefix_address . "../data/writ.data.php?task=selectItemWrit&WID=" . $prior_writ_object->writ_id .
-			"&WVER=" . $prior_writ_object->writ_ver .
-			"&STID=" . $prior_writ_object->staff_id ,"PreWGRID");
+	{*/
+		$dg = new sadaf_datagrid("PreW",$js_prefix_address . "../data/writ.data.php?task=selectItemWrit&WID=" . (!empty($prior_writ_object->writ_id) ? $prior_writ_object->writ_id : 0 )  .
+			"&WVER=" . (!empty($prior_writ_object->writ_ver) ? $prior_writ_object->writ_ver : 0 )  .
+			"&STID=" . (!empty($prior_writ_object->staff_id) ? $prior_writ_object->staff_id : 0 )  ,"PreWGRID");
 
 		$col = $dg->addColumn("عنوان", "full_title", "string");
 
@@ -153,7 +152,7 @@ if(!$is_new_corrective)
 		$dg->height = 350;
 		$prevItemsGrid = $dg->makeGrid_returnObjects();
 
-	} 
+	//} 
             
 	$dg = new sadaf_datagrid("curWritItem",$js_prefix_address . "../data/writ.data.php?task=selectItemWrit&WID=" . $objWrt->writ_id .
 		"&WVER=" . $objWrt->writ_ver . "&STID=" . $objWrt->staff_id ,"WGRID");
@@ -233,10 +232,10 @@ WritForm.prototype.afterLoad = function()
 	   
     <?	}	?>
 
-    <?php/*if(isset($prevItemsGrid)){?>
-	    this.prevItemsGrid = <?= $prevItemsGrid*/?>;
-	    
-    <?/*}*/if(isset($curItemsGrid)){?>		
+    <?if(isset($prevItemsGrid)){?>
+	    this.prevItemsGrid = <?= $prevItemsGrid?>;
+	    //this.prevItemsGrid.render(this.get("PreWGRID"));
+    <?}if(isset($curItemsGrid)){?>		
 	    this.curItemsGrid = <?= $curItemsGrid?>;
 		this.curItemsGrid.getView().getRowClass = function(record,index)
                                         {  
@@ -336,12 +335,14 @@ WritForm.prototype.afterLoad = function()
 	});
 	
 	<?if(!$is_new_corrective){?>
+    
 	new Ext.panel.Panel({
 		border : 0,
 		layout : 'hbox',
 		renderTo : this.parent.get("items"),
 		items : [this.prevItemsGrid,this.curItemsGrid]
 	});
+    
 	<?}?>
 }
 

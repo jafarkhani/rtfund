@@ -54,6 +54,9 @@ $dg->height = 500;
 $dg->title = " حق الجلسه";
 $dg->autoExpandColumn = "PersonID";
 
+$dg->DefaultSortField = "SessionDate";
+$dg->DefaultSortDir = "DESC";
+
 $dg->enableRowEdit = true ;
 $dg->rowEditOkHandler = "function(v,p,r){ return bankObject.editBank(v,p,r);}";
 
