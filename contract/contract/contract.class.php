@@ -69,6 +69,7 @@ class CNT_contracts extends OperationClass {
 				c.WarrentyRequestID,
 				c.ContractAmount,
 				t.TemplateTitle,
+				b1.InfoDesc,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) PersonFullname
 			  
 			from CNT_contracts c  
@@ -77,8 +78,9 @@ class CNT_contracts extends OperationClass {
 			left join BSC_persons p1 on(c.PersonID=p1.PersonID)
 			left join WFM_FlowRows fr on(fr.IsLastRow='YES' AND fr.ObjectID=c.ContractID 
 				AND fr.StepRowID=sp.StepRowID AND fr.FlowID=sp.FlowID)
+			left join baseinfo b1 on (b1.InfoID = c.ContractType AND b1.TypeID=18)
 				
-			where 1=1 " . $where . " group by ContractID " . $order, $whereParams);
+			where 1=1 AND c.ContractType= " .$_REQUEST["ContractType"]." " . $where . " group by ContractID " . $order, $whereParams);
     }
 
 	public function GetContractContext(){

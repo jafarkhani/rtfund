@@ -20,8 +20,104 @@ ManageContracts.prototype = {
 }
 
 function ManageContracts() {
+    this.panel = new Ext.panel.Panel({
+        renderTo : this.get("DivPanel"),
+        //border : false,
+        layout : "hbox",
+        height : 500,
+        items : [{
+            xtype : "container",
+            flex : 1,
+            html : "<div id=div_dg width=100%></div>"    /*new Edit*/
+            /*html : "<div id=div_grid width=100%></div>"*/   /*new Comment*/
+        },{
+            xtype : "container",
+            width : 150,
+            autoScroll : true,
+            height: 500,
+            style : "border-left : 1px solid #99bce8;margin-left:5px",
+            layout : "vbox",
+            itemId : "cmp_buttons"
+        }]
+    });
+
+    new Ext.data.Store({
+    proxy : {
+    type: 'jsonp',
+    url: this.address_prefix + "contract.data.php?task=SelectContractTypes",
+    reader: {root: 'rows',totalProperty: 'totalCount'}
+},
+    fields : ["InfoID","InfoDesc","param1","param2"],
+    autoLoad : true,
+    listeners : {
+    load : function(){
+    console.log(this.totalCount);
+    me = ManageContractsObj;
+    //..........................................................
+    me.panel.down("[itemId=cmp_buttons]").removeAll();
+    for(var i=0; i<this.totalCount; i++)
+{
+    record = this.getAt(i);
+    console.log(record);
+    if(record.data.param1 != "" && record.data.param1 != 0 )
+{
+    console.log('فرعیییییی');
+    btn = me.panel.down("[itemId=g_" + record.data.param1 + "]");
+    if(!btn)
+{
+    console.log('دکمه وجود ندارد');
+    btn = me.panel.down("[itemId=cmp_buttons]").add({
+    xtype : "button",
+    width : 130,
+    height : 50,
+    autoScroll : true,
+    scale : "large",
+    style : "margin-bottom:10px",
+    itemId : "g_" + record.data.param1,
+    text : record.data.param2,
+    menu : []
+});
+}
+
+    btn.menu.add({
+    itemId : record.data.InfoID,
+    text : record.data.InfoDesc,
+    handler : function(){ManageContracts.LoadGrid(this)}
+});
+}
+    else{
+    console.log('اصلیییییی');
+    me.panel.down("[itemId=cmp_buttons]").add({
+    xtype : "button",
+    width : 130,
+    height : 50,
+    autoScroll : true,
+    scale : "large",
+    style : "margin-bottom:10px",
+    itemId : record.data.InfoID,       /*New Edited*/
+    /*itemId : record.data.InfoID + "_" + record.data.param1,*/          /*New Commented*/
+    text : (record.data.param1 != "" && record.data.param1 != 0) ? record.data.param1 : record.data.InfoDesc,
+    handler : function(){ManageContracts.LoadGrid(this)}
+});
+}
 
 }
+}
+}
+});
+
+}
+
+    ManageContracts.LoadGrid = function(btn){
+    console.log(btn);
+    ManageContractsObj.grid.getStore().proxy.extraParams.ContractType = btn.itemId;
+    ManageContractsObj.grid.setTitle(btn.text);
+    if(ManageContractsObj.grid.rendered)
+    ManageContractsObj.grid.getStore().loadPage(1);
+    else
+    ManageContractsObj.grid.render(ManageContractsObj.get("div_dg"));
+     }
+
 
 ManageContracts.prototype.OperationRender = function () {
 

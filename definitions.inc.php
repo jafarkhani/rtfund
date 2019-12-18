@@ -285,6 +285,7 @@ define("CostCode_param_loan", "3");
 //------------- TypeIDs -----------
 define("TYPEID_MeetingType", 88);
 define("TYPEID_MeetingStatusID", 89);
+define("TYPEID_ContractType", 18);
 
 define("POSTID_MODIRAMEL", 77);
 

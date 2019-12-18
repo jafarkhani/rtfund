@@ -10,7 +10,7 @@ require_once inc_dataGrid;
 $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
 //...................................................
 require_once 'contracts.js.php';
-/*$dt = 23;*/
+/*$dttttt = 23;*/
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "contract.data.php?task=SelectContracts", "div_dg");
 
 $dg->addColumn("", "TemplateID", "", true);
@@ -23,7 +23,10 @@ $dg->addColumn("", "ActionType", "", true);
 
 $col = $dg->addColumn("شماره قرارداد", "ContractID");
 $col->align = "center";
-$col->width = 110;
+$col->width = 50;
+
+$col = $dg->addColumn("نوع قرارداد", "InfoDesc");
+$col->width = 100; /*New Added*/
 
 $col = $dg->addColumn("الگو", "TemplateTitle");
 $col->width = 150;
@@ -71,11 +74,14 @@ $grid = $dg->makeGrid_returnObjects();
 	
 		return "";
 	}	
-    ManageContractsObj.grid.render(ManageContractsObj.get("div_dg"));
+    /*ManageContractsObj.grid.render(ManageContractsObj.get("div_dg"));*/       /*new Commented*/
 	
 </script>
 <br>
 <center>
-    <div id="NewForm"></div>
-    <div id="div_dg"></div>
+    <form id="mainForm">
+        <div id="DivPanel" style="margin:8px;width:98%"></div>  <!-- new Added -->
+    </form>
+    <!--<div id="NewForm"></div>
+    <div id="div_dg"></div>-->       <!-- new commented -->
 </center>
