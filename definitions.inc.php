@@ -220,6 +220,7 @@ define("EVENT_LOANDAILY_innerPenalty", 1726);
 define("EVENT_LOANDAILY_agentPenalty", 1727);
 
 define("EVENT_LOAN_CHANGE", 171);
+define("EVENT_LOAN_END", 191);
 
 define("EVENT_LOANCHEQUE_payed", 1755);
 define("EVENT_LOANCHEQUE_innerSource", 1766);
