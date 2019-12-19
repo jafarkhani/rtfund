@@ -128,7 +128,7 @@ define("SOURCETYPE_CONTRACT", "2");
 define("SOURCETYPE_PLAN", "3");
 define("SOURCETYPE_WARRENTY", "4");
 define("SOURCETYPE_FORM", "5");
-
+define("SOURCETYPE_Request", "6"); /*new added*/
 define("BLOCKID_LOAN","8");
 
 //------------- flowID baseinfo typeID=11 ---------------
