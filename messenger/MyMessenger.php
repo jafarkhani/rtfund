@@ -23,15 +23,7 @@ echo '<head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
         <script type="text/javascript" src="/generalUI/jquery-3.4.1.min.js"></script>
       </head>';
 
-?>
 
-<div style=""> 
-	متن تستی
-</div>
-
-<?php
-
-die();
 
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "ManageGroup.data.php?task=SelectMyMessage", "DivGrid");
 

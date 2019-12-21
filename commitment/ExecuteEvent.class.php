@@ -88,6 +88,11 @@ class ExecuteEvent {
 			case EVENT_LOAN_COST_INNER:
 				$this->EventFunction = "EventComputeItems::LoanCost";
 				break;	
+			
+			case EVENT_LOAN_END:
+				$this->AfterTriggerFunction = "LON_requests::EventTrigger_end";
+				$this->EventFunction = "EventComputeItems::LoanEnd";
+				break;	
 
 			case EVENT_WAR_CANCEL_2:
 			case EVENT_WAR_CANCEL_3:

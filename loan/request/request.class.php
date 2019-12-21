@@ -211,6 +211,46 @@ class LON_requests extends PdoDataAccess{
 	 	return true;
 	}
 	
+	static function ChangeStatus($RequestID, $StatusID, $StepComment = "", $LogOnly = false, $pdo = null, $UpdateOnly = false){
+	
+		if(empty($StatusID))
+			return true;
+		if(!$LogOnly)
+		{
+			$obj = new LON_requests();
+			$obj->RequestID = $RequestID;
+			$obj->StatusID = $StatusID;
+			if(!$obj->EditRequest($pdo , false))
+				return false;
+		}
+		if(!$UpdateOnly)
+		{
+			PdoDataAccess::runquery("insert into LON_ReqFlow(RequestID,PersonID,StatusID,ActDate,StepComment) 
+			values(?,?,?,now(),?)", array(
+				$RequestID,
+				$_SESSION["USER"]["PersonID"],
+				$StatusID,
+				$StepComment
+			), $pdo);
+		}
+		return ExceptionHandler::GetExceptionCount() == 0;
+	}
+	
+	static function EventTrigger_end($SourceObjects, $eventObj, $pdo){
+		
+		$ReqObj = new LON_requests((int)$SourceObjects[0]);
+		
+		$ReqObj->IsEnded = "YES";
+		$ReqObj->StatusID = LON_REQ_STATUS_ENDED;
+		if(!$ReqObj->EditRequest($pdo))
+		{
+			ExceptionHandler::PushException("خطا در تغییر درخواست");
+			return false;
+		}
+		return self::ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false, $pdo);	
+	}
+
+	
 	//-------------------------------------
 	static function ComputeWage($PartAmount, $CustomerWagePercent, $InstallmentCount, $IntervalType, $PayInterval){
 	

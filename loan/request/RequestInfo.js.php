@@ -1282,33 +1282,33 @@ RequestInfo.prototype.CustomizeForm = function(record){
 		//{
 			this.companyPanel.down("[itemId=cmp_changeStatus]").show();
 		//}
-		if(record.data.StatusID == "1")
+		if(record.data.StatusID == "<?= LON_REQ_STATUS_RAW ?>")
 		{
 			this.companyPanel.down("[itemId=cmp_confirm30]").show();
 		}
-		if(record.data.StatusID == "10")
+		if(record.data.StatusID == "<?= LON_REQ_STATUS_SEND ?>")
 		{
 			this.companyPanel.down("[itemId=cmp_confirm30]").show();
 			this.companyPanel.down("[itemId=cmp_reject20]").show();
 		}
-		if(record.data.StatusID == "30" || record.data.StatusID == "35")
+		if(record.data.StatusID == "<?= LON_REQ_STATUS_PRECONFIRM ?>" || record.data.StatusID == "<?= LON_REQ_STATUS_RETURN_CUSTOMER ?>")
 		{
 			this.companyPanel.down("[itemId=cmp_SendToCustomer]").show();
 		}
-		if(record.data.StatusID == "40")
+		if(record.data.StatusID == "<?= LON_REQ_STATUS_SEND_CUSTOMER ?>")
 		{
 			this.companyPanel.down("[itemId=cmp_returnFromCustomer]").show();
 		}
-		if(record.data.StatusID == "50")
+		if(record.data.StatusID == "<?= LON_REQ_STATUS_CUSTOMER_COMPLETE ?>")
 		{
 			this.companyPanel.down("[itemId=cmp_confirm70]").show();
 			this.companyPanel.down("[itemId=cmp_reject60]").show();
 		}
-		if(record.data.IsEnded == "NO" && record.data.StatusID == "70")
+		if(record.data.IsEnded == "NO" && record.data.StatusID == "<?= LON_REQ_STATUS_CONFIRM ?>")
 		{
 			this.companyPanel.down("[itemId=cmp_Defray]").show();
 		}
-		if(record.data.IsEnded == "NO" && (record.data.StatusID == "70" || record.data.StatusID == "95"))
+		if(record.data.IsEnded == "NO" && record.data.StatusID == "<?= LON_REQ_STATUS_DEFRAY ?>")
 		{
 			this.companyPanel.down("[itemId=cmp_end]").show();
 		}
@@ -1628,86 +1628,54 @@ RequestInfo.prototype.SetStatus = function(){
 
 RequestInfo.prototype.EndRequest = function(){
 	
-	this.mask.show();
+	framework.ExecuteEvent(<?= EVENT_LOAN_END ?>, 
+		new Array(RequestInfoObject.RequestRecord.data.RequestID,
+					RequestInfoObject.RequestRecord.data.PartID), "RequestInfoObject.afterEndLoan");
 	
-	Ext.Ajax.request({
-		methos : "post",
-		url : this.address_prefix + "request.data.php",
-		params : {
-			task : "GetRequestTotalRemainder",
-			RequestID : this.RequestID
-		},
+	return;
+};
 
-		success : function(response){
-			result = Ext.decode(response.responseText);
-			Ext.MessageBox.confirm("","مبلغ باقیمانده وام " + 
-				Ext.util.Format.Money(result.data) + " ریال می باشد" +
-				"<br>آیا مایل به خاتمه وام و صدور سند خاتمه می باشید؟", function(btn){
-				
-				if(btn == "no")
-				{
-					RequestInfoObject.mask.hide();
-					return;
-				}	
-
-				me = RequestInfoObject;
-				me.mask.show();
-
-				Ext.Ajax.request({
-					methos : "post",
-					url : me.address_prefix + "request.data.php",
-					params : {
-						task : "EndRequest",
-						RequestID : me.RequestID
-					},
-
-					success : function(response){
-						result = Ext.decode(response.responseText);
-						if(result.success)
-						{
-							Ext.MessageBox.alert("","سند مربوطه با موفقیت صادر گردید");
-							RequestInfoObject.LoadRequestInfo();					
-						}	
-						else if(result.data == "")
-							Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
-						else
-							Ext.MessageBox.alert("",result.data);
-
-					}
-				});
-			});			
-
-		}
-	});
+RequestInfo.prototype.afterEndLoan = function(){
+	
+	me.mask.show();
+	RequestInfoObject.LoadRequestInfo();
+	me.mask.hide();
 }
-
+	
 RequestInfo.prototype.DefrayRequest = function(){
 	
-	this.mask.show();
-	
-	Ext.Ajax.request({
-		methos : "post",
-		url : me.address_prefix + "request.data.php",
-		params : {
-			task : "DefrayRequest",
-			RequestID : me.RequestID
-		},
+	Ext.MessageBox.confirm("","آیا مایل به تسویه وام می باشید؟", function(btn){
+		if(btn == "no")
+			return false;
 
-		success : function(response){
-			result = Ext.decode(response.responseText);
-			if(result.success)
-			{
-				RequestInfoObject.LoadRequestInfo();					
-			}	
-			else if(result.data == "")
-				Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
-			else
-				Ext.MessageBox.alert("",result.data);
+		me = RequestInfoObject;
+		
+		me.mask.show();
+		Ext.Ajax.request({
+			methos : "post",
+			url : me.address_prefix + "request.data.php",
+			params : {
+				task : "DefrayRequest",
+				RequestID : me.RequestID
+			},
 
-			me.mask.hide();
+			success : function(response){
+				result = Ext.decode(response.responseText);
+				if(result.success)
+				{
+					RequestInfoObject.LoadRequestInfo();					
+				}	
+				else if(result.data == "")
+					Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
+				else
+					Ext.MessageBox.alert("",result.data);
 
-		}
+				me.mask.hide();
+
+			}
+		});
 	});
+	
 }
 
 RequestInfo.prototype.ReturnEndRequest = function(){
@@ -2623,4 +2591,6 @@ RequestInfo.prototype.ExecuteEvent = function(){
 
 	framework.ExecuteEvent(eventID, new Array(this.RequestRecord.data.RequestID,this.RequestRecord.data.PartID));
 }
+
+
 </script>
