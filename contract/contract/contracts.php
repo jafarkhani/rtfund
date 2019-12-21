@@ -42,6 +42,9 @@ $col->width = 80;
 $col = $dg->addColumn("طرف قرارداد", "PersonFullname");
 $col->ellipsis = 60;
 
+$col = $dg->addColumn("مبلغ قرارداد", "ContractAmount");
+$col->ellipsis = 60; /*new added*/
+
 $col = $dg->addColumn("وضعیت", "StepDesc");
 
 $col = $dg->addColumn("", "TemplateID");

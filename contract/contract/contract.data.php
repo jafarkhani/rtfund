@@ -27,7 +27,12 @@ function SelectContracts() {
 		$where .= " AND ContractID=:c";
 		$params[":c"] = $_REQUEST["ContractID"];
 	}
-	
+    if(!empty($_REQUEST["ContractType"]))
+    {
+        $where .= " AND ContractType=:ct";
+        $params[":ct"] = $_REQUEST["ContractType"];
+    }
+
     $temp = CNT_contracts::Get(isset($_REQUEST["content"]), $where, $params, dataReader::makeOrder());
 	$res = PdoDataAccess::fetchAll($temp, $_GET['start'], $_GET['limit']);
 	
