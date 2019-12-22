@@ -1258,6 +1258,11 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 
 class LON_Computes extends PdoDataAccess{
 	
+	static function roundUp($number, $digits){
+		$factor = pow(10,$digits);
+		return ceil($number*$factor) / $factor;
+	}
+
 	static function SplitYears($startDate, $endDate, $TotalAmount){
 	
 		$startDate = DateModules::miladi_to_shamsi($startDate);
@@ -1496,7 +1501,7 @@ class LON_Computes extends PdoDataAccess{
 			if($i < count($installmentArray)-1)
 			{
 				$a = $installmentArray[$i]["InstallmentAmount"];
-				$installmentArray[$i]["InstallmentAmount"] = roundUp($a,-3);
+				$installmentArray[$i]["InstallmentAmount"] = LON_Computes::roundUp($a,-3);
 				$difference += $installmentArray[$i]["InstallmentAmount"] - $a;
 			}
 			else
@@ -2515,7 +2520,7 @@ class LON_installments extends PdoDataAccess{
 			$allPay = ComputeInstallmentAmount($TotalAmount,$partObj->InstallmentCount, $partObj->PayInterval);
 
 			if($partObj->InstallmentCount > 1)
-				$allPay = roundUp($allPay,-3);
+				$allPay = LON_Computes::roundUp($allPay,-3);
 			else
 				$allPay = round($allPay);
 
@@ -2894,13 +2899,13 @@ class LON_payments extends OperationClass{
 		return round($amount);	
 	}
 	
-	static function UpdateRealPayed($SourceObjects){
+	static function UpdateRealPayed($SourceObjects, $eventObj, $pdo){
 		
 		$ReqObj = new LON_payments((int)$SourceObjects[2]);
 		$ReqObj->RealPayedDate = PDONOW;
 		$ReqObj->Edit();
 		
-		LON_installments::ComputeInstallments($ReqObj->RequestID);
+		LON_installments::ComputeInstallments($ReqObj->RequestID, $pdo);
 		
 		return true;
 	}

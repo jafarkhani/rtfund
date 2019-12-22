@@ -52,7 +52,7 @@ $col->align = "center";
 
 $col = $dg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate", GridColumn::ColumnType_date);
 $col->width = 120;
-$col->renderer = "function(v,p,r){if(r.data.DocID*1 == 0)return '';  return v;}";
+$col->renderer = "function(v,p,r){if(r.data.DocID*1 == 0)return '';  return MiladiToShamsi(v);}";
 $col->align = "center";
 
 $col = $dg->addColumn("مبلغ پرداخت به مشتری", "PayAmount", GridColumn::ColumnType_money);
