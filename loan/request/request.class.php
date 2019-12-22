@@ -211,6 +211,46 @@ class LON_requests extends PdoDataAccess{
 	 	return true;
 	}
 	
+	static function ChangeStatus($RequestID, $StatusID, $StepComment = "", $LogOnly = false, $pdo = null, $UpdateOnly = false){
+	
+		if(empty($StatusID))
+			return true;
+		if(!$LogOnly)
+		{
+			$obj = new LON_requests();
+			$obj->RequestID = $RequestID;
+			$obj->StatusID = $StatusID;
+			if(!$obj->EditRequest($pdo , false))
+				return false;
+		}
+		if(!$UpdateOnly)
+		{
+			PdoDataAccess::runquery("insert into LON_ReqFlow(RequestID,PersonID,StatusID,ActDate,StepComment) 
+			values(?,?,?,now(),?)", array(
+				$RequestID,
+				$_SESSION["USER"]["PersonID"],
+				$StatusID,
+				$StepComment
+			), $pdo);
+		}
+		return ExceptionHandler::GetExceptionCount() == 0;
+	}
+	
+	static function EventTrigger_end($SourceObjects, $eventObj, $pdo){
+		
+		$ReqObj = new LON_requests((int)$SourceObjects[0]);
+		
+		$ReqObj->IsEnded = "YES";
+		$ReqObj->StatusID = LON_REQ_STATUS_ENDED;
+		if(!$ReqObj->EditRequest($pdo))
+		{
+			ExceptionHandler::PushException("خطا در تغییر درخواست");
+			return false;
+		}
+		return self::ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false, $pdo);	
+	}
+
+	
 	//-------------------------------------
 	static function ComputeWage($PartAmount, $CustomerWagePercent, $InstallmentCount, $IntervalType, $PayInterval){
 	
@@ -998,10 +1038,12 @@ class LON_requests extends PdoDataAccess{
 	 * @param type $TanzilCompute
 	 * @return boolean
 	 */
-	static function TotalAddedToBackPay($RequestID, $PartObj = null)
+	static function TotalAddedToBackPay($RequestID, $PartObj = null, $TotalAmount = 0)
 	{
 		$PartObj = $PartObj == null ? LON_ReqParts::GetValidPartObj($RequestID) : $PartObj;
 		/*@var $PartObj LON_ReqParts */
+		
+		$zarib = $TotalAmount/$PartObj->PartAmount;
 		
 		$amount = 0;
 		
@@ -1017,7 +1059,7 @@ class LON_requests extends PdoDataAccess{
 		if($PartObj->AgentReturn == "INSTALLMENT")
 			$amount += $result["AgentWage"];
 		
-		return round($amount);		
+		return round($amount*$zarib);		
 	}
 	
 	/**
@@ -2510,14 +2552,14 @@ class LON_installments extends PdoDataAccess{
 				}
 			}		
 		}
-		else
+		if($partObj->ComputeMode == "PERCENT")
 		{
 			PdoDataAccess::runquery("delete from LON_installments "
 				. "where RequestID=? AND history='NO' AND IsDelayed='NO'", array($RequestID));
 
-			//$TotalAmount = LON_requests::GetPurePayedAmount($RequestID) + LON_requests::TotalAddedToBackPay($RequestID);
 			$TotalAmount = LON_payments::GetTotalPureAmount($partObj->RequestID, $partObj);
-			$allPay = ComputeInstallmentAmount($TotalAmount,$partObj->InstallmentCount, $partObj->PayInterval);
+			$TotalAmount += LON_requests::TotalAddedToBackPay($partObj->RequestID, $partObj, $TotalAmount);
+			$allPay = $TotalAmount/$partObj->InstallmentCount;
 
 			if($partObj->InstallmentCount > 1)
 				$allPay = LON_Computes::roundUp($allPay,-3);

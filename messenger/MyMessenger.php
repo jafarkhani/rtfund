@@ -24,8 +24,7 @@ echo '<head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
       </head>';
 
 
-//echo "<font style = 'font-size:2rem' >"."سلام شبنم"."</font>" ;
-//die();
+
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "ManageGroup.data.php?task=SelectMyMessage", "DivGrid");
 
 $dg->addColumn("", "GID", "int", true);

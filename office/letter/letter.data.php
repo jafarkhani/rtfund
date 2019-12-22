@@ -618,7 +618,8 @@ function SendToList(){
 function SendLetter(){
 	
 	SaveLetter(false);
-	
+	$var = new OFC_send($_POST["SendID"]); /*new added*/
+	$sendType = $var->SendType; /*new added*/
 	$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
 	
@@ -627,6 +628,7 @@ function SendLetter(){
 		$obj = new OFC_send();
 		$obj->SendID = $_POST["SendID"];
 		$obj->IsSeen = "YES";
+		$obj->SendType = $sendType; /*new added*/
 		$obj->EditSend($pdo);
 	}
 	

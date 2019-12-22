@@ -128,7 +128,7 @@ define("SOURCETYPE_CONTRACT", "2");
 define("SOURCETYPE_PLAN", "3");
 define("SOURCETYPE_WARRENTY", "4");
 define("SOURCETYPE_FORM", "5");
-
+define("SOURCETYPE_Request", "6"); /*new added*/
 define("BLOCKID_LOAN","8");
 
 //------------- flowID baseinfo typeID=11 ---------------
@@ -220,7 +220,7 @@ define("EVENT_LOANDAILY_innerPenalty", 1726);
 define("EVENT_LOANDAILY_agentPenalty", 1727);
 
 define("EVENT_LOAN_CHANGE", 171);
-define("EVENT_LOAN_END", 172);
+define("EVENT_LOAN_END", 191);
 
 define("EVENT_LOANCHEQUE_payed", 1755);
 define("EVENT_LOANCHEQUE_innerSource", 1766);

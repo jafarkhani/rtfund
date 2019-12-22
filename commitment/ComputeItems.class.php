@@ -315,6 +315,54 @@ class EventComputeItems {
 			return $CostObj->CostAmount;
 	}
 	
+	static function LoanEnd($ItemID, $SourceObjects){
+		
+		$ReqObj = new LON_requests((int)$SourceObjects[0]);
+		
+		switch($ItemID){
+			
+			case 6 : // مبلغ تضمین
+				$dt =  array();
+				/*$dt = PdoDataAccess::runquery("select * from DMS_documents 
+					join BaseInfo b on(InfoID=DocType AND TypeID=8)
+					join ACC_DocItems on(SourceType=" . DOCTYPE_DOCUMENT . " AND SourceID1=DocumentID)
+					where IsConfirm='YES' AND b.param1=1 AND ObjectType='loan' AND ObjectID=?", 
+						array($ReqObj->RequestID));
+				 */
+				$returnArray = array();
+				if(count($dt) == 0)
+				{
+					$dt = PdoDataAccess::runquery("
+						SELECT d.DocumentID, dv.ParamValue, InfoDesc as DocTypeDesc,t.ParamValue as DocNo
+							FROM DMS_DocParamValues dv
+							join DMS_DocParams using(ParamID)
+							join DMS_documents d using(DocumentID)
+							join BaseInfo b on(InfoID=d.DocType AND TypeID=8)
+							left join (
+								select d.DocumentID,ParamValue
+								from DMS_DocParamValues join DMS_DocParams using(ParamID)
+								join DMS_documents d using(DocumentID)
+								where Keytitle='no' and ObjectType='loan'
+								group by DocumentID
+							) t on(d.DocumentID=t.DocumentID)
+
+						where IsConfirm='YES' AND b.param1=1 AND paramType='currencyfield' 
+						AND ObjectType='loan' AND ObjectID=?",
+						array($ReqObj->RequestID));
+
+					foreach($dt as $row)
+					{
+						$returnArray[] = array(
+							"amount" => $row["ParamValue"],
+							"param1" => $row["DocNo"],
+							"SourceID4" => $row["DocumentID"]);
+					}
+					return $returnArray;
+				}
+		}		
+		
+	}
+	
 	//--------------------------------------------------------
 	
 	static function Warrenty($ItemID, $SourceObjects){

@@ -61,6 +61,7 @@ class CNT_contracts extends OperationClass {
 				c.EndDate,
 				c.StatusID,
 				sp.StepID,
+				c.ContractAmount,
 				concat(if(fr.ActionType='REJECT','رد ',''),sp.StepDesc) StepDesc,
 				fr.ActionType," .
 				($content ? "c.content," : "") .
