@@ -68,7 +68,7 @@ function GetData(){
 		($userFields != "" ? "," . $userFields : "")."
 			from MTG_MeetingRecords mr 
 			join MTG_meetings m using(meetingID)
-			join BaseInfo b on(MeetingType=InfoID and TypeID=".TYPEID_MeetingType.")
+			join BaseInfo b on(m.MeetingType=InfoID and TypeID=".TYPEID_MeetingType.")
 			left join BSC_persons p using(PersonID)
 			where 1=1 " . $where ;
 	
