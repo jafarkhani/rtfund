@@ -23,6 +23,14 @@ if(count($dt) == 0)
 $ForView = isset($_POST["ForView"]) && $_POST["ForView"] == "true" ? true : false;
 $ReadOnly = isset($_REQUEST["ReadOnly"]) && $_REQUEST["ReadOnly"] == "true" ? true : false;
 
+/*New Create*/
+$IsCustomer=false;
+if($_SESSION["USER"]["IsCustomer"] == "YES" && $_SESSION["USER"]["IsAgent"] == "NO" && $_SESSION["USER"]["IsSupporter"] == "NO"
+    && $_SESSION["USER"]["IsShareholder"] == "NO" && $_SESSION["USER"]["IsStaff"] == "NO" && $_SESSION["USER"]["IsExpert"] == "NO" ){
+$IsCustomer=true;
+}
+/*END New Create*/
+
 $LetterObj = new OFC_letters($LetterID);
 //................. access secret control .........................
 if($LetterObj->AccessType == OFC_ACCESSTYPE_SECRET)
@@ -97,6 +105,7 @@ LetterInfo.prototype = {
 	LetterID : '<?= $LetterID ?>',
 	imagesList : <?= $imageslist ?>,
 	ReadOnly : <?= $ReadOnly ? "true" : "false" ?>,
+	IsCustomer : <?= $IsCustomer ? "true" : "false" ?>, /*New Create*/
 	DocumentID : <?= $DocumentID ?>,
 	
 	SendID : <?= !empty($_REQUEST["SendID"]) ? $_REQUEST["SendID"] : 0 ?>,
@@ -235,6 +244,7 @@ function LetterInfo(){
 			}
 		},{
 			title : "سابقه",
+			hidden : this.IsCustomer,
 			loader : {
 				url : this.address_prefix + "history.php",
 				method: "POST",

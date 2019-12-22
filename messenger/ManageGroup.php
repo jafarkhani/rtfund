@@ -43,10 +43,10 @@ $dg->addColumn("کد گروه","GID","",true);
 $col = $dg->addColumn("کد عضو","MID");
 $col->width = 70;
 
-$col = $dg->addColumn("نام ", "pfname", "string",true);
+$col = $dg->addColumn("نام ", "fname", "string",true);
 $col->renderer = "function(v){ return ' '; }" ;
 
-$col = $dg->addColumn("نام خانوادگی", "plname", "string",true);
+$col = $dg->addColumn("نام خانوادگی", "lname", "string",true);
 $col->renderer = "function(v){ return ' '; }" ;
 
 $col = $dg->addColumn("نام و نام خانوادگی عضو", "PersonID", "int");
@@ -137,10 +137,10 @@ $branchGrid = $dg->makeGrid_returnObjects();
 
 	var ManageGroupObject = new ManageGroup();
 </script>
-<center>
-
+<center>    
+    <div><div id='FormDIV' class="x-hidden" > </div></div>
+    <br><br>
 	<div id="div_dg"></div>
 	<br><br>
-	<div id="div_branch" ></div>
-
+	<div id="div_branch" ></div>   
 </center>

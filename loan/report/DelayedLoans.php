@@ -208,7 +208,7 @@ function GetData(){
 		$delayedInstallmentsCount = 0;
 		foreach($computeArr as $irow)
 		{
-			if($irow["type"] == "installment" && $irow["InstallmentID"]*1 > 0 && 
+			if($irow["type"] == "installment" && $irow["InstallmentID"]*1 > 0 && count($irow["pays"]) > 0 &&
 					$irow["pays"][ count($irow["pays"])-1 ]["remain"]*1 > $row["InstallmentAmount"]*$_POST["RemainPercent"]/100)
 			{
 				if($irow["RecordDate"] <= $ComputeDate && (count($irow["pays"]) == 0 || $irow["pays"][ count($irow["pays"])-1 ]["remain"]*1 > 0))

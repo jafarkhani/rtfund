@@ -103,7 +103,7 @@ WFM_MyRequests.prototype.AddNewRequest = function(RequestID, FormID){
 	if(!this.requestWin)
 	{
 		this.requestWin = new Ext.window.Window({
-			width : 740,
+			width : 1100,
 			height : 500,
 			autoScroll : true,
 			modal : true,

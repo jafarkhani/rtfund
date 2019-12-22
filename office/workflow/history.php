@@ -6,6 +6,7 @@
 
 require_once getenv("DOCUMENT_ROOT") . "/office/header.inc.php";
 require_once getenv("DOCUMENT_ROOT") . "/office/workflow/wfm.class.php";
+require_once getenv("DOCUMENT_ROOT") . "/office/workflow/form.class.php";
 require_once inc_component;
 
 if(!empty($_REQUEST["RowID"]))
@@ -18,6 +19,12 @@ else if(!empty($_REQUEST["FlowID"]) && !empty($_REQUEST["ObjectID"]))
 {
 	$FlowID = $_REQUEST["FlowID"];
 	$ObjectID = $_REQUEST["ObjectID"];
+}
+else if(!empty($_REQUEST["RequestID"]))
+{
+	$ReqObj = new WFM_requests($_REQUEST["RequestID"]);
+	$FlowID = $ReqObj->_FlowID;
+	$ObjectID = $ReqObj->RequestID;
 }
 else
 	die();

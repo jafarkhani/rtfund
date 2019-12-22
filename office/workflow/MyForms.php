@@ -247,7 +247,7 @@ MyForm.prototype.FormInfo = function(){
 	if(!this.FormInfoWindow)
 	{
 		this.FormInfoWindow = new Ext.window.Window({
-			width : 800,
+			width : 1100,
 			height : 660,
 			autoScroll : true,
 			modal : true,

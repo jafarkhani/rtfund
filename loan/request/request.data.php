@@ -135,7 +135,7 @@ function SaveLoanRequest(){
 		$obj->FundGuarantee = isset($_POST["FundGuarantee"]) ? "YES" : "NO";
 		$result = $obj->AddRequest();
 		if($result)
-			ChangeStatus($obj->RequestID,$obj->StatusID, "", true);
+			LON_requests::ChangeStatus($obj->RequestID,$obj->StatusID, "", true);
 		else
 		{
 			echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
@@ -155,7 +155,7 @@ function SaveLoanRequest(){
 	{
 		$result = $obj->EditRequest();
 		if($result)
-			ChangeStatus($obj->RequestID,$obj->StatusID, "", true);
+			LON_requests::ChangeStatus($obj->RequestID,$obj->StatusID, "", true);
 		else
 		{
 			echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
@@ -314,42 +314,17 @@ function DeleteRequest(){
 	die();
 }
 
-function ChangeStatus($RequestID, $StatusID, $StepComment = "", $LogOnly = false, $pdo = null, $UpdateOnly = false){
-	
-	if(empty($StatusID))
-		return true;
-	if(!$LogOnly)
-	{
-		$obj = new LON_requests();
-		$obj->RequestID = $RequestID;
-		$obj->StatusID = $StatusID;
-		if(!$obj->EditRequest($pdo , false))
-			return false;
-	}
-	if(!$UpdateOnly)
-	{
-		PdoDataAccess::runquery("insert into LON_ReqFlow(RequestID,PersonID,StatusID,ActDate,StepComment) 
-		values(?,?,?,now(),?)", array(
-			$RequestID,
-			$_SESSION["USER"]["PersonID"],
-			$StatusID,
-			$StepComment
-		), $pdo);
-	}
-	return ExceptionHandler::GetExceptionCount() == 0;
-}
-
 function ChangeRequestStatus(){
 	
 	if($_POST["StatusID"] == "11")
 	{
-		$result = ChangeStatus($_POST["RequestID"],$_POST["StatusID"],$_POST["StepComment"], true);
-		$result = ChangeStatus($_POST["RequestID"],1,$_POST["StepComment"], false, null, true);
+		$result = LON_requests::ChangeStatus($_POST["RequestID"],$_POST["StatusID"],$_POST["StepComment"], true);
+		$result = LON_requests::ChangeStatus($_POST["RequestID"],1,$_POST["StepComment"], false, null, true);
 		Response::createObjectiveResponse($result, "");
 		die();
 	}
 	
-	$result = ChangeStatus($_POST["RequestID"],$_POST["StatusID"],$_POST["StepComment"]);
+	$result = LON_requests::ChangeStatus($_POST["RequestID"],$_POST["StatusID"],$_POST["StepComment"]);
 	Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
 	die();
 }
@@ -522,7 +497,9 @@ function SavePart(){
 			}
 		}
 
-		$DiffDoc = RegisterDifferncePartsDoc($obj->RequestID, $obj->PartID, $pdo, $OldDocID);
+		$NewPartID = LON_ReqParts::GetValidPartObj($obj->RequestID);
+				
+		$DiffDoc = RegisterDifferncePartsDoc($obj->RequestID, $NewPartID, $pdo, $OldDocID);
 		if($DiffDoc == false)
 		{
 			$pdo->rollBack();
@@ -530,7 +507,7 @@ function SavePart(){
 			die();
 		}
 		$msg = "سند اختلاف با شماره " . $DiffDoc->LocalNo . " با موفقیت صادر گردید.";
-		LON_installments::ComputeInstallments($obj->RequestID, null, true);
+		LON_installments::ComputeInstallments($obj->RequestID, $pdo, true);
 	}
 	
 	//--------------------------------------------------------------------------
@@ -645,7 +622,7 @@ function EndRequest(){
 		echo Response::createObjectiveResponse(false, "خطا در تغییر درخواست");
 		die();
 	}
-	ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false, $pdo);		
+	LON_requests::ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false, $pdo);		
 	
 	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
@@ -685,21 +662,23 @@ function ReturnEndRequest(){
 	$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
 	
-	if(!ReturnEndRequestDoc($ReqObj, $pdo))
+	$LocalNo = ExecuteEvent::GetRegisteredDoc(EVENT_LOAN_END, array($ReqObj->RequestID));
+	if($LocalNo !== false)
 	{
-		$pdo->rollback();
-		echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+		echo Response::createObjectiveResponse(false, "تا زمانیکه سند خاتمه وام به شماره " . $LocalNo . 
+				" باطل نگردد قادر به برگشت خاتمه وام نمی باشید");
 		die();
 	}
 	
 	$ReqObj->IsEnded = "NO";
-	$ReqObj->StatusID = 70;
+	$ReqObj->StatusID = LON_REQ_STATUS_DEFRAY;
 	if(!$ReqObj->EditRequest($pdo))
 	{
 		$pdo->rollback();
 		echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 		die();
 	}
+	LON_requests::ChangeStatus($ReqObj->RequestID, $ReqObj->StatusID);
 	
 	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
@@ -730,7 +709,7 @@ function DefrayRequest(){
 		die();
 	}
 	
-	ChangeStatus($ReqObj->RequestID,LON_REQ_STATUS_DEFRAY,"", false, $pdo);
+	LON_requests::ChangeStatus($ReqObj->RequestID,LON_REQ_STATUS_DEFRAY,"", false, $pdo);
 	
 	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
@@ -1499,7 +1478,7 @@ function RegPayPartDoc($ReturnMode = false, $pdo = null){
 	$partobj = LON_ReqParts::GetValidPartObj($PayObj->RequestID);
 	$PersonObj = new BSC_persons($ReqObj->ReqPersonID);
 	
-	ChangeStatus($PayObj->RequestID, "80", "پرداخت مبلغ " . number_format($PayObj->PayAmount), true, $pdo);
+	LON_requests::ChangeStatus($PayObj->RequestID, "80", "پرداخت مبلغ " . number_format($PayObj->PayAmount), true, $pdo);
 	
 	if($partobj->MaxFundWage*1 > 0)
 		$partobj->MaxFundWage = round($partobj->MaxFundWage*$PayObj->PayAmount/$partobj->PartAmount);
@@ -1629,7 +1608,7 @@ function RetPayPartDoc($ReturnMode = false, $pdo = null){
 		die();
 	}
 	
-	ChangeStatus($PayObj->RequestID, "90", "", true, $pdo);
+	LON_requests::ChangeStatus($PayObj->RequestID, "90", "", true, $pdo);
 	
 	if($ReturnMode)
 		return true;

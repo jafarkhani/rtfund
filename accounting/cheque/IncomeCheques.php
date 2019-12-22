@@ -18,7 +18,7 @@ $dg->addColumn("", "IncomeChequeID", "", true);
 $dg->addColumn("", "BackPayID", "", true);  
 $dg->addColumn("", "ChequeStatus", "", true);
 $dg->addColumn("", "BankDesc", "", true);
-$dg->addColumn("", "ChequeBranch", "", true);
+$dg->addColumn("", "ChequeAccNo", "", true);
 $dg->addColumn("", "description", "", true);
 $dg->addColumn("", "EqualizationID", "", true);
 
@@ -452,7 +452,7 @@ IncomeCheque.HistoryRender = function(){
 IncomeCheque.ChequeNoRender = function(v,p,r){
 	
 	st = "بانک : <b>" + r.data.BankDesc + "</b><br>شعبه : <b>" + 
-		r.data.ChequeBranch + "</b><br>توضیحات : <b>" + r.data.description + "</b>";
+		r.data.ChequeBranch + "</b><br>شماره حساب چک : <b>" + r.data.ChequeAccNo + "</b><br>توضیحات : <b>" + r.data.description + "</b>";
 	p.tdAttr = "data-qtip='" + st + "'";
 	return v;
 }
@@ -495,7 +495,7 @@ function IncomeCheque(){
 	
 	this.ChequeInfoWin = new Ext.window.Window({
 		width : 900,
-		height : 370,
+		height : 400,
 		modal : true,
 		closeAction : "hide",
 		items : new Ext.form.Panel({
@@ -557,6 +557,11 @@ function IncomeCheque(){
 				xtype : "textfield",
 				name : "ChequeBranch",
 				fieldLabel : "شعبه"
+			},{
+				xtype : "textfield",
+				name : "ChequeAccNo",
+				colspan : 2,
+				fieldLabel : "شماره حساب چک"
 			},{
 				xtype : "textfield",
 				colspan : 2,
@@ -1100,7 +1105,7 @@ IncomeCheque.prototype.AddLoanCheque = function(){
 	{
 		this.LoanChequeWin = new Ext.window.Window({
 			width : 900,
-			height : 430,
+			height : 450,
 			modal : true,
 			closeAction : "hide",
 			items : new Ext.form.Panel({
@@ -1231,6 +1236,10 @@ IncomeCheque.prototype.AddLoanCheque = function(){
 					fieldLabel : "شعبه"
 				},{
 					xtype : "textfield",
+					name : "ChequeAccNo",
+					fieldLabel : "شماره حساب چک"
+				},{
+					xtype : "textfield",
 					width : 650,
 					name : "description",
 					fieldLabel : "توضیحات"
@@ -1250,6 +1259,7 @@ IncomeCheque.prototype.AddLoanCheque = function(){
 								ChequeNo : parent.down("[name=ChequeNo]").getValue(),
 								ChequeBank : parent.down("[name=ChequeBank]").getValue(),
 								ChequeBranch : parent.down("[name=ChequeBranch]").getValue(),
+								ChequeAccNo : parent.down("[name=ChequeAccNo]").getValue(),
 								description : parent.down("[name=description]").getValue()
 							});
 							
@@ -1311,6 +1321,7 @@ IncomeCheque.prototype.SaveLoanCheque = function(){
 			ChequeNo : record.data.ChequeNo,
 			ChequeBank : record.data.ChequeBank,
 			ChequeBranch : record.data.ChequeBranch,
+			ChequeAccNo : record.data.ChequeAccNo,
 			description : record.data.description
 		}));
 	});

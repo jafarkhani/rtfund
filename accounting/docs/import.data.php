@@ -1378,7 +1378,7 @@ function RegisterDifferncePartsDoc($RequestID, $NewPartID, $pdo, $DocID=""){
 		":reqId" => $process->ReqObj->RequestID
 	), $process->pdo);
 	
-	ACC_docs::Remove($process->DocObj->DocID, $pdo);
+	//ACC_docs::Remove($process->DocObj->DocID, $pdo);
 	
 	return $obj;
 }
@@ -4204,7 +4204,7 @@ function RegisterPaySalaryDoc($PObj, $pdo){
 		return false;
 	}
 	//----------------------- add bank row -----------------------
-	$CostCode_bank = FindCostID("101");
+	$CostCode_bank = FindCostID("1010101");
 	$ParkCostID = COSTID_BRANCH_PARK;
 	$FerdowsiCostID = COSTID_BRANCH_UM;
 		

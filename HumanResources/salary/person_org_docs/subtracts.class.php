@@ -103,13 +103,12 @@ class manage_subtracts extends PdoDataAccess
 
 	static function Remove($subtract_id)
 	{
-		$dt = PdoDataAccess::runquery("select * from payment_items where param1 in('LOAN','FIX_FRACTION','FIX_BENEFIT') AND param2 = ?", array($subtract_id));
+        
+		$dt = PdoDataAccess::runquery("select * from HRM_payment_items where param1 in('LOAN','FIX_FRACTION','FIX_BENEFIT') AND param2 = ?", array($subtract_id));
 		if(count($dt) > 0)
 			return false;
-		
-		parent::delete("person_subtract_flows", "subtract_id=:sid ", array(":sid" => $subtract_id));
-		
-		$result = parent::delete("person_subtracts", "subtract_id=:sid ", array(":sid" => $subtract_id));
+				
+		$result = parent::delete("HRM_person_subtracts", "subtract_id=:sid ", array(":sid" => $subtract_id));
 
 		if($result === false)
 			return false;
@@ -117,7 +116,7 @@ class manage_subtracts extends PdoDataAccess
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_delete;		
 		$daObj->MainObjectID = $subtract_id;
-		$daObj->TableName = "person_subtracts";
+		$daObj->TableName = "HRM_person_subtracts";
 		$daObj->execute(); 
 		return true;
 	}

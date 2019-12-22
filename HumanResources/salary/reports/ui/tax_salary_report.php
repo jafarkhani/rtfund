@@ -402,11 +402,13 @@ if (isset($_REQUEST["show"])) {
         list($cyear, $cmonth, $cday) = preg_split('/[\/]/', $_POST["check_date"]);
 
         list($tyear, $tmonth, $tday) = preg_split('/[\/]/', $_POST["check_date"]);
-
+        
+        $account_no = ( !empty($_POST["account_no"]) ? $_POST["account_no"] : 0 ) ; 
+        $PayVal = ( !empty($_POST["PayVal"]) ? $_POST["PayVal"] : 0 ) ; 
+        
         $SRec = $_POST["pay_year"] . "," . str_pad($_POST["pay_month"], 2, "0", STR_PAD_LEFT) . "," . $Sitem_9 . ",0," . $eyear . "" . $emonth . "" . $eday . ",7," .
-                $_POST["check-serial"] . "," . $cyear . "" . $cmonth . "" . $cday . "," . $_POST["BankCode"] . "," . $_POST["BankTitle"] . "," . $_POST["account_no"] . "," .
+                $_POST["check-serial"] . "," . $cyear . "" . $cmonth . "" . $cday . "," . $_POST["BankCode"] . "," . $_POST["BankTitle"] . "," . $account_no . "," .
                 $_POST["PayVal"] . "," . $tyear . "" . $tmonth . "" . $tday . "," . $_POST["TreasurPayVal"];
-
 
         $file = "WK" . $_POST["pay_year"] . str_pad($_POST["pay_month"], 2, "0", STR_PAD_LEFT) . ".TXT";
         //$filename = "/mystorage/attachments/sadaf/HRProcess/".$file ;
@@ -446,7 +448,7 @@ if (isset($_REQUEST["show"])) {
 
         die();
     } else {
-        //echo "WH"; die();
+      
         $file = "WH" . $_POST["pay_year"] . str_pad($_POST["pay_month"], 2, "0", STR_PAD_LEFT) . ".TXT";
         //$filename = "/mystorage/attachments/sadaf/HRProcess/".$file ;
         $filename = "../../../tempDir/" . $file;

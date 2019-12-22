@@ -16,6 +16,7 @@ if(isset($_REQUEST["task"]))
 	switch ($_REQUEST["task"])
 	{
 		case "selectPersons":
+		case "selectPersonsAndGroups":
 		case "selectSignerPersons":
 		case "selectPendingPersons":
 		case "SavePerson":
@@ -123,6 +124,35 @@ function selectPersons(){
 	}
 	
 	echo dataReader::getJsonData($temp, $no, $_GET["callback"]);
+	die();
+}
+
+function selectPersonsAndGroups(){
+	
+	$param = array();
+	$where = "";
+	if (isset($_REQUEST['query'])) 
+	{
+		$field = isset($_REQUEST['fields']) ? $_REQUEST['fields'] : "name";
+        $where = ' and ' . $field . ' like :fld';
+		$param[':fld'] = '%' . $_REQUEST['query'] . '%';
+    }
+	
+	$query = "
+		select * from (
+			select 'Person' type, concat('p_',PersonID)  id, concat_ws(' ',fname,lname,CompanyName) name
+			from BSC_persons where IsStaff='YES' AND IsActive='YES'				
+			
+			union All 
+			
+				select 'Group' type, concat('g_',GroupID) id, GroupDesc name
+				from FRW_AccessGroups
+			)t
+		where 1=1".$where."
+		order by type,name";
+	
+	$dt = PdoDataAccess::runquery($query, $param);
+	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
 	die();
 }
 

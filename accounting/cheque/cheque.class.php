@@ -21,6 +21,7 @@ class ACC_IncomeCheques extends OperationClass{
 	public $ChequeAmount;
 	public $ChequeBank;
 	public $ChequeBranch;
+	public $ChequeAccNo;
 	public $ChequeStatus;
 	public $description;
 	public $EqualizationID;

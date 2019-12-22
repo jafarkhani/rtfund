@@ -17,9 +17,10 @@ $dg = new sadaf_datagrid("dg", $js_prefix_address . "form.data.php?task=GetFormP
 
 $dg->addColumn("", "RowID", "", true);
 $dg->addColumn("", "FormID", "", true);
+$dg->addColumn("", "GroupID", "", true);
 $dg->addColumn("", "fullname", "", true);
 
-$col = $dg->addColumn("نام و نام خانوادگی", "PersonID", "");
+$col = $dg->addColumn("نام و نام خانوادگی / گروه کاربری", "PersonID", "");
 $col->renderer="function(v,p,r){return r.data.fullname;}";
 $col->editor = "this.PersonCombo";
 
@@ -73,20 +74,44 @@ function WFM_FormPersons(){
 		store: new Ext.data.Store({
 			proxy:{
 				type: 'jsonp',
-				url: '/framework/person/persons.data.php?task=selectPersons',
+				url: '/framework/person/persons.data.php?task=selectPersonsAndGroups',
 				reader: {root: 'rows',totalProperty: 'totalCount'}
 			},
-			fields :  ['PersonID','fullname']
+			fields :  ['type','id','name'],
+			pageSize : 25
 		}),
+		pageSize : 25,
+		tpl : new Ext.XTemplate(
+			'<tpl for=".">',
+				'<tpl if="type == \'Group\'">',
+					'<div class="x-boundlist-item" style="background-color:#fcfcb6">{name}</div>',
+				'<tpl else>',
+					'<div class="x-boundlist-item">{name}</div>',
+				'</tpl>',						
+			'</tpl>'
+		),
 		fieldLabel : "کاربر",
-		displayField: 'fullname',
-		valueField : "PersonID",
+		displayField: 'name',
+		valueField : "id",
 		hiddenName : "PersonID",
 		width : 400,
 		itemId : "PersonID"
 	});
 	
 	this.grid = <?= $grid ?>;
+	this.grid.getView().getRowClass = function(record, index)
+	{
+		if(record.data.GroupID*1 > 0 )
+			return "yellowRow";
+		
+		return "";
+	}	
+	this.grid.plugins[0].on("beforeedit",function(rowEditor,e){
+	
+	var record = WFM_FormPersonsObject.grid.getStore().getAt(e.rowIdx);
+	if(record.data.RowID*1 > 0)
+		return false;
+});
 	this.grid.render(this.get("grid_div"));
 }
 

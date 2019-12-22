@@ -524,11 +524,11 @@ function MoveItem(){
 function SelectValidForms($returnMode = false){
 	
 	$dt = PdoDataAccess::runquery("
-		select f.FormID,f.FormTitle from WFM_forms f
+		select f.FormID,f.FormTitle , fp.*
+		from WFM_forms f
 		left join WFM_FormPersons fp on(fp.FormID=f.FormID)
-		join BSC_persons p on(
-			case when fp.FormID is not null then fp.PersonID=:pid AND p.PersonID=fp.PersonID
-			else
+		left join (select GroupID from FRW_AccessGroupList where PersonID=:pid)fg on(fg.GroupID=fp.GroupID)
+		left join BSC_persons p on(
 				p.PersonID=:pid AND (
 					if(f.IsStaff='YES',f.IsStaff=p.IsStaff,1=0) OR
 					if(f.IsCustomer='YES',f.IsCustomer=p.IsCustomer,1=0) OR
@@ -536,8 +536,8 @@ function SelectValidForms($returnMode = false){
 					if(f.IsAgent='YES',f.IsAgent=p.IsAgent,1=0) OR
 					if(f.IsSupporter='YES',f.IsSupporter=p.IsSupporter,1=0) OR
 					if(f.IsExpert='YES',f.IsExpert=p.IsExpert,1=0) ) 
-			end)
-		where f.IsActive='YES'
+			)
+		where f.IsActive='YES' AND if(fp.FormID is null, p.PersonID>0, fp.PersonID=:pid or fg.GroupID>0)
 		group by f.FormID
 		", array(":pid" => $_SESSION["USER"]["PersonID"]));
 	if($returnMode)
@@ -810,6 +810,18 @@ function SaveFormPerson(){
 	
 	$obj = new WFM_FormPersons();
 	PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
+	
+	if(substr($obj->PersonID,0,1) == "g")
+	{
+		$obj->GroupID = substr($obj->PersonID,2);
+		$obj->PersonID = 0;
+	}
+	else
+	{
+		$obj->GroupID = 0;
+		$obj->PersonID = substr($obj->PersonID,2);
+	}
+	
 	$result = $obj->Add();
 	echo Response::createObjectiveResponse($result, "");
 	die();

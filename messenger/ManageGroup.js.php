@@ -15,7 +15,95 @@ ManageGroup.prototype = {
 
 function ManageGroup()
 {
-	
+	this.formPanel = new Ext.form.Panel({
+            
+            applyTo: this.get("FormDIV"),
+            width: 450,            
+            title: "فرم ایجاد گروه",
+            frame: true,
+            bodyPadding: '0 0 0',
+            collapsible: false,
+            fieldDefaults: {labelWidth: 100},
+            layout: {
+                type: "table",
+                columns: 2,
+            },
+            items: [
+                {
+                    xtype: "textfield",
+                    name: "GroupTitle",
+                    itemId: "GroupTitle",                                 
+                    fieldLabel: 'عنوان گروه',
+                    allowBlank: false,
+                    colspan:2,
+                    width:400
+                },
+                {
+                    xtype: "filefield",
+                    name: "FileType",
+                    fieldLabel: "پیوست فایل",                    
+                    itemId: 'FileType',
+                    width: 400,                   
+                    colspan:2
+                },
+                {
+                    xtype: "container",
+                    items: [
+                        {
+                            xtype: "button",
+                            iconCls: "down",
+                            itemId: "DownPic",
+                            width: 10,
+                            handler: function () {
+                                var GID = ManageGroupObject.grid.getSelectionModel().getLastSelected().data.GID;
+                                window.open("/messenger/ShowFile.php?source=GrpPic&GID=" + GID );
+                            }
+                        }
+                    ]
+                },
+                {
+                    xtype: "hidden",
+                    name: "GID",
+                    itemId: "GID"
+                }],
+            buttons: [{
+                    text: "ذخیره",
+                    iconCls: "save",
+                    handler: function () {
+                              
+                             ManageGroupObject.formPanel.getForm().submit({
+                                    clientValidation: true,
+                                    url:  ManageGroupObject.address_prefix + 'ManageGroup.data.php?task=SaveGrp&' + ManageGroupObject.GID ,
+                                    method : "POST",                                   
+                                    params: {
+                                            GID: ManageGroupObject.GID
+                                    },
+                                    success : function(form,action){
+                                            if(action.result.success)
+                                            {
+                                                ManageGroupObject.formPanel.hide();
+                                                ManageGroupObject.grid.getStore().load();
+                                            }
+                                            else
+                                            {
+                                                    alert(action.result.data);
+                                            }
+                                    }
+                            });
+
+                            ManageGroupObject.formPanel.hide();
+                    }
+                }, {
+                    text: "انصراف",
+                    iconCls: "undo",
+                    handler: function () {
+                       ManageGroupObject.formPanel.hide();
+                    }
+                }]
+        });
+        this.formPanel.hide();
+        this.formPanel.down('[itemId=DownPic]').hide();
+        
 	this.afterLoad();
 }
 
@@ -24,10 +112,13 @@ ManageGroup.opRender = function(value, p, record)
     
     return   "<div  title='حذف اطلاعات' class='remove' onclick='ManageGroupObject.deleteGrp();' " +
 			 "style='float:left;background-repeat:no-repeat;background-position:center;" +
-			 "cursor:pointer;width:50%;height:16'></div>" +
+			 "cursor:pointer;width:40%;height:16'></div>" +
+             "<div  title='ویرایش' class='edit' onclick='ManageGroupObject.EditGrp();' " +
+			 "style='float:left;background-repeat:no-repeat;background-position:center;" +
+			 "cursor:pointer;width:30%;height:16'></div>" +
              "<div  title='مشاهده' class='view' onclick='ManageGroupObject.ShowMember();' " +
 			 "style='float:left;background-repeat:no-repeat;background-position:center;" +
-			 "cursor:pointer;width:50%;height:16'></div>"    ;
+			 "cursor:pointer;width:30%;height:16'></div>"    ;
 }
 
 ManageGroup.opDelRender = function(value, p, record)
@@ -40,19 +131,20 @@ ManageGroup.opDelRender = function(value, p, record)
 
 
 ManageGroup.prototype.AddGrp = function()
-{
-    var modelClass = this.grid.getStore().model;
-	var record = new modelClass({
-		GID: "",
-		GroupTitle: null
-
-	});
-	this.grid.plugins[0].cancelEdit();
-	this.grid.getStore().insert(0, record);
-	this.grid.plugins[0].startEdit(0, 0);
-    
+{    
+    this.formPanel.show();    
 }
 
+ManageGroup.prototype.EditGrp = function()
+{    
+    this.formPanel.show();
+    var record = this.grid.getSelectionModel().getLastSelected();
+    ManageGroupObject.formPanel.down("[itemId=GID]").setValue(record.data.GID);
+    ManageGroupObject.formPanel.down("[itemId=GroupTitle]").setValue(record.data.GroupTitle);
+    this.formPanel.down('[itemId=DownPic]').show();
+    
+}
+/*
 ManageGroup.prototype.SaveGrp = function(store,record)
 {
 	mask = new Ext.LoadMask(Ext.getCmp(this.TabID), {msg:'در حال ذخیره سازی ...'});
@@ -80,7 +172,7 @@ ManageGroup.prototype.SaveGrp = function(store,record)
 		failure: function(){}
 	});
 }
-
+*/
 ManageGroup.prototype.AddMember = function()
 {
     var modelClass = this.branchGrid.getStore().model;
@@ -159,6 +251,7 @@ ManageGroup.prototype.deleteGrp = function()
 
 ManageGroup.prototype.ShowMember = function()
 {
+    this.formPanel.hide();
 	var record = this.grid.getSelectionModel().getLastSelected();
     this.grid.collapse();
     

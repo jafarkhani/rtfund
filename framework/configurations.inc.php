@@ -11,7 +11,7 @@ class sys_config{
 			"database" => "krrtfir_rtfundold",
 			//"database" => "framewor_rtfund",
 	        "user"     => "root",
-	        "pass"     => "1297"
+	        "pass"     => "bahar"
 	 );
 }
 

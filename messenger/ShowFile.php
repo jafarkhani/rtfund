@@ -15,7 +15,7 @@ switch($_GET["source"])
             //.................. secure section .....................
             InputValidation::validate($_REQUEST["GID"], InputValidation::Pattern_Num);         
             //.......................................................
-			$obj = new manage_msg_group((int)$_REQUEST['GID']);
+			$obj = new manage_MSG_group((int)$_REQUEST['GID']);
          
 			$fileName = GRPPIC_DIRECTORY . $obj->GID . "." . $obj->FileType;
 			$fileType = $obj->FileType;
@@ -23,6 +23,48 @@ switch($_GET["source"])
 		}
 		
 		break;
+        
+    case "FileMsg":
+		if(!empty($_REQUEST["MSGID"]))
+		{            
+            //.................. secure section .....................
+            InputValidation::validate($_REQUEST["MSGID"], InputValidation::Pattern_Num);         
+            //.......................................................
+			$obj = new manage_MSG_messages((int)$_REQUEST['MSGID']);
+         
+			$fileName = GRPMSGPIC_DIRECTORY . $obj->MSGID . "." . $obj->FileType;
+			$fileType = $obj->FileType;                        
+		}
+        
+        break;
+        
+    case "ShowIcn":
+		if(!empty($_REQUEST["MSGID"]))
+		{     
+            //.................. secure section .....................
+            InputValidation::validate($_REQUEST["MSGID"], InputValidation::Pattern_Num);         
+            //.......................................................
+			$obj = new manage_MSG_messages((int)$_REQUEST['MSGID']);
+            if( $obj->FileType == 'pdf' || $obj->FileType == 'PDF' ) 
+            {                   
+                $fileName = GRPPIC_DIRECTORY . "pdf.png";
+                $fileType = "png"; 
+            }
+            elseif(in_array($obj->FileType, array("jpg", "jpeg", "gif", "png", "JPG", "JPEG", "GIF", "PNG"))) 
+            {                   
+                $fileName = GRPMSGPIC_DIRECTORY . $obj->MSGID . "." . $obj->FileType;
+                $fileType = $obj->FileType;
+            }
+            else 
+            {
+               $fileName = GRPPIC_DIRECTORY . "docx.png";
+                $fileType = "png";
+            }
+            
+		}       
+		
+		break;
+        
 }
 
 if (file_exists($fileName)) {

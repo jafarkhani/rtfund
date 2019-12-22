@@ -128,8 +128,7 @@ var ViewWritObject = new ViewWrit();
 
 WritForm.prototype = {
 
-	parent : "",
-	
+	parent : "",	
 	prevItemsGrid : "",
 	curItemsGrid : "",
 	writ_id : "",

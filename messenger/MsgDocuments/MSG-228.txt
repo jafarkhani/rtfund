@@ -1,0 +1,10 @@
+﻿CREATE TABLE `ease`.`RGL_comments` (
+  `CID` INTEGER NOT NULL AUTO_INCREMENT COMMENT 'شناسه رکورد',
+  `RuleID` VARCHAR(45) NOT NULL COMMENT 'کد آیین نامه',
+  `PersonID ` VARCHAR(45) NOT NULL COMMENT 'کد شخص',
+  `PersonType` ENUM('STAFF','PROF','STU') NOT NULL COMMENT 'نوع شخص',
+  `comments` VARCHAR(1000) NOT NULL COMMENT 'توضیحات',
+  PRIMARY KEY (`CID`)
+)
+ENGINE = InnoDB
+COMMENT = 'نظرات کاربران';

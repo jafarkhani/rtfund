@@ -67,7 +67,7 @@ function WFM_NewRequest() {
 		width: 700,
 		autoHeight : true,
 		minHeight : 200,
-		renderTo: this.get("SelectTplComboDIV"),
+		renderTo: this.get("FormDIV"),
 		items: [{
 			xtype: "container",
 			itemId: "FormItems",
@@ -102,20 +102,26 @@ function WFM_NewRequest() {
 			iconCls: "print"
 		}]
 	});
-	
-	this.historyDiv = new Ext.form.Panel({
-		plain: true,            
-		frame: false,
-		border : false,
-		width: 200,
-		autoHeight : true,
-		minHeight : 200,
-		renderTo: this.get("historyDiv"),
-		loader : {
-			url : this.address_prefix + "history.php?RequestID=" + this.RequestID,
-			scripts : true
-		}
-	});
+	if(this.RequestID != "")
+	{
+		this.historyDiv = new Ext.form.Panel({
+			plain: true,            
+			title : "سابقه گردش فرم",
+			width: 300,
+			autoHeight : true,
+			autoScroll : true,
+			minHeight : 400,
+			renderTo: this.get("historyDiv"),
+			loader : {
+				url : this.address_prefix + "history.php?RequestID=" + this.RequestID,
+				scripts : true,
+				autoLoad : true,
+				callback : function(){
+					WFM_NewRequestObj.historyDiv.doLayout();
+				}
+			}
+		});
+	}
 	
 	this.FormItemsStore = new Ext.data.Store({
 		fields: ['FormItemID',"GroupID","GroupDesc","FormID", 'ItemName',
@@ -794,7 +800,7 @@ WFM_NewRequest.prototype.ShowTplItemsForm = function () {
 </script>
 <br>
 <center>
-    <div id="SelectTplComboDIV" style="float:right;width:700px"></div>
-	<div id="historyDiv" style="float:left;width:200px"></div>
+    <div id="FormDIV" style="float:right;width:600px"></div>
+	<div id="historyDiv" style="float:left;width:300px"></div>
 </center>
 <br>

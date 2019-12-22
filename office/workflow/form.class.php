@@ -151,11 +151,14 @@ class WFM_FormPersons extends OperationClass {
 	public $RowID;
 	public $FormID;
 	public $PersonID;
+	public $GroupID;
 	
 	static function Get($where = '', $whereParams = array(), $pdo = null) {
 		
-		return parent::runquery_fetchMode("select fp.*, concat_ws(' ',fname,lname,CompanyName) fullname 
-			from WFM_FormPersons fp join BSC_persons p using(PersonID)
+		return parent::runquery_fetchMode("select fp.*, concat_ws(' ',fname,lname,CompanyName,GroupDesc) fullname 
+			from WFM_FormPersons fp 
+			left join BSC_persons p using(PersonID)
+			left join FRW_AccessGroups g using(GroupID)
 			where 1=1 " . $where, $whereParams);
 	}
 }

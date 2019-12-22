@@ -618,7 +618,8 @@ function SendToList(){
 function SendLetter(){
 	
 	SaveLetter(false);
-	
+	$var = new OFC_send($_POST["SendID"]); /*new added*/
+	$sendType = $var->SendType; /*new added*/
 	$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
 	
@@ -627,6 +628,7 @@ function SendLetter(){
 		$obj = new OFC_send();
 		$obj->SendID = $_POST["SendID"];
 		$obj->IsSeen = "YES";
+		$obj->SendType = $sendType; /*new added*/
 		$obj->EditSend($pdo);
 	}
 	
@@ -1059,7 +1061,7 @@ function SendToMessageList(){
 	$param = array(":q" => "%" . $_REQUEST["query"] . "%");
 	
 	$query = "select 'Person' type, concat('p_',PersonID)  id, concat_ws(' ',fname,lname,CompanyName) name
-			from BSC_persons where IsStaff='YES'				
+			from BSC_persons where IsStaff='YES' AND IsActive='YES'				
 			
 			union All 
 			

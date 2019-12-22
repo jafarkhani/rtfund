@@ -446,7 +446,7 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 					handler : function(){
 						framework.OpenPage('../framework/calendar.php','تقویم');
 					}	
-				}/*,{
+				},{
 					xtype : "button",
 					tooltip : "پیام رسان",
 					scale: 'large',
@@ -455,7 +455,7 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 					handler : function(){						
                         window.open('../messenger/MyMessenger.php',"_blank");                      
 					}	
-				}*/]
+				}]
 				
 			},{
 				xtype : "container",

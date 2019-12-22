@@ -9,7 +9,7 @@ require_once getenv("DOCUMENT_ROOT") . '/attendance/traffic/traffic.class.php';
 
 if (isset($_GET['showRes']) && $_GET['showRes'] == 1) { 
     
-    $CurrentYear =   DateModules::GetYear($_POST['ToDate']) ; 
+    $CurrentYear = DateModules::GetYear($_POST['ToDate']) ; 
     $TD = DateModules::Shamsi_to_Miladi($_POST['ToDate']);
     $SD = DateModules::Shamsi_to_Miladi($CurrentYear.'/01/01');
     
@@ -147,19 +147,18 @@ if (isset($_GET['showRes']) && $_GET['showRes'] == 1) {
 			<th>غیبت روزانه</th>
 			 </tr>';
     $TotalHours = 0 ; 
-    $TotalSecond = 0 ; 
+    $TotalMinute = 0 ; 
 	for ($i = 0; $i < count($dataTable); $i++) {
         
         $TotalHours = 0 ; 
-        $TotalSecond = 0 ; 
-        print_r($dataTable[$i]['Off']) ;
-        echo "-----------" ;
-        die();
+        $TotalMinute = 0 ; 
+              
+        $TotalHours = $dataTable[$i]['Off'][0] + $dataTable[$i]['firstAbsence'][0] + $dataTable[$i]['lastAbsence'][0] + $dataTable[$i]['absence'][0] ; 
+        $TotalMinute = $dataTable[$i]['Off'][1] + $dataTable[$i]['firstAbsence'][1] + $dataTable[$i]['lastAbsence'][1] + $dataTable[$i]['absence'][1] ; 
         
-        preg_split(':', $dataTable[$i]['Off']);
-        $TotalHours = 0 ; 
-        $TotalSecond = 0 ; 
-
+        $TM = ( $TotalHours * 60 ) + $TotalMinute ; 
+        $TD = round(($TM / 450),2) ; 
+       
 		echo " <tr>					
 					<td>" . $dataTable[$i]['staff_id'] . "</td> 
 					<td>" . $dataTable[$i]['pfname'] . "</td>	
@@ -168,9 +167,9 @@ if (isset($_GET['showRes']) && $_GET['showRes'] == 1) {
 					<td>" . DateModules::miladi_to_shamsi($dataTable[$i]["lastDate"]) . "</td>	 
 					<td>" . $dataTable[$i]["AllowedLeave"] . "</td>	
 					<td>" . $dataTable[$i]["DailyOff_2"] . "</td>	
-					<td>" . ($dataTable[$i]["AllowedLeave"] - $dataTable[$i]["DailyOff_2"] - $dataTable[$i]['DailyAbsence']  )  . "</td>	
+					<td>" . ($dataTable[$i]["AllowedLeave"] - $dataTable[$i]["DailyOff_2"] - $dataTable[$i]['DailyAbsence'] - $TD  )  . "</td>	
 					<td>" . number_format(( $dataTable[$i]['sv'] ), 0, '.', ',') . "</td>
-					<td>" . number_format(( ($dataTable[$i]['sv'] / 30 ) * ($dataTable[$i]["AllowedLeave"] - $dataTable[$i]["UsedLeave"]  ) ), 0, '.', ',') . "</td>
+					<td>" . number_format(( ($dataTable[$i]['sv'] / 30 ) * ($dataTable[$i]["AllowedLeave"] - $dataTable[$i]["DailyOff_2"] - $dataTable[$i]['DailyAbsence'] - $TD   ) ), 0, '.', ',') . "</td>
 					
 					<td>" . TimeModules::ShowTime($dataTable[$i]['Off']) . "</td>
 					<td>" . TimeModules::ShowTime($dataTable[$i]['firstAbsence']) . "</td>
