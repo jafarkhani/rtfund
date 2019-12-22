@@ -85,7 +85,7 @@ function GetData(){
 	}
 	return $dataTable;
 }
-	
+	/**/
 function ListDate($IsDashboard = false){
 	
 	$rpg = new ReportGenerator();
