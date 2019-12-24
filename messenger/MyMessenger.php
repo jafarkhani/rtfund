@@ -6,9 +6,11 @@ require_once '../header.inc.php';
 require_once inc_dataGrid;
        
 echo '<head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>			
-        
-        <link rel="stylesheet" type="text/css" href="/generalUI/ext4/resources/css/ext-rtl-mobile.css?v=1" />
-        <link rel="stylesheet" type="text/css" href="/generalUI/ext4/resources/css/ext-all-mobile.css?v=1" />
+        <script type="text/javascript" src="/generalUI/ext5/packages/ext-theme-neptune-touch/build/ext-theme-neptune-touch.js"></script>
+        <script type="text/javascript" src="/generalUI/ext5/ext-all-rtl.js"></script>	
+        <link rel="stylesheet" type="text/css" href="/generalUI/ext5/packages/ext-theme-neptune-touch/build/resources/ext-theme-neptune-touch-all-rtl-debug.css" />
+      
+
         <link rel="stylesheet" type="text/css" href="/generalUI/icons/icons.css?v=1" />
         <script type="text/javascript" src="/generalUI/ext4/resources/ext-all.js?v=1"></script>
         <script type="text/javascript" src="/generalUI/ext4/resources/ext-extend.js?v=1"></script>
@@ -36,9 +38,6 @@ $col->renderer = "MyMessenger.GroupTitleRender";
 
 $dg->emptyTextOfHiddenColumns = true;
 $dg->autoExpandColumn = "TM";
-$dg->DefaultSortField = "TM";
-$dg->DefaultSortDir = "DESC";
-//$dg->width = 600;
 $dg->EnablePaging = false;
 $dg->HeaderMenu = false;
 $dg->EnableSearch = false;
@@ -217,9 +216,10 @@ $grid = $dg->makeGrid_returnObjects();
                 trackOver: false,
                 loadMask: false
             },
-            columns: [{menuDisabled: true,
+            columns: [
+               /* {   menuDisabled: true,
                     align: 'center',
-                    header: '',
+                    header: '', 
                     dataIndex: 'MSGID',
                     emptyText: '',
                     hidden: true},
@@ -264,7 +264,7 @@ $grid = $dg->makeGrid_returnObjects();
                     header: '',
                     dataIndex: 'SendingDate',
                     emptyText: '',
-                    hidden: true},
+                    hidden: true}, */
                 {menuDisabled: true,
                     header: '',
                     dataIndex: 'message',
@@ -317,7 +317,7 @@ $grid = $dg->makeGrid_returnObjects();
 
         this.newItemPanel = new Ext.Panel({
             renderTo: this.get("mainpanel"),
-            title: "لیست پیغام",
+            //title: "لیست پیغام",
             autoHeight: true,
             // width: 620,
             height: 720,
@@ -328,8 +328,7 @@ $grid = $dg->makeGrid_returnObjects();
                     dock: 'top',
                     items: [{
                             xtype: 'button',
-                            text: '&nbsp;',
-                            iconCls: "search",
+                            iconCls: 'search',
                             handler:
                                     function ()
                                     {
@@ -611,8 +610,8 @@ $grid = $dg->makeGrid_returnObjects();
                 start: 0,
                 limit: 10,
                 callback: function () {                    
-                    store.guaranteeRange(0,5); 
-                    //store.load();
+                  //  store.guaranteeRange(0,5); 
+                    store.load();
                    // MyMessengerObject.grid2.getView().scrollBy(0, 999999, true);
                     //if (MyMessengerObject.IsFirstLoad === false) {                        
                         /*

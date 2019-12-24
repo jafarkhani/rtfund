@@ -93,8 +93,7 @@ class manage_payment_cancel extends PdoDataAccess
 	    						  '((pit.staff_id IS NOT NULL AND '.$this->where_clause.') OR '.
 	    						  '('.$this->writ_where.'))' .$this->__WHERE ,$this->__WHEREPARAM ); 
 	    						  
-	    						  
-                        
+	    			
 		parent::runquery('ALTER TABLE temp_cancel_limit_staff ADD INDEX(staff_id);');
 		
 		$this->end_date =  DateModules::shamsi_to_miladi($this->year.'/'.$this->month.'/'.DateModules::DaysOfMonth($this->year, $this->month)) ;  

@@ -756,19 +756,40 @@ $Remainder = $this->subRow['receipt'] ;
 			'payment_type' => NORMAL,
 			'param1' => $this->sum_tax_include);
 			return true;
-		}
-		
+		}        
 		/*اين فرد مشمول ماليات نمي باشد*/
 		if(empty($this->staffRow['tax_include'])) {
 			return ;
 		}
-			
+            
 		/*قلم حقوقي ماليات معتبر نبوده است*/
 		if( !$this->validate_salary_item_id($this->acc_info[$key]['validity_start_date'], $this->acc_info[$key]['validity_end_date']) ) {
 			return ;
 		}
 		$this->moveto_curStaff($this->tax_rs,'TAX');
 		$this->moveto_curStaff($this->tax_history_rs,'TAXHIS');
+        
+      
+    /****************محاسبه مالیات افراد غیر از قراردادی به صورت ده درصد می باشد***********/ 
+        if($this->staffRow['emp_state'] != 1 )
+        {
+            
+            
+           $this->payment_items[$key] = array(
+                                            'pay_year' => $this->__YEAR,
+                                            'pay_month' => $this->__MONTH,
+                                            'staff_id' => $this->cur_staff_id,
+                                            'salary_item_type_id' => $key,
+                                            'get_value' => $this->sum_tax_include * 0.1 , 
+                                            'pay_value' => 0,
+                                            'diff_get_value' => 0,//براي اينكه اين قلم هم در پايگاه داده درج شود
+                                            'cost_center_id' => 0,
+                                            'payment_type' => NORMAL,
+                                            'param1' => $this->sum_tax_include);
+			return true;
+        }
+    /*************************/	
+        
 		/* در اين قسمت فرض شده است که تاريخ تعديل ماليات هموراه از ابتداي سال است*/
 //..........................
 		
