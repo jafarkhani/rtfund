@@ -683,9 +683,9 @@ WarrentyRequest.prototype.BeforeRegDoc = function(mode){
 						if(this.getValue() == "<?= COSTID_Bank ?>")
 						{
 							me.BankWin.down("[itemId=TafsiliID]").setValue(
-								"<?= $_SESSION["accounting"]["DefaultBankTafsiliID"] ?>");
+								"<?= isset($_SESSION["accounting"]) ? $_SESSION["accounting"]["DefaultBankTafsiliID"] : "" ?>");
 							me.BankWin.down("[itemId=TafsiliID2]").setValue(
-								"<?= $_SESSION["accounting"]["DefaultAccountTafsiliID"] ?>");
+								"<?= isset($_SESSION["accounting"]) ? $_SESSION["accounting"]["DefaultAccountTafsiliID"] : "" ?>");
 						}
 							
 					}

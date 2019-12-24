@@ -108,16 +108,31 @@ function NewContract() {
 			listeners : {
 				select : function(combo, records){
 					me = NewContractObj;
-					if(records[0].data.InfoID == "1")
-					{
-						me.MainForm.getComponent("LoanRequestID").enable();
-						me.MainForm.getComponent("WarrentyRequestID").disable();
-					}
-					else
-					{
-						me.MainForm.getComponent("LoanRequestID").disable();
-						me.MainForm.getComponent("WarrentyRequestID").enable();
-					}
+                    if(records[0].data.InfoID == "1")
+                    {
+                        me.MainForm.getComponent("LoanRequestID").enable();
+                        me.MainForm.getComponent("WarrentyRequestID").disable();
+                        me.MainForm.getComponent("PersonID2").enable();
+                    }
+                    else if (records[0].data.InfoID == "2")
+                    {
+                        me.MainForm.getComponent("LoanRequestID").disable();
+                        me.MainForm.getComponent("WarrentyRequestID").enable();
+                        me.MainForm.getComponent("PersonID2").enable();
+                    }
+                    else if (records[0].data.InfoID == "3")
+                    {
+                        me.MainForm.getComponent("LoanRequestID").setValue('');
+                        me.MainForm.getComponent("LoanRequestID").disable();
+                        me.MainForm.getComponent("WarrentyRequestID").setValue('');
+                        me.MainForm.getComponent("WarrentyRequestID").disable();
+                        me.MainForm.getComponent("PersonID2").setValue('');
+                        me.MainForm.getComponent("PersonID2").disable();
+                    }else {
+                        me.MainForm.getComponent("LoanRequestID").disable();
+                        me.MainForm.getComponent("WarrentyRequestID").disable();
+                        me.MainForm.getComponent("PersonID2").enable();
+                    }
 				}
 			}
 		},{
