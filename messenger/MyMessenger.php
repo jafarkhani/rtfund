@@ -7,20 +7,15 @@
     <meta name="google" content="notranslate" />
     <title>Ext JS RTL Example</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    	
+    <script type="text/javascript" src="/generalUI/ext5/ext-all-rtl.js"></script>	
 	<script type="text/javascript" src="/generalUI/ext5/packages/ext-theme-neptune-touch/build/ext-theme-neptune-touch.js"></script>
-	<script type="text/javascript" src="/generalUI/ext5/ext-all-rtl.js"></script>	
+		
 	<link rel="stylesheet" type="text/css" href="/generalUI/ext5/packages/ext-theme-neptune-touch/build/resources/ext-theme-neptune-touch-all-rtl-debug.css" />	
     
     <script>
-        Ext.require([
-    'Ext.container.Viewport',
-    'Ext.grid.Panel',
-    'Ext.grid.plugin.RowEditing',
-    'Ext.layout.container.Border'
-]);
+     
 
-Ext.define('MyPanel', {
+/*Ext.define('MyPanel', {
     extend: 'Ext.panel.Panel',
     width: (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) * 0.8),
     plugins: 'responsive',
@@ -34,13 +29,20 @@ Ext.define('MyPanel', {
     },
     title: 'Title',
     html: 'panel body content'
-});
+});*/
 
 Ext.onReady(function() {
-    Ext.create('MyPanel', {
-        renderTo: document.body
-    });
-});
+    new Ext.tab.Panel({
+		
+		title : "alskjdaslkjdajdkasj",
+		renderTo : document.body,
+		plugins: 'responsive',
+
+		items: [
+		{ title: 'Foo' , html : " سیمنبت سمینتب سمینت بکسنمیتب نسمیتب نسیتب کنمسیتب نمکسیتب منکتب " },
+		{ title: 'Bar' , html : "klsdjdfaskljdo;iweurioquwieo qwo;e iqwopei qwopie opqwei "}
+		] });
+	});
 
     </script>
 </head>
