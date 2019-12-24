@@ -1911,7 +1911,7 @@ class LON_Computes extends PdoDataAccess{
 						
 					);
 
-					$PayRecord["early"] += $EarlyAmount;
+					//$PayRecord["early"] += $EarlyAmount;
 					$PayRecord["remainPayAmount"] -= $tmp;
 					$PayRecord["pure"] += $pure;
 					$PayRecord["wage"] += $wage;
@@ -2164,6 +2164,27 @@ class LON_Computes extends PdoDataAccess{
 		foreach($computeArr as $row)
 			if($row["type"] == "installment")
 				$total += $row["pnlt"]*1;
+		
+		return $total;		
+	}
+	
+	/**
+	 * کل مبلغ تعجیل وام
+	 * @param type $RequestID
+	 * @param type $computeArr
+	 * @return int
+	 */
+	static function GetTotalEarlyAmount($RequestID, $computeArr=null){
+		
+		if($computeArr == null)
+			$computeArr = LON_Computes::ComputePayments($RequestID);
+		
+		if(count($computeArr) == 0)
+			return 0;
+		$total = 0;
+		foreach($computeArr as $row)
+			if($row["type"] == "installment")
+				$total += $row["early"]*1;
 		
 		return $total;		
 	}
@@ -2556,9 +2577,9 @@ class LON_installments extends PdoDataAccess{
 		{
 			PdoDataAccess::runquery("delete from LON_installments "
 				. "where RequestID=? AND history='NO' AND IsDelayed='NO'", array($RequestID));
-
-			$TotalAmount = LON_payments::GetTotalPureAmount($partObj->RequestID, $partObj);
-			$TotalAmount += LON_requests::TotalAddedToBackPay($partObj->RequestID, $partObj, $TotalAmount);
+			
+			$TotalPure = LON_payments::GetTotalPureAmount($partObj->RequestID, $partObj);
+			$TotalAmount = $TotalPure + LON_requests::TotalAddedToBackPay($partObj->RequestID, $partObj, $TotalPure);
 			$allPay = $TotalAmount/$partObj->InstallmentCount;
 
 			if($partObj->InstallmentCount > 1)
@@ -2584,8 +2605,8 @@ class LON_installments extends PdoDataAccess{
 
 				$obj2->InstallmentAmount = $i == $partObj->InstallmentCount*1-1 ? $LastPay : $allPay;
 
-				if($partObj->ComputeMode == "PERCENT")
-					$obj2->wage = $obj2->InstallmentAmount - $TotalAmount/$partObj->InstallmentCount;
+				$obj2->wage = $obj2->InstallmentAmount - $TotalPure/$partObj->InstallmentCount;
+				$obj2->PureWage = $obj2->InstallmentAmount - $TotalPure/$partObj->InstallmentCount;
 
 				if(!$obj2->AddInstallment($pdo))
 				{
