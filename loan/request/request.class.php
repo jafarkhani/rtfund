@@ -1873,8 +1873,14 @@ class LON_Computes extends PdoDataAccess{
 						$pure = round($tmp*$records[$k]["remain_pure"]/$total);
 						$EarlyPercent = $obj->CustomerWage*1 - 3;
 						$EarlyPercent = $EarlyPercent < 0 ? 0 : $EarlyPercent; 
-						$EarlyAmount = $records[$k]["remain_pure"] > 0 ?
-								round($pure*$EarlyPercent*abs($diffDays)/36500) : 0;
+						$EarlyAmount = $records[$k]["remain_pure"] > 0 ? round($pure*$EarlyPercent*abs($diffDays)/36500) : 0;
+						
+						if($obj->ComputeMode == "BANK")
+						{
+							$diffDays = 0;
+							$EarlyAmount = 0;
+						}
+						
 						if($records[$k]["remain_wage"] > 0)
 							$records[$k]["remain_wage"] -= $EarlyAmount;
 						else
