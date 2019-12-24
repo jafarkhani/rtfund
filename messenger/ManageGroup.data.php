@@ -350,7 +350,7 @@ function SelectMessageGrp()
   
 	$temp = manage_MSG_messages::GetAllGroupMessage($where,$whereParam);     
 	$no = count($temp);
-    
+  
     //..........................secure section ........................
     $start = (int)$_GET["start"] ;
     $limit = (int)$_GET["limit"] ;
