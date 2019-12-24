@@ -25,10 +25,10 @@ Ext.define('MyPanel', {
     width: (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) * 0.8),
     plugins: 'responsive',
     responsiveConfig: {
-        'width < 1080': {
+        'width < 800': {
             width: 500
         },
-        'width >= 1080': {
+        'width >= 800': {
             width: 700
         }
     },
