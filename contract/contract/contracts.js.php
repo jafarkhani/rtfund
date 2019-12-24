@@ -142,7 +142,7 @@ ManageContracts.prototype.OperationMenu = function (e)
 
 		if(this.RemoveAccess)
 			op_menu.add({text: ' حذف', iconCls: 'remove',
-			handler: function () {	ManageContractsObj.RemoveContract(record.data.ContractID);	}});				
+			handler: function () {	ManageContractsObj.deleteContract(record.data.ContractID);	}});
 	}	
 	if(record.data.StepID == "1" && record.data.ActionType == "REJECT")
 	{
@@ -216,6 +216,41 @@ ManageContracts.prototype.RemoveContract = function () {
 		ManageContractsObj.grid.getStore().load();
 	}
 });
+}
+
+    ManageContracts.prototype.deleteContract = function(){
+
+    Ext.MessageBox.confirm("","آیا مایل به حذف درخواست می باشید؟",function(btn){
+        if(btn == "no")
+            return;
+
+        me = ManageContractsObj;
+        record = me.grid.getSelectionModel().getLastSelected();
+
+        mask = new Ext.LoadMask(me.grid, {msg:'در حال ذخيره سازي...'});
+        mask.show();
+
+        Ext.Ajax.request({
+            methos : "post",
+            url: me.address_prefix + 'contract.data.php?task=DeleteContract',
+            params : {
+                ContractID: record.data.ContractID
+            },
+
+            success : function(response){
+                result = Ext.decode(response.responseText);
+                mask.hide();
+                if (!result.success) {
+                    if (result.data != '')
+                        Ext.MessageBox.alert('', result.data);
+                    else
+                        Ext.MessageBox.alert('', 'خطا در اجرای عملیات');
+                    return;
+                }
+                ManageContractsObj.grid.getStore().load();
+            }
+        });
+    });
 }
 
 ManageContracts.prototype.ContractDocuments = function(ObjectType){

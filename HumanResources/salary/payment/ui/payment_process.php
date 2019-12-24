@@ -32,9 +32,9 @@ require_once '../js/payment_process.js.php';
 				</tr>				
 				<tr>
 					<td>شروع تعديل ماليات از سال:</td>
-					<td><input type="text" name="tax_normalized_year" id="tax_normalized_year" class="x-form-text x-form-field" value="1396"></td>
+					<td><input type="text" name="tax_normalized_year" id="tax_normalized_year" class="x-form-text x-form-field" value="1398"></td>
 					<td>شروع تعديل ماليات از ماه:</td>
-					<td><?= $drp_month ?></td>
+					<td><?= $drp_month ?></td> 
 				</tr>
 				<tr>
 					<td colspan="2" style="height:21px">
