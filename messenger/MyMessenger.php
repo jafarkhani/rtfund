@@ -4,39 +4,114 @@
 //-----------------------------
 require_once '../header.inc.php';
 require_once inc_dataGrid;
-
-$dg = new sadaf_datagrid("dg", $js_prefix_address . "ManageGroup.data.php?task=SelectMyMessage", "DivGrid");
-
-$dg->addColumn("", "GID", "int", true);
-$dg->addColumn("", "MID", "int", true);
-
-$col = $dg->addColumn("", "TM");
-$col->renderer = "GroupTitleRender";
-
-
-$dg->emptyTextOfHiddenColumns = true;
-$dg->autoExpandColumn = "TM";
-$dg->EnablePaging = false;
-$dg->HeaderMenu = false;
-$dg->EnableSearch = false;
-$dg->disableFooter = true;
-
-$grid = $dg->makeGrid_returnObjects();
 ?>
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-		<meta name="google" content="notranslate" />
-		<title>Ext JS RTL Example</title>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
 		<script type="text/javascript" src="/generalUI/ext5/ext-all-rtl.js"></script>	
 		<script type="text/javascript" src="/generalUI/ext5/packages/ext-theme-neptune-touch/build/ext-theme-neptune-touch.js"></script>
 
 		<link rel="stylesheet" type="text/css" href="/generalUI/ext5/packages/ext-theme-neptune-touch/build/resources/ext-theme-neptune-touch-all-rtl-debug.css" />	
+		<link rel="stylesheet" type="text/css" href="/generalUI/icons/icons.css" />	
+		<style>.Expand {background-image:url('../messenger/MsgDocuments/expand.png') !important;}</style>
+		<style>
+			.attachFile {
+				background-repeat:no-repeat;
+				background-position:left;
+				background: #ffffff;
+				background-image:url('../messenger/MsgDocuments/attach.png') !important;
+				width:30px!important;
+				height:30px!important;
+			}
+		</style>
+		<style>	
+			.GrpPic {
+				border:1px inset #9990;
+				width:70px;
+				height:70px;
+				cursor:pointer;
+				vertical-align: middle;
+				border-radius: 50%;}
+			.GrpInfo {padding-right:5px; line-height: 21px}
+			.MsgInfoBox {
+				background: linear-gradient(to top, #72dbfc, #159fcd);
+				border-radius: 50%; 
+				color : white;
+				cursor: pointer;
+				padding-right:4px;
+				line-height: 22px; 
+				margin: 2px; 
+				text-align: center;
+				vertical-align: middle;
+			}
 
+			.MsgInfoBox2 {
+				background: linear-gradient(to top, #72dbfc, #159fcd);
+				border-radius: 50%; 
+				color : white;
+				cursor: pointer;
+				border:false;
+				text-align: top;
+				vertical-align: top;
+			}
+
+
+			.ChatBox { 
+				background: radial-gradient(circle, #f7fffb, #e3faee, #e1faed); 
+				border-radius: 10px;
+				color : black;        
+				padding-right:4px;
+				line-height: 22px; 
+				margin: 2px; 
+				text-align: right;
+				vertical-align: middle;        
+			}
+
+			.MyChatBox {
+				background: radial-gradient(circle, #f2f9ff, #f5faff, #f0f7ff);
+				border-radius: 10px; 
+				color : black;
+				cursor: pointer;
+				padding-right:4px;
+				line-height: 22px; 
+				margin: 2px; 
+				text-align: right;
+				vertical-align: middle;        
+			}
+
+			.rcorners2 {
+				border-radius: 25px;
+				border: 2px solid #bbdbed;
+				padding: 20px; 
+				width: 200px;
+				height: 150px;  
+			}
+
+			.button {
+				background-color: #4CAF50;  
+				border: none;
+				color: white;
+				padding: 20px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 16px;
+				margin: 4px 2px;
+				cursor: pointer;
+				border-radius: 50%;
+			}
+
+			.bottomright {
+				position: absolute;
+				bottom: 8px;
+				right: 16px;
+				font-size: 18px;
+			}
+
+		</style>
 		<script>
 
 
@@ -75,45 +150,44 @@ $grid = $dg->makeGrid_returnObjects();
 
 				loadNotification = function () {
 
-						Ext.Ajax.request({
-								url: 'ManageGroup.data.php',
-								params:{
-									task: "GetNotNumber",
-									GID : formpanel.down("[itemId=GID]").getValue()
-								},
-								method: 'POST',
+					Ext.Ajax.request({
+						url: 'ManageGroup.data.php',
+						params: {
+							task: "GetNotNumber",
+							GID: formpanel.down("[itemId=GID]").getValue()
+						},
+						method: 'POST',
+						success: function (response, option) {
 
-								success: function(response,option){
+							var st = Ext.decode(response.responseText);
+							if (st.success)
+							{
 
-									var st = Ext.decode(response.responseText);
-									if(st.success)
-									{
+								if (st.data > 0) {
+									Ext.getCmp('btn1').show();
+									Ext.getCmp('btn1').setText("<div class='blueText MsgInfoBox2'  style='height:40px;width:40px' > " +
+											"<div> " + st.data + " </div></div>");
+								}
 
-										if (st.data > 0) {
-											Ext.getCmp('btn1').show();
-											Ext.getCmp('btn1').setText("<div class='blueText MsgInfoBox2'  style='height:40px;width:40px' > " +
-														"<div> " + st.data + " </div></div>");
-										}   
+								diffPo = grid2.getEl().down('.x-grid-view').getScroll().top - ScrollPosition;
 
-										diffPo = grid2.getEl().down('.x-grid-view').getScroll().top  - ScrollPosition ; 
-
-										if(diffPo < 190 )
-										{
-											grid2.getStore().load();                              
-										}                       
-									}
-									else
-									{
-										alert(st.data);
-									}
-								},
-								failure: function(){}
-						});
+								if (diffPo < 190)
+								{
+									grid2.getStore().load();
+								}
+							}
+							else
+							{
+								alert(st.data);
+							}
+						},
+						failure: function () {
+						}
+					});
 
 
-					}
+				}
 
-					
 				renderMsg = function (value, p, record) {
 
 					var ShowMsg = "";
@@ -139,8 +213,16 @@ $grid = $dg->makeGrid_returnObjects();
 
 					if (record.data.MID == MemberID) {
 
-						if (record.data.ParentMSGID > 0)
+						if (record.data.ParentMSGID * 1 > 0)
 							ShowMsg = "<div style='background-color:#f2f0f0;width:98%;'> " + Ext.String.ellipsis(record.data.ParentMsg, 200) + " </div>";
+
+						return "<div class=' MyChatBox'  style='width:90%;float:right;margin:2px;' > " +
+								"<table style='width:100%'>" +
+								"<tr><td style='float:right;width:70%' ><font class='blueText'>" + FullName + "</font></td> " +
+								"<td title='عملیات' align='left' class='Expand' onclick='MyOperationMenu(event," + record.data.MSGID + " );' " +
+								"style='float:left;width:30%;clear: left;background-repeat:no-repeat;" +
+								"background-position:right;cursor:pointer;width:30px;height:30' >&nbsp;</td></tr>" +
+								"</table></div>";
 
 						return  "<div class=' MyChatBox'  style='width:90%;float:right;margin:2px;' > " +
 								"<table style='width:100%'>" +
@@ -198,10 +280,10 @@ $grid = $dg->makeGrid_returnObjects();
 					var index = grid2.getStore().find('MSGID', i);
 					fname = grid2.getStore().getAt(index).data.fname;
 					lname = grid2.getStore().getAt(index).data.lname;
-					message = grid2.getStore().getAt(index).data.message; 
+					message = grid2.getStore().getAt(index).data.message;
 
 					Ext.getCmp("Field2").show();
-					newItemPanel.down("[itemId=PersonName]").setValue(fname +' '+ lname);
+					newItemPanel.down("[itemId=PersonName]").setValue(fname + ' ' + lname);
 					newItemPanel.down("[itemId=PMsg]").setValue(message);
 					formpanel.down("[itemId=ParentMSGID]").setValue(i);
 					formpanel.down("[itemId=MsgTxt]").setValue("");
@@ -225,7 +307,7 @@ $grid = $dg->makeGrid_returnObjects();
 						}
 					});
 
-					op_menu.showAt(e.pageX - 120, e.pageY);
+					op_menu.showAt(e.pageX, e.pageY);
 				};
 
 				EditMsg = function (i) {
@@ -233,12 +315,13 @@ $grid = $dg->makeGrid_returnObjects();
 					var index = grid2.getStore().find('MSGID', i);
 					fname = grid2.getStore().getAt(index).data.fname;
 					lname = grid2.getStore().getAt(index).data.lname;
-					message = grid2.getStore().getAt(index).data.message; 
+					message = grid2.getStore().getAt(index).data.message;
 
-					Ext.getCmp("Field2").show();
+					Field2 = Ext.getCmp("Field2");
+					Field2.show();
 					formpanel.down("[itemId=MSGID]").setValue(i);
-					newItemPanel.down("[itemId=PersonName]").setValue(fname + lname);
-					newItemPanel.down("[itemId=PMsg]").setValue(message);
+					Field2.down("[itemId=PersonName]").setValue(fname + lname);
+					Field2.down("[itemId=PMsg]").setValue(message);
 					formpanel.down("[itemId=MsgTxt]").setValue(message);
 
 					return;
@@ -274,7 +357,8 @@ $grid = $dg->makeGrid_returnObjects();
 								}
 
 							},
-							failure: function () {}
+							failure: function () {
+							}
 						});
 
 					});
@@ -282,8 +366,9 @@ $grid = $dg->makeGrid_returnObjects();
 
 				ClosePanel = function ()
 				{
-					Ext.getCmp("Field2").hide();
-					newItemPanel.down("[itemId=MsgTxt]").setValue("");
+					Field2 = Ext.getCmp("Field2");
+					Field2.hide();
+					Field2.down("[itemId=MsgTxt]").setValue("");
 					formpanel.down("[itemId=MSGID]").setValue("");
 					return;
 				}
@@ -298,7 +383,7 @@ $grid = $dg->makeGrid_returnObjects();
 						return;
 					}
 
-					mask = new Ext.LoadMask(newItemPanel, {msg: 'در حال ذخيره سازي...'});
+					mask = new Ext.LoadMask(formpanel, {msg: 'در حال ذخيره سازي...'});
 					mask.show();
 					formpanel.getForm().submit(
 							{
@@ -332,13 +417,13 @@ $grid = $dg->makeGrid_returnObjects();
 								success: function (form, action) {
 									mask.hide();
 									if (action.result.success)
-									{                                                  
+									{
 										grid2.getStore().load();
 										grid2.getView().scrollBy(0, 999999, true);
 										formpanel.down("[itemId=MsgTxt]").setValue("");
 										formpanel.down("[itemId=FileType]").setValue("");
 										formpanel.down("[itemId=MSGID]").setValue("");
-										Ext.getCmp("Field2").hide(); 
+										Ext.getCmp("Field2").hide();
 									} else
 										Ext.MessageBox.alert("", "عملیات مورد نظر با شکست مواجه شد.");
 
@@ -353,27 +438,28 @@ $grid = $dg->makeGrid_returnObjects();
 				}
 
 				SeenMsg = function ()
-				{               
+				{
 					Ext.Ajax.request({
-							url: 'ManageGroup.data.php',
-							params:{
-								task: "SeenMsg",
-								GID : formpanel.down("[itemId=GID]").getValue(),                   
-							},
-							method: 'POST',
-							success: function(response,option){
+						url: 'ManageGroup.data.php',
+						params: {
+							task: "SeenMsg",
+							GID: formpanel.down("[itemId=GID]").getValue(),
+						},
+						method: 'POST',
+						success: function (response, option) {
 
-								var st = Ext.decode(response.responseText);
-								if(st.success)
-								{
-									Ext.getCmp('btn1').hide();                 
-								}
-								else
-								{
-									alert(st.data);
-								}
-							},
-							failure: function(){}
+							var st = Ext.decode(response.responseText);
+							if (st.success)
+							{
+								Ext.getCmp('btn1').hide();
+							}
+							else
+							{
+								alert(st.data);
+							}
+						},
+						failure: function () {
+						}
 					});
 
 				}
@@ -420,9 +506,96 @@ $grid = $dg->makeGrid_returnObjects();
 					window.open("ShowFile.php?source=FileMsg&MSGID=" + v);
 				}
 
+				var grid = new Ext.grid.GridPanel({
+					region: "center",
+					title: "پیام رسان سجا",
+					selType: 'rowmodel',
+					columns: [
+						{menuDisabled: true, header: '', dataIndex: 'GID', sortable: '1', type: 'int', hidden: true, hideMode: 'display', searchable: true, emptyText: ''},
+						{menuDisabled: true, header: '', dataIndex: 'MID', sortable: '1', type: 'int', hidden: true, hideMode: 'display', searchable: true, emptyText: ''},
+						{flex: 1, menuDisabled: true, header: '', dataIndex: 'TM', sortable: '1', type: 'string', type: '', hidden: false, hideMode: 'display', renderer: GroupTitleRender, searchable: true, emptyText: ''}],
+					store: Ext.create('Ext.data.Store', {
+						pageSize: 25,
+						fields: [{name: 'GID'}, {name: 'MID'}, {name: 'TM'}], remoteSort: true, proxy: {
+							type: 'jsonp',
+							url: '/messenger/ManageGroup.data.php?task=SelectMyMessage',
+							form: '',
+							reader: {
+								root: 'rows',
+								totalProperty: 'totalCount',
+								messageProperty: 'message'
+							}
+						},
+						sorters: [{
+								property: '',
+								direction: 'desc'
+							}]
+					}),
+					scroll: 'vertical',
+					columnLines: false,
+					hideHeaders: true,
+					autoWidth: true,
+					autoHeight: true,
+					viewConfig: {
+						stripeRows: true,
+						loadMask: true,
+						enableTextSelection: true
+					},
+					multiSelect: false,
+					listeners: {
+						afterrender: function () {
+							this.getStore().load();
+						}
+					}
+				});
+
+				grid.on("cellclick", function () {
+
+					var record = grid.getSelectionModel().getLastSelected();
+
+					Ext.getCmp("MainView").removeAll();
+					Ext.getCmp("MainView").add(SearchPanel);
+					Ext.getCmp("MainView").add(grid2);
+					Ext.getCmp("MainView").add(formpanel);
+
+					//SearchPanel.hide();
+					//Ext.getCmp("MainPanel").add(newItemPanel);
+
+					grid2.getStore().proxy.extraParams.GID = record.data.GID;
+					formpanel.down("[itemId=GID]").setValue(record.data.GID);
+					formpanel.down("[itemId=MID]").setValue(record.data.MID);
+
+					store.load();
+					/*store.prefetch({
+					 start: 0,
+					 limit: 10,
+					 callback: function () {
+					 //  store.guaranteeRange(0,5); 
+					 store.load();
+					 // grid2.getView().scrollBy(0, 999999, true);
+					 //if (IsFirstLoad === false) {                        
+					 / *
+					 * var records = Ext.getCmp('prGrid').getStore().data.length + 1;
+					 * var scrollPosition = 100;   
+					 YourGrid.getEl().down('.x-grid-view').scroll('bottom', scrollPosition, true);
+					 * /
+					 
+					 // ScrollPosition = grid2.getEl().down('.x-grid-view').getScroll().top ; 
+					 // IsFirstLoad = true;
+					 // }
+					 
+					 }
+					 });*/
+
+					//grid.hide();
+					//SeenMsg();
+					//   setInterval(function () {loadNotification()}, 1000);
+					// grid2.getView().scrollBy(0, 999999, true);
+				});
+
 				var store = Ext.create('Ext.data.Store', {
 					remoteSort: true,
-					buffered: true,
+					//buffered: true,
 					fields: [{name: 'MSGID'}, {name: 'GID'}, {name: 'MID'}, {name: 'fname'}, {name: 'lname'}, {name: 'message'},
 						{name: 'FileType'}, {name: 'ParentMsg'}, {name: 'ParentMSGID'}, {name: 'SendingDate'}],
 					proxy: {
@@ -462,169 +635,35 @@ $grid = $dg->makeGrid_returnObjects();
 				});
 
 				grid2 = new Ext.grid.GridPanel({
-					// width: 600,
-					height: 430,
+					region: 'center',
 					store: store,
-					verticalScrollerType: 'paginggridscroller',
+					//verticalScrollerType: 'paginggridscroller',
 					disableSelection: true,
-					invalidateScrollerOnRefresh: false,
+					//invalidateScrollerOnRefresh: false,
+					hideHeaders: true,
 					viewConfig: {
+						stripeRows: false,
 						trackOver: false,
 						loadMask: false
 					},
 					columns: [
-						{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'MSGID',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'MID',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'ParentMsg',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'FileType',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'ParentMSGID',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'fname',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'lname',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'SendingDate',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
+						{dataIndex: 'MSGID', hidden: true},
+						{dataIndex: 'MID', hidden: true},
+						{dataIndex: 'ParentMsg', hidden: true},
+						{dataIndex: 'FileType', hidden: true},
+						{dataIndex: 'ParentMSGID', hidden: true},
+						{dataIndex: 'fname', hidden: true},
+						{dataIndex: 'lname', hidden: true},
+						{dataIndex: 'SendingDate', hidden: true},
+						{
 							header: '',
 							dataIndex: 'message',
 							renderer: function (v, p, r) {
 								return renderMsg(v, p, r);
 							},
 							flex: 1,
-							type: 'string',
-							type: '',
-									hidden: false,
-							hideMode: 'display',
-							searchable: true,
-							emptyText: ''}]
-
-				});
-
-				searchGrid = new Ext.grid.GridPanel({
-					//width: 420,
-					height: 370,
-					store: SearchStore,
-					verticalScrollerType: 'paginggridscroller',
-					loadMask: true,
-					disableSelection: true,
-					invalidateScrollerOnRefresh: false,
-					viewConfig: {
-						trackOver: false
-					},
-					columns: [{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'MSGID',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							header: '',
-							flex: 1,
-							dataIndex: 'message',
-							renderer: function (v, p, r) {
-								return renderSrchMsg(v, p, r);
-							},
-							//width: 580,
-							type: 'string',
-							type: '',
-									hidden: false,
-							hideMode: 'display',
-							searchable: true,
-							emptyText: ''}]
-
-				});
-
-				newItemPanel = new Ext.Panel({
-					renderTo: "mainpanel",
-					//title: "لیست پیغام",
-					autoHeight: true,
-					// width: 620,
-					height: 720,
-					dockedItems: [{
-							id: "Field3",
-							xtype: 'toolbar',
-							height: 30,
-							dock: 'top',
-							items: [{
-									xtype: 'button',
-									iconCls: 'search',
-									handler:
-											function ()
-											{
-												SearchPanel.show();
-											}
-								},
-								'->',
-								{
-									xtype: 'button',
-									id: 'btn1',
-									handler:
-											function ()
-											{
-												grid2.getStore().load();
-												//  GoToMsg(279);
-
-												grid2.getView().scrollBy(0, 999999, true);
-												SeenMsg();
-											}
-								},
-								{
-									xtype: 'button',
-									text: '&nbsp;',
-									iconCls: "down",
-									handler:
-											function ()
-											{
-												grid2.getStore().load();
-												//  GoToMsg(279);
-
-												grid2.getView().scrollBy(0, 999999, true);
-												SeenMsg();
-											}
-								}
-							]
-						}],
-					frame: true,
-					style: "padding-right:10px;",
-					items: [this.grid2,
-						{
+							type: 'string'}],
+					bbar: [{
 							id: "Field2",
 							xtype: "container",
 							fieldLabel: "Field2",
@@ -662,321 +701,201 @@ $grid = $dg->makeGrid_returnObjects();
 										return Ext.String.ellipsis(v, 80);
 									}
 								}]
-						},
-						this.formpanel = new Ext.form.Panel({
-							layout: {
-								type: "table",
-								columns: 4
-							},
-							style: "margin:0px 0 1px",
-							border: false,
-							//width: 650,
-							frame: false,
-							items: [
-								{
-									xtype: "numberfield",
-									name: "MSGID",
-									itemId: "MSGID",
-									colspan: 3,
-									hidden: true
-								},
-								{
-									xtype: "numberfield",
-									name: "GID",
-									itemId: "GID",
-									colspan: 3,
-									hidden: true
-								},
-								{
-									xtype: "numberfield",
-									name: "MID",
-									itemId: "MID",
-									colspan: 3,
-									hidden: true
-								},
-								{
-									xtype: "numberfield",
-									name: "ParentMSGID",
-									itemId: "ParentMSGID",
-									colspan: 3,
-									hidden: true
-								},
-								{
-									xtype: "textarea",
-									name: "MsgTxt",
-									itemId: "MsgTxt",
-									style: "width:99%;margin:0px;",
-									fieldCls: "rcorners2",
-									colspan: 2,
-									height: 80
-								},
-								{
-									xtype: "container",
-									layout: "hbox",
-									style: "vertical-align:top;height:102;margin-top:60px",
-									colspan: 2,
-									height: 110,
-									width: 320,
-									items: [
-										/* {
-										 xtype: 'button',
-										 colspan: 1,
-										 height: 40,
-										 width: 40,
-										 fieldCls: "button",
-										 border:false,
-										 style: "border-radius: 1%;background: #f0f0f0 url(../messenger/MsgDocuments/attach.png);",                            
-										 name: 'button1',
-										 autoEl: {tag: 'center'},
-										 text: '',
-										 handler:
-										 function ()
-										 {
-										 SaveSendingMsg();
-										 }
-										 },*/
-										{
-											xtype: "filefield",
-											name: "FileType",
-											colspan: 1,
-											buttonOnly: true,
-											itemId: 'FileType',
-											buttonConfig: {
-												iconCls: 'attachFile',
-												text: '',
-												iconAlign: 'center',
-												style: 'background: #ffffff;border:0;margin-top:10px',
-												scale: 'large'
-											}
-										},
-										{
-											xtype: 'button',
-											colspan: 1,
-											height: 40,
-											width: 40,
-											fieldCls: "button",
-											border: false,
-											style: "border-radius: 1%;background: #f0f0f0 url(../messenger/MsgDocuments/send.png);",
-											name: 'button1',
-											autoEl: {tag: 'center'},
-											text: '',
-											handler:
-													function ()
-													{
-														SaveSendingMsg();
-													}
-										}
+						}],
+					dockedItems: [{
+						id: "Field3",
+						xtype: 'toolbar',
+						height: 40,
+						dock: 'top',
+						style : "border-bottom:1px solid blue",
+						//hidden : true,
+						items: [
+							{
+								xtype: 'button',
+								id: 'btn1',
+								//hidden : true,
+								handler: function ()
+									{
+										grid2.getStore().load();
+									  //  GoToMsg(279);
 
-									]
+										grid2.getView().scrollBy(0, 999999, true);
+										SeenMsg();
+									}
+							},'->',
+							{
+								xtype: 'button',
+								iconCls: "down",
+								handler:
+								function ()
+								{
+									grid2.getStore().load();
+								  //  GoToMsg(279);
+
+									grid2.getView().scrollBy(0, 999999, true);
+									SeenMsg();                                
 								}
-
-
-
-
-							]
-
-						})
-					]
-					,
-					/*loader:{
-					 url: this.address_prefix + "ManageGroup.php",
-					 scripts: true
-					 },*/
-
+							}
+						]
+					}]
 
 				});
 
-				Ext.getCmp('btn1').hide();
-				newItemPanel.hide();
+				searchGrid = new Ext.grid.GridPanel({
+					store: SearchStore,
+					verticalScrollerType: 'paginggridscroller',
+					loadMask: true,
+					disableSelection: true,
+					invalidateScrollerOnRefresh: false,
+					viewConfig: {
+						trackOver: false
+					},
+					columns: [{menuDisabled: true,
+							align: 'center',
+							header: '',
+							dataIndex: 'MSGID',
+							emptyText: '',
+							hidden: true},
+						{menuDisabled: true,
+							header: '',
+							flex: 1,
+							dataIndex: 'message',
+							renderer: function (v, p, r) {
+								return renderSrchMsg(v, p, r);
+							},
+							//width: 580,
+							type: 'string',
+							hideMode: 'display',
+							searchable: true,
+							emptyText: ''}]
+
+				});
+
 				SearchPanel = new Ext.form.Panel({
-					renderTo: "SearchPanel",
 					title: "جستجو",
+					region: "north",
+					autoScroll: true,
+					collapsible: true,
+					collapsed: true,
 					autoHeight: true,
-					closable: true,
-					//width: 440,
-					height: 450,
-					frame: true,
+					maxHeight: 400,
+					anchor: "100%",
 					layout: {
 						type: "table",
-						columns: 3
+						columns: 2
 					},
-					style: "padding-right:0px;align:right",
+					//style: "padding-right:0px;align:right",
 					items: [
 						{
 							xtype: "textfield",
 							name: "SearchTxt",
 							itemId: "SearchTxt",
-							style: "width:90%;margin:2px;",
-							fieldCls: "rcorners2",
-							height: 40,
-							colspan: 2
+							style: "width:90%;margin:2px;"
+									//fieldCls: "rcorners2",
 									// width: 300
 						},
-						/*{
-						 xtype: 'button',
-						 height: 45,
-						 width: 45,
-						 colspan:2,
-						 fieldCls: "button",
-						 style: "border-radius: 50%;align:'right';background: #f0f0f0 url(../messenger/MsgDocuments/search.png);",                        
-						 name: 'button1',                        
-						 autoEl: {tag: 'center'},
-						 text: '',
-						 handler:
-						 function ()
-						 {
-						 SearchGrid.load();
-						 //SaveSendingMsg();
-						 }
-						 },*/
 						{
 							xtype: "container",
-							width: 100,
-							//style: "width:10%;margin:2px;",
-							colspan: 1,
+							style: "margin-left:20px;",
 							html: "<div><img align='right' width='40px' height='40px' src='../messenger/MsgDocuments/search.png' " +
 									" onclick='Searching();' style='cursor:pointer;'>&nbsp;</div>",
 						},
 						{
 							xtype: "container",
-							colspan: 3,
+							colspan: 2,
 							//  width: 410,
-							style: "text-align:right",
-							items: [this.searchGrid]
+							//style: "text-align:right",
+							items: [searchGrid]
 						}
 
 					]
 				});
-				SearchPanel.hide();
 
-				var grid = new Ext.grid.GridPanel({
-					selType: 'rowmodel',
-					columns: [
-						{menuDisabled: true, header: '', dataIndex: 'GID', sortable: '1', type: 'int', hidden: true, hideMode: 'display', searchable: true, emptyText: ''},
-						{menuDisabled: true, header: '', dataIndex: 'MID', sortable: '1', type: 'int', hidden: true, hideMode: 'display', searchable: true, emptyText: ''},
-						{flex: 1, menuDisabled: true, header: '', dataIndex: 'TM', sortable: '1', type: 'string', type: '', hidden: false, hideMode: 'display', renderer: GroupTitleRender, searchable: true, emptyText: ''}],
-					store: Ext.create('Ext.data.Store', {
-						pageSize: 25,
-						fields: [{name: 'GID'}, {name: 'MID'}, {name: 'TM'}], remoteSort: true, proxy: {
-							type: 'jsonp',
-							url: '/messenger/ManageGroup.data.php?task=SelectMyMessage',
-							form: '',
-							reader: {
-								root: 'rows',
-								totalProperty: 'totalCount',
-								messageProperty: 'message'
+				formpanel = new Ext.form.Panel({
+					region: 'south',
+					height: 80,
+					layout: {
+						type: "table",
+						columns: 3
+					},
+					//style: "margin:0px 0 1px",
+					border: false,
+					//style: "padding-right:10px;",
+					items: [{
+							xtype: "textarea",
+							name: "MsgTxt",
+							itemId: "MsgTxt",
+							rows: 2,
+							style: "width:95%;margin:0px;"
+									//fieldCls: "rcorners2",
+									//height: 80
+						}
+						,
+						{
+							xtype: "filefield",
+							name: "FileType",
+							width: 40,
+							buttonOnly: true,
+							itemId: 'FileType',
+							buttonConfig: {
+								iconCls: 'attachFile',
+								text: '',
+								iconAlign: 'center',
+								style: 'background: #ffffff;border:0;margin-top:10px',
+								scale: 'large'
 							}
 						},
-						sorters: [{
-								property: '',
-								direction: 'desc'
-							}]
-					}),
-					scroll: 'vertical',
-					columnLines: false,
-					title: '', hideHeaders: false, autoWidth: true, autoHeight: true, viewConfig: {
-						stripeRows: true,
-						loadMask: true,
-						enableTextSelection: true
-
-					}, listeners: {}
-					, plugins: [], multiSelect: false, tbar: [], listeners : {
-						afterrender: function () {
-							this.getStore().load();
+						{
+							xtype: 'button',
+							height: 40,
+							width: 40,
+							fieldCls: "button",
+							border: false,
+							style: "border-radius: 1%;background: #f0f0f0 url(../messenger/MsgDocuments/send.png);",
+							name: 'button1',
+							autoEl: {tag: 'center'},
+							text: '',
+							handler:
+									function ()
+									{
+										SaveSendingMsg();
+									}
+						}, {
+							xtype: "hidden",
+							name: "MSGID",
+							itemId: "MSGID"
 						},
-						beforerender: function () {
-							var pagingToolbar = this.getDockedItems('pagingtoolbar');
-							var ExtraToolbar = this.getDockedItems('extrabar');
-							if (pagingToolbar.length > 0)
-								pagingToolbar[0].bind(this.getStore());
-							if (ExtraToolbar.length > 0)
-								ExtraToolbar[0].bind(this.getStore());
+						{
+							xtype: "hidden",
+							name: "GID",
+							itemId: "GID"
+						},
+						{
+							xtype: "hidden",
+							name: "MID",
+							itemId: "MID"
+						},
+						{
+							xtype: "hidden",
+							name: "ParentMSGID",
+							itemId: "ParentMSGID"
 						}
 
-					}
+					]
+
 				});
 
-				grid.on("cellclick", function () {
-					newItemPanel.show();
-					var record = grid.getSelectionModel().getLastSelected();
-
-					grid2.getStore().proxy.extraParams.GID = record.data.GID;
-					formpanel.down("[itemId=GID]").setValue(record.data.GID);
-					formpanel.down("[itemId=MID]").setValue(record.data.MID);
-					store.prefetch({
-						start: 0,
-						limit: 10,
-						callback: function () {
-							//  store.guaranteeRange(0,5); 
-							store.load();
-							// grid2.getView().scrollBy(0, 999999, true);
-							//if (IsFirstLoad === false) {                        
-							/*
-							 * var records = Ext.getCmp('prGrid').getStore().data.length + 1;
-							 * var scrollPosition = 100;   
-							 YourGrid.getEl().down('.x-grid-view').scroll('bottom', scrollPosition, true);
-							 */
-
-							// ScrollPosition = grid2.getEl().down('.x-grid-view').getScroll().top ; 
-							// IsFirstLoad = true;
-							// }
-
-						}
-					});
-
-					grid.hide();
-					SeenMsg();
-					//   setInterval(function () {loadNotification()}, 1000);
-					// grid2.getView().scrollBy(0, 999999, true);
-				});
-
-
-				(Ext.cmd.derive("ResponsiveApp.view.main.Main", Ext.form.Panel, {
+				(Ext.cmd.derive("ResponsiveApp.view.main.Main", Ext.container.Viewport, {
 					//ui: "navigation",
-					tabBarHeaderPosition: 1,
+					id: "MainView",
+					layout: 'border',
 					rtl: true,
-					titleRotation: 0,
-					tabRotation: 0,
-					header: {
-						layout: {
-							align: "stretchmax"
-						},
-						title: {
-							text: "پیام رسان سامانه سجا",
-							flex: 0
-						},
-						glyph: 61
-					},
-					tabBar: {
-						flex: 1,
-						layout: {
-							align: "stretch",
-							overflowHandler: "none"
-						}
-					},
 					responsiveConfig: {
 						tall: {
 							headerPosition: "top"
 						},
 						wide: {
 							headerPosition: "left"
-						}
-					},
-					defaults: {
-						bodyPadding: 20,
-						tabConfig: {
-							plugins: "responsive",
-							responsiveConfig: {
-								wide: {
-									iconAlign: "left",
-									textAlign: "left"
-								},
-								tall: {
-									iconAlign: "top",
-									textAlign: "center",
-									width: 120
-								}
-							}
 						}
 					},
 					items: [grid]
