@@ -335,8 +335,8 @@ function ImportTrafficsFromExcel(){
 		else
 		{
 			$AttCode = $row[0];
-			$TrafficDate = substr($row[1],0,10);
-			$TrafficTime = substr($row[1],11,5);
+			$TrafficDate = $row[3];
+			$TrafficTime = isset($row[4]) && trim($row[4]) ? $row[4] : "";
 			$TrafficTime2 = "";
 		}
 		
