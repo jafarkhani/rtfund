@@ -587,7 +587,8 @@ $grid = $dg->makeGrid_returnObjects();
 				});
 
 				newItemPanel = new Ext.Panel({
-					renderTo: "mainpanel",
+					//renderTo: "mainpanel",
+                    id : 'MainPanel',
 					//title: "لیست پیغام",
 					autoHeight: true,
 					// width: 620,
@@ -912,7 +913,8 @@ $grid = $dg->makeGrid_returnObjects();
 				});
 
 				grid.on("cellclick", function () {
-					newItemPanel.show();
+                    Ext.getCmp('MainPanel').add(newItemPanel);
+					//newItemPanel.show();
 					var record = grid.getSelectionModel().getLastSelected();
 
 					grid2.getStore().proxy.extraParams.GID = record.data.GID;
