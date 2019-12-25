@@ -35,21 +35,6 @@ $grid = $dg->makeGrid_returnObjects();
 		<script type="text/javascript" src="/generalUI/ext5/ext-all-rtl.js"></script>	
 		<script type="text/javascript" src="/generalUI/ext5/packages/ext-theme-neptune-touch/build/ext-theme-neptune-touch.js"></script>
 
-/*Ext.define('MyPanel', {
-    extend: 'Ext.panel.Panel',
-    width: (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) * 0.8),
-    plugins: 'responsive',
-    responsiveConfig: {
-        'width < 800': {
-            width: 500
-        },
-        'width >= 800': {
-            width: 700
-        }
-    },
-    title: 'Title',
-    html: 'panel body content'
-});*/
 		<link rel="stylesheet" type="text/css" href="/generalUI/ext5/packages/ext-theme-neptune-touch/build/resources/ext-theme-neptune-touch-all-rtl-debug.css" />	
 
 		<script>
@@ -587,8 +572,7 @@ $grid = $dg->makeGrid_returnObjects();
 				});
 
 				newItemPanel = new Ext.Panel({
-					//renderTo: "mainpanel",
-                    id : 'MainPanel',
+					//renderTo: "mainpanel",                    
 					//title: "لیست پیغام",
 					autoHeight: true,
 					// width: 620,
@@ -913,6 +897,7 @@ $grid = $dg->makeGrid_returnObjects();
 				});
 
 				grid.on("cellclick", function () {
+               
                     Ext.getCmp('MainPanel').add(newItemPanel);
 					//newItemPanel.show();
 					var record = grid.getSelectionModel().getLastSelected();
@@ -943,14 +928,14 @@ $grid = $dg->makeGrid_returnObjects();
 
 					grid.hide();
 					SeenMsg();
-					//   setInterval(function () {loadNotification()}, 1000);
-					// grid2.getView().scrollBy(0, 999999, true);
+					
 				});
 
 
 				(Ext.cmd.derive("ResponsiveApp.view.main.Main", Ext.form.Panel, {
 					//ui: "navigation",
 					tabBarHeaderPosition: 1,
+                    id : 'MainPanel',
 					rtl: true,
 					titleRotation: 0,
 					tabRotation: 0,
