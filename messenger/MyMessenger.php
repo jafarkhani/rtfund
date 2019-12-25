@@ -895,8 +895,8 @@ $grid = $dg->makeGrid_returnObjects();
 
 					}
 				});
-
-				grid.on("cellclick", function () {
+				
+                grid.on("cellclick", function () {
                
                     Ext.getCmp('MainPanel').add(newItemPanel);
 					//newItemPanel.show();
