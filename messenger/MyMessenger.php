@@ -908,21 +908,8 @@ $grid = $dg->makeGrid_returnObjects();
 					store.prefetch({
 						start: 0,
 						limit: 10,
-						callback: function () {
-							//  store.guaranteeRange(0,5); 
-							store.load();
-							// grid2.getView().scrollBy(0, 999999, true);
-							//if (IsFirstLoad === false) {                        
-							/*
-							 * var records = Ext.getCmp('prGrid').getStore().data.length + 1;
-							 * var scrollPosition = 100;   
-							 YourGrid.getEl().down('.x-grid-view').scroll('bottom', scrollPosition, true);
-							 */
-
-							// ScrollPosition = grid2.getEl().down('.x-grid-view').getScroll().top ; 
-							// IsFirstLoad = true;
-							// }
-
+						callback: function () {							
+							store.load();							
 						}
 					});
 
