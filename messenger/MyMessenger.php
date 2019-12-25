@@ -572,7 +572,7 @@ $grid = $dg->makeGrid_returnObjects();
 				});
 
 				newItemPanel = new Ext.Panel({
-					//renderTo: "mainpanel",                    
+					//renderTo: "mainpanel",                     
 					//title: "لیست پیغام",
 					autoHeight: true,
 					// width: 620,
