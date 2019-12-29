@@ -83,6 +83,8 @@ $col = $page_rpg->addColumn("جریمه تاخیر", "ForfeitAmount");
 $col->IsQueryField = false;
 $col = $page_rpg->addColumn("کل جریمه تاخیر از ابتدا", "TotalForfeitAmount");
 $col->IsQueryField = false;
+$col = $page_rpg->addColumn("کل تعجیل از ابتدا", "TotalEarlyAmount");
+$col->IsQueryField = false;
 
 $page_rpg->addColumn("جمع اقساط تا تاریخ موثر", "EffectiveInstallmentAmounts");
 $page_rpg->addColumn("جمع پرداخت های مشتری تا تاریخ موثر", "EffectiveBackPayAmounts");
@@ -344,6 +346,7 @@ function GetData($mode = "list"){
 		$dataTable[$i]["ForfeitAmount"] = $remains['remain_pnlt'];
 		$dataTable[$i]["LateAmount"] = $remains["remain_late"];
 		$dataTable[$i]["TotalForfeitAmount"] = LON_Computes::GetTotalForfeitAmount($dataTable[$i]["RequestID"], $ComputeArr);
+		$dataTable[$i]["TotalEarlyAmount"] = LON_Computes::GetTotalEarlyAmount($dataTable[$i]["RequestID"], $ComputeArr);
 		
 		//---------------
 		$computeArr2 = LON_Computes::ComputePayments($dataTable[$i]["RequestID"], $ComputeDate, null, false);
@@ -465,6 +468,11 @@ function ListData($IsDashboard = false){
 	$col->EnableSummary();
 	
 	$col = $rpg->addColumn("مانده جریمه تاخیر", "ForfeitAmount", "EndRender");
+	$col->ExcelRender = false;
+	$col->EnableSummary();
+	
+	
+	$col = $rpg->addColumn("کل تعجیل از ابتدا", "TotalEarlyAmount", "ReportMoneyRender");
 	$col->ExcelRender = false;
 	$col->EnableSummary();
 	
