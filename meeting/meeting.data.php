@@ -450,7 +450,12 @@ function SaveMeetingRecord(){
 		$result = $obj->Edit();
 	else 
 		$result = $obj->Add();
-	
+
+    if (isset($_POST["FollowUpDate"]) && !empty($_POST["FollowUpDate"])){
+
+
+	}
+
     $personsArr = json_decode($_POST["persons"]);
     foreach($personsArr as $PersonID)
     {
@@ -536,7 +541,7 @@ function SendRecordLetter(){
 			$SendObj->ToPersonID = $PersonID;
 			$SendObj->SendDate = PDONOW;
             $SendObj->SendComment = json_decode($_POST["eerjaa"]);  /*  New Create   */
-			$SendObj->SendType = 1;
+			$SendObj->SendType = 2;
 			if(!$SendObj->AddSend($pdo))
 			{
 				$pdo->rollBack();
