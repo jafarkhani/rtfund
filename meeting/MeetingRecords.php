@@ -35,7 +35,7 @@ $col->width = 80;
 
 $col = $dg->addColumn("وضعیت", "RecordStatus", "");
 $col->renderer = "MTG_MeetingRecords.StatusRender";
-$col->width = 80;
+$col->width = 60;
 
 $col = $dg->addColumn("پیوست", "");
 $col->sortable = false;
