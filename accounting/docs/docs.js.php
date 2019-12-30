@@ -392,10 +392,10 @@ AccDocs.prototype.makeDetailWindow = function(){
 							beforeload : function(store){
 								if(!store.proxy.extraParams.TafsiliType)
 								{
-									group = AccDocsObject.detailWin.down("[name=TafsiliType]").getValue();
+									/*group = AccDocsObject.detailWin.down("[name=TafsiliType]").getValue();
 									if(group == "")
 										return false;
-									this.proxy.extraParams["TafsiliType"] = group;
+									this.proxy.extraParams["TafsiliType"] = group;*/
 								}
 							}							
 						}
@@ -426,10 +426,10 @@ AccDocs.prototype.makeDetailWindow = function(){
 							beforeload : function(store){
 								if(!store.proxy.extraParams.TafsiliType)
 								{
-									group = AccDocsObject.detailWin.down("[name=TafsiliType2]").getValue();
+									/*group = AccDocsObject.detailWin.down("[name=TafsiliType2]").getValue();
 									if(group == "")
 										return false;
-									this.proxy.extraParams["TafsiliType"] = group;
+									this.proxy.extraParams["TafsiliType"] = group;*/
 								}
 							}
 						}
@@ -460,10 +460,10 @@ AccDocs.prototype.makeDetailWindow = function(){
 							beforeload : function(store){
 								if(!store.proxy.extraParams.TafsiliType)
 								{
-									group = AccDocsObject.detailWin.down("[name=TafsiliType2]").getValue();
+									/*group = AccDocsObject.detailWin.down("[name=TafsiliType2]").getValue();
 									if(group == "")
 										return false;
-									this.proxy.extraParams["TafsiliType"] = group;
+									this.proxy.extraParams["TafsiliType"] = group;*/
 								}
 							}
 						}
@@ -570,7 +570,7 @@ AccDocs.prototype.SelectCostIDHandler = function(record){
 				displayField : "title"
 			});							
 		}
-		else
+		else if(record.data["ParamType" + i] != null)
 		{
 			ParamsFS.add({
 				itemId : "Cmp_param" + i,
@@ -1377,9 +1377,12 @@ AccDocs.prototype.EditItem = function(){
 					AccDocsObject.detailWin.down("[name=CostID]").getStore().getAt(0));
 			
 			fs = AccDocsObject.detailWin.down('form').getComponent("ParamsFS");
-			fs.down("[itemId=Cmp_param1]").setValue(record.data["param1"]);
-			fs.down("[itemId=Cmp_param2]").setValue(record.data["param2"]);
-			fs.down("[itemId=Cmp_param3]").setValue(record.data["param3"]);
+			if(fs.down("[itemId=Cmp_param1]"))
+				fs.down("[itemId=Cmp_param1]").setValue(record.data["param1"]);
+			if(fs.down("[itemId=Cmp_param2]"))
+				fs.down("[itemId=Cmp_param2]").setValue(record.data["param2"]);
+			if(fs.down("[itemId=Cmp_param3]"))
+				fs.down("[itemId=Cmp_param3]").setValue(record.data["param3"]);
 			
 			AccDocsObject.beforeRowEdit(record);
 		}
