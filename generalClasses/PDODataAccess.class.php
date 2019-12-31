@@ -10,8 +10,8 @@
 */
 
 define("PDONULL", "%pdonull%");
-//define("PDONOW", "now()");
-define("PDONOW", "ADDTIME(now(), '01:30:00') ");
+define("PDONOW", "now()");
+/*define("PDONOW", "ADDTIME(now(), '01:30:00') ");*/
 
 define("DEBUGQUERY", false);
 require_once 'ExceptionHandler.class.php';
