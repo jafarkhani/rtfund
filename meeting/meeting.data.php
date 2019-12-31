@@ -516,14 +516,29 @@ function SendRecordLetter(){
 	$pdo->beginTransaction();
 	
 	$LetterObj = new OFC_letters();
-	$LetterObj->LetterType = "INNER";
+	/*$LetterObj->LetterType = "INNER";
 	$LetterObj->LetterTitle = 
 		$_POST["subject"] != "" ? $_POST["subject"] :
 			"مصوبه جلسه " . $metObj->MeetingNo . " " . $metObj->_MeetingTypeDesc . " : " . $recObj->subject;
 	$LetterObj->LetterDate = PDONOW;
 	$LetterObj->RegDate = PDONOW;
 	$LetterObj->PersonID = $_SESSION["USER"]["PersonID"];
-	$LetterObj->context = $recObj->details;
+	$LetterObj->context = $recObj->details;*/
+    $LetterObj->LetterType = "INNER";
+    $LetterObj->LetterTitle =
+        $_POST["subject"] != "" ? $_POST["subject"] :
+            "مصوبه جلسه " . $metObj->MeetingNo . " " . $metObj->_MeetingTypeDesc . " : " . $recObj->subject;
+    $LetterObj->LetterDate = PDONOW;
+    $LetterObj->RegDate = PDONOW;
+    $LetterObj->PersonID = $_SESSION["USER"]["PersonID"];
+    /*$LetterObj->context = $recObj->details;*/
+    /*$LetterObj->context = "مصوبه ".$recObj->ItemNum."-".$metObj->MeetingNo." (موضوع: ".$recObj->subject.") ".$recObj->details;*/
+
+    $LetterObj->context = "مصوبه ".$recObj->ItemNum."-".$metObj->MeetingNo.": موضوع: ".$recObj->subject." ".$recObj->details;
+
+    $LetterObj->keywords = 'meetingrecord';
+    $LetterObj->MeetingRecordID = $RecordID; /*New edited*/
+
 	if(!$LetterObj->AddLetter($pdo))
 	{
 		echo Response::createObjectiveResponse(false, "خطا در ثبت  نامه");

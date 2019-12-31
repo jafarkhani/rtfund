@@ -169,6 +169,7 @@ class MTG_MeetingRecords extends OperationClass{
 	
 	public $RecordID;
 	public $MeetingID;
+    public $ItemNum; /* New Create */
 	public $subject;
 	public $details;
 	public $PersonID;
