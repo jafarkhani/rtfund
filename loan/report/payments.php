@@ -22,8 +22,11 @@ $page_rpg->addColumn("مبلغ درخواست", "ReqAmount");
 $page_rpg->addColumn("مشتری", "LoanFullname");
 $page_rpg->addColumn("شعبه", "BranchName");
 
-$page_rpg->addColumn("تاریخ مرحله پرداخت", "PayDate");
+$page_rpg->addColumn("تاریخ پرداخت مصوب", "PayDate");
+$page_rpg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate");
+
 $page_rpg->addColumn("مبلغ پرداخت", "PayAmount");
+
 $page_rpg->addColumn("صدور سند", "IsDocRegistered", "IsDocRegisteredRender");
 $page_rpg->addColumn("شماره سند", "LocalNo");
 
@@ -44,7 +47,7 @@ function MakeWhere(&$where, &$whereParam){
 				strpos($key, "reportcolumn_fld") !== false || strpos($key, "reportcolumn_ord") !== false)
 			continue;
 
-		if($key == "IsEndedInclude" || $key == "ZeroRemain")
+		if($key == "ZeroRemain")
 			continue;
 
 		$prefix = "";
@@ -71,10 +74,6 @@ function MakeWhere(&$where, &$whereParam){
 			$where .= " AND " . $prefix . $key . " = :$key";
 		$whereParam[":$key"] = $value;
 	}
-
-	$where .= isset($_POST["IsEndedInclude"]) ? 
-			" AND r.StatusID in('".LON_REQ_STATUS_CONFIRM."','".LON_REQ_STATUS_ENDED."')" : 
-			" AND r.StatusID in('".LON_REQ_STATUS_CONFIRM."')";
 }	
 
 function GetData(){
@@ -119,11 +118,11 @@ function ListData($IsDashboard = false){
 	$rpg = new ReportGenerator();
 	$rpg->excel = !empty($_POST["excel"]);
 	$rpg->mysql_resource = GetData();
-	/*if($_SESSION["USER"]["UserName"] == "admin")
+	if($_SESSION["USER"]["UserName"] == "admin")
 	{
 		print_r(ExceptionHandler::PopAllExceptions());
 		echo PdoDataAccess::GetLatestQueryString();
-	}*/
+	}
 	function endedRender($row,$value){
 		return ($value == "YES") ? "خاتمه" : "جاری";
 	}
@@ -151,7 +150,9 @@ function ListData($IsDashboard = false){
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
 	
-	$rpg->addColumn("تاریخ مرحله پرداخت", "PayDate", "ReportDateRender");
+	$rpg->addColumn("تاریخ پرداخت مصوب", "PayDate", "ReportDateRender");
+	$rpg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate", "ReportDateRender");
+
 	$rpg->addColumn("مبلغ پرداخت", "PayAmount", "ReportMoneyRender");
 	$col = $rpg->addColumn("صدور سند", "IsDocRegistered" , "IsDocRegisteredRender");
 	$col->align = "center";
@@ -331,10 +332,27 @@ function LoanReport_payments()
 			fieldLabel : "شعبه اخذ وام",
 			queryMode : 'local',
 			width : 370,
-			colspan : 2,
 			displayField : "BranchName",
 			valueField : "BranchID",
 			hiddenName : "BranchID"
+		},{
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../request/request.data.php?' +
+						"task=GetAllStatuses",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['InfoID','InfoDesc'],
+				autoLoad : true					
+			}),
+			fieldLabel : "وضعیت وام",
+			queryMode : 'local',
+			width : 370,
+			displayField : "InfoDesc",
+			valueField : "InfoID",
+			hiddenName : "StatusID"
 		},{
 			xtype : "numberfield",
 			name : "fromRequestID",
@@ -363,10 +381,6 @@ function LoanReport_payments()
 			name : "toPayAmount",
 			hideTrigger : true,
 			fieldLabel : "تا مبلغ پرداخت"
-		},{
-			xtype : "container",
-			colspan : 2,
-			html : "<input type=checkbox name=IsEndedInclude >  گزارش شامل وام های خاتمه یافته نیز باشد"
 		},{
 			xtype : "fieldset",
 			title : "ستونهای گزارش",
