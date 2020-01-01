@@ -3,15 +3,11 @@
  *  Programmer:	sh.Jafarkhani
  *  Create Date:	1389.10
  * 
- *  Modified : R.Mahdizadeh
-    EnterReplacement added 
- *  Date : 1390-03-30
- * 
 */
 
 define("PDONULL", "%pdonull%");
 define("PDONOW", "now()");
-/*define("PDONOW", "ADDTIME(now(), '01:30:00') ");*/
+//define("PDONOW", "ADDTIME(now(), '01:30:00') ");
 
 define("DEBUGQUERY", false);
 require_once 'ExceptionHandler.class.php';
