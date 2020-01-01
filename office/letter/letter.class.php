@@ -27,6 +27,7 @@ class OFC_letters extends PdoDataAccess{
 	public $keywords;
 	public $PostalAddress;
 	public $ProcessID;
+    public $MeetingRecordID; /*new added*/
 
     function __construct($LetterID = ""){
 		$this->DT_LetterDate = DataMember::CreateDMA(DataMember::DT_DATE);

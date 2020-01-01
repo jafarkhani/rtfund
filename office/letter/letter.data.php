@@ -1057,16 +1057,19 @@ function DeleteTemplate(){
 //..............................................
 
 function SendToMessageList(){
-	
-	$param = array(":q" => "%" . $_REQUEST["query"] . "%");
+
+    $where = " AND ( concat(fname,' ',lname) like :p or CompanyName like :p )";
+    $wheres = " AND ( GroupDesc like :p)";
+    $param[":p"] = "%" . $_REQUEST["query"] . "%";
+    /*$param = array(":q" => "%" . $_REQUEST["query"] . "%");*/
 	
 	$query = "select 'Person' type, concat('p_',PersonID)  id, concat_ws(' ',fname,lname,CompanyName) name
-			from BSC_persons where IsStaff='YES' AND IsActive='YES'				
+			from BSC_persons where IsStaff='YES' AND IsActive='YES'	" .$where. "			
 			
 			union All 
 			
 				select 'Group' type, concat('g_',GroupID) id, GroupDesc name
-				from FRW_AccessGroups
+				from FRW_AccessGroups  where 1=1 " .$wheres. "
 			
 			order by type,name";
 	
