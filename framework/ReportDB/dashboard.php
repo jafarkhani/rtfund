@@ -28,8 +28,7 @@ function Dashboard(){
 		frame : false,
 		style : "margin : 10px",
 		renderTo : this.get("div1"),
-		border : false,
-		width : 750
+		border : false
 	});
 	
 	this.MainStore = new Ext.data.Store({
@@ -103,4 +102,4 @@ function Dashboard(){
 DashboardObj = new Dashboard();
 
 </script>
-<div id="div1" ></div>
+<div id="div1" style="width:98%"></div>

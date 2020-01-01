@@ -22,7 +22,6 @@ class FRW_reports extends OperationClass{
 		$query = "select r.*, concat(MenuPath) reportPath
 			from FRW_reports r
 			join FRW_menus using(MenuID)
-			join FRW_systems using(SystemID)
 			where 1=1 " . $where;
 		return PdoDataAccess::runquery_fetchMode($query, $whereParams, $pdo);
 	}

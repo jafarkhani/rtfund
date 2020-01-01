@@ -60,7 +60,7 @@ class STO_GoodProperties extends OperationClass {
 
 class STO_Assets extends OperationClass {
 
-	const TableName = "STO_Assets";
+	const TableName = "STO_assets";
 	const TableKey = "AssetID"; 
 	
     public $AssetID;
@@ -82,9 +82,14 @@ class STO_Assets extends OperationClass {
     
     static function Get($where = "", $whereParam = array(), $pdo = null) {
 		
-        $query = "select a.*, GoodName, bf.InfoDesc StatusDesc
+        $query = "select a.*, GoodName, bf.InfoDesc StatusDesc, buy.BuyAmount, dep.totalAmount
 			from STO_assets a
-			join STO_goods g using(GoodID)
+			left join STO_goods g using(GoodID)
+			left join (select AssetID,sum(amount) BuyAmount from STO_AssetFlow where StatusID=".STO_STEPID_RAW." group by AssetID)buy 
+				on(buy.AssetID=a.AssetID)
+			left join (select AssetID,sum(DepreciationAmount) totalAmount from STO_AssetFlow where StatusID=".STO_STEPID_DEPRICATE." group by AssetID)dep 
+				on(dep.AssetID=a.AssetID)
+				
 			join BaseInfo bf on(TypeID=95 AND bf.InfoID=a.StatusID)
 			where 1=1 " . $where;
         
@@ -141,12 +146,13 @@ class STO_AssetFlow extends OperationClass{
 	}
 
 
-	static function AddFlow($AssetID, $StatusID, $IsUsable = true){
+	static function AddFlow($AssetID, $StatusID, $IsUsable = true, $amount = 0){
 		
 		$obj = new STO_AssetFlow();
 		$obj->AssetID = $AssetID;
 		$obj->ActDate = PDONOW;
 		$obj->ActPersonID = $_SESSION["USER"]["PersonID"];
+		$obj->amount = $amount;
 		$obj->StatusID = $StatusID;
 		$obj->IsUsable = $IsUsable;
 		$obj->Add();

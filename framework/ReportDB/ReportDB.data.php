@@ -44,6 +44,7 @@ function SelectReports() {
 		$where .= ")";
 	}
 	$list = FRW_reports::Get($where, $params);
+	print_r(ExceptionHandler::PopAllExceptions());
 	$count = $list->rowCount();
 	echo dataReader::getJsonData($list->fetchAll(), $count, $_GET['callback']);
 	die();

@@ -18,6 +18,9 @@ function RealRender($row, $value){
 function IsFreeRender($row, $value){
 	return $value == "YES" ? "*" : "";
 }
+function FundRulesRender($row, $value){
+	return $value == "YES" ? "نظر صندوق" : "نظر معرفی کننده";
+}
 
 $page_rpg = new ReportGenerator("mainForm","LoanReport_totalObj");
 $col = $page_rpg->addColumn("شماره وام", "RRequestID");
@@ -34,6 +37,7 @@ $col->type = "date";
 $page_rpg->addColumn("سند خاتمه", "EndDocNo");
 $page_rpg->addColumn("مبلغ درخواست", "ReqAmount");
 $page_rpg->addColumn("وام بالاعوض", "IsFree", "IsFreeRender");
+$page_rpg->addColumn("تضامین بر اساس", "FundRules", "FundRulesRender");
 $page_rpg->addColumn("مشتری", "LoanFullname");
 $page_rpg->addColumn("حوزه فعالیت", "DomainDesc");
 $page_rpg->addColumn("نوع", "IsReal", "RealRender");
@@ -385,6 +389,7 @@ function ListData($IsDashboard = false){
 	$col->ExcelRender = false;
 	$col->EnableSummary();
 	$rpg->addColumn("وام بالاعوض", "IsFree", "IsFreeRender");
+	$rpg->addColumn("تضامین بر اساس", "FundRules", "FundRulesRender");
 	$rpg->addColumn("تاریخ خاتمه", "EndReqDate", "ReportDateRender");
 	$rpg->addColumn("سند خاتمه", "EndDocNo");
 	
@@ -418,6 +423,7 @@ function ListData($IsDashboard = false){
 	
 	$rpg->addColumn("شماره قدیم", "imp_VamCode");
 	//$rpg->addColumn("جاری/خاتمه", "IsEnded", "endedRender");
+	
 	$rpg->addColumn("تضامین", "tazamin");
 	$rpg->addColumn("وضعیت", "StatusDesc");
 	
@@ -802,8 +808,13 @@ function LoanReport_total()
 			fieldLabel : "فرمول محاسبه",
 			queryMode : 'local',
 			width : 370,
-			hiddenName : "ComputeMode",
-			colspan : 2
+			hiddenName : "ComputeMode"
+		},{
+			xtype : "container",
+			html : "تضامین بر اساس&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
+				"<input name=FundRules type=radio value='YES' > نظر صندوق &nbsp;&nbsp;" +
+				"<input name=FundRules type=radio value='NO' > نظر معرفی کننده &nbsp;&nbsp;" +
+				"<input name=FundRules type=radio value='' checked > هردو " 
 		},{
 			xtype : "shdatefield",
 			name : "fromEndReqDate",
