@@ -51,8 +51,8 @@ $col = $dg->addColumn("", "TemplateID");
 $col->renderer = "ManageContractsObj.OperationRender";
 $col->width = 30;
 
-if($accessObj->AddFlag)
-	$dg->addButton("", "ایجاد قرارداد", "add", "function(){ManageContractsObj.AddContract();}");
+/*if($accessObj->AddFlag)
+	$dg->addButton("", "ایجاد قرارداد", "add", "function(){ManageContractsObj.AddContract();}");*/
 
 $dg->title = "لیست قراردادها";
 $dg->DefaultSortField = "ContractID";
