@@ -45,7 +45,7 @@ foreach($days as $dayRow)
 	select * 
 	from LON_requests  r
 	join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-	where ComputeMode='NEW' AND StatusID=" . LON_REQ_STATUS_CONFIRM . " AND r.RequestID>=1184" ;
+	where ComputeMode='NEW' AND StatusID=" . LON_REQ_STATUS_CONFIRM ;
 	if(!empty($_GET["RequestID"]))
 	{
 		$query .= " AND  r.RequestID=:r";
@@ -71,18 +71,8 @@ foreach($days as $dayRow)
 	echo "<br>****************************<BR>" . DateModules::miladi_to_shamsi($ComputeDate) . 
 			"<br>****************************<br>";
 	ob_flush();flush();
-	$i=0;
 	while($row = $reqs->fetch())
 	{
-		echo ".";
-		$i++;
-		if($i == 100)
-		{
-			echo "<br>";
-			$i=0;
-		}
-		ob_flush();flush();
-		
 		$ComputeDate = $dayRow["gdate"];
 		$eventID = "";
 		$LateEvent = "";
@@ -93,6 +83,7 @@ foreach($days as $dayRow)
 			$eventID = EVENT_LOANDAILY_innerSource;
 			$LateEvent = EVENT_LOANDAILY_innerLate;
 			$PenaltyEvent = EVENT_LOANDAILY_innerPenalty;
+			$EarlyEvent = EVENT_LOANDAILY_innerEarly;
 		}
 		else
 		{
@@ -103,9 +94,10 @@ foreach($days as $dayRow)
 
 			$LateEvent = EVENT_LOANDAILY_agentlate;
 			$PenaltyEvent = EVENT_LOANDAILY_agentPenalty;
+			$EarlyEvent = EVENT_LOANDAILY_agentEarly;
 		}
-		
-		$obj = new ExecuteEvent($eventID);
+	
+		/*$obj = new ExecuteEvent($eventID);
 		$obj->DocObj = isset($objArr[$eventID]) ? $objArr[$eventID] : null;
 		$obj->DocDate = $ComputeDate;
 		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
@@ -117,7 +109,7 @@ foreach($days as $dayRow)
 			echo ExceptionHandler::GetExceptionsToString("<br>");
 			print_r(ExceptionHandler::PopAllExceptions());
 			echo "\n--------------------------------------------\n";
-		}
+		}*/
 
 		$obj = new ExecuteEvent($LateEvent);
 		$obj->DocObj = isset($objArr[$LateEvent]) ? $objArr[$LateEvent] : null;
@@ -133,13 +125,26 @@ foreach($days as $dayRow)
 			echo "\n--------------------------------------------\n";
 		}
 
-
 		$obj = new ExecuteEvent($PenaltyEvent);
 		$obj->DocObj = isset($objArr[$PenaltyEvent]) ? $objArr[$PenaltyEvent] : null;
 		$obj->DocDate = $ComputeDate;
 		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
 		$result = $obj->RegisterEventDoc($pdo);
 		$objArr[$PenaltyEvent] = $obj->DocObj;
+		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+		{
+			echo "وام " .  $row["RequestID"] . " : <br>";
+			echo ExceptionHandler::GetExceptionsToString("<br>");
+			print_r(ExceptionHandler::PopAllExceptions());
+			echo "\n--------------------------------------------\n";
+		}
+		
+		$obj = new ExecuteEvent($EarlyEvent);
+		$obj->DocObj = isset($objArr[$EarlyEvent]) ? $objArr[$EarlyEvent] : null;
+		$obj->DocDate = $ComputeDate;
+		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
+		$result = $obj->RegisterEventDoc($pdo);
+		$objArr[$EarlyEvent] = $obj->DocObj;
 		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
 		{
 			echo "وام " .  $row["RequestID"] . " : <br>";

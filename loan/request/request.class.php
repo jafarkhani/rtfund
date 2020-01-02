@@ -2062,7 +2062,8 @@ class LON_Computes extends PdoDataAccess{
 			"remain_pure" => 0,
 			"remain_wage" => 0,
 			"remain_late" => 0,
-			"remain_pnlt" => 0
+			"remain_pnlt" => 0,
+			"total_early" => 0
 		);
 		foreach($computeArr as $row)
 		{
@@ -2072,6 +2073,7 @@ class LON_Computes extends PdoDataAccess{
 				$result["remain_wage"] += $row["remain_wage"]*1;
 				$result["remain_late"] += $row["remain_late"]*1;
 				$result["remain_pnlt"] += $row["remain_pnlt"]*1;
+				$result["total_early"] += $row["early"]*1;
 			}
 			else
 				break;
@@ -2118,6 +2120,7 @@ class LON_Computes extends PdoDataAccess{
 		$returnArr = array();
 		//$extra = LON_requests::TotalSubtractsOfPayAmount($RequestID, $PartObj);
 		$pays = LON_payments::Get(" AND p.RequestID=?", array($RequestID), " order by PayDate");
+		print_r(ExceptionHandler::PopAllExceptions());
 		$pays = $pays->fetchAll();
 		$totalPure = 0;
 		$totalZ = 0;

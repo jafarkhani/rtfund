@@ -218,6 +218,8 @@ define("EVENT_LOANDAILY_innerLate", 1724);
 define("EVENT_LOANDAILY_agentlate", 1725);  
 define("EVENT_LOANDAILY_innerPenalty", 1726);
 define("EVENT_LOANDAILY_agentPenalty", 1727);
+define("EVENT_LOANDAILY_innerEarly", 1877);
+define("EVENT_LOANDAILY_agentEarly", 1878);
 
 define("EVENT_LOAN_CHANGE", 171);
 define("EVENT_LOAN_END", 191);

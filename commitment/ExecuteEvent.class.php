@@ -81,6 +81,8 @@ class ExecuteEvent {
 			case EVENT_LOANDAILY_agentlate:
 			case EVENT_LOANDAILY_innerPenalty:
 			case EVENT_LOANDAILY_agentPenalty:
+			case EVENT_LOANDAILY_innerEarly:
+			case EVENT_LOANDAILY_agentEarly:
 				$this->EventFunction = "EventComputeItems::LoanDaily";
 				break;	
 			
