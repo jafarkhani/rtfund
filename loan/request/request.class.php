@@ -80,7 +80,7 @@ class LON_requests extends PdoDataAccess{
 	static function SelectAll($where = "", $param = array()){
 		
 		return PdoDataAccess::runquery_fetchMode("
-			select r.*,l.*,p.PartID,
+			select r.*,l.*,p.PartID,p.PartAmount,p.PartDate,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
 				bi.InfoDesc StatusDesc,
@@ -3089,6 +3089,84 @@ class LON_costs extends OperationClass{
 		return count($dt) > 0 ? $dt[0] : false;
 	}
 
+}
+
+class LON_follows extends OperationClass{
+	
+	const TableName = "LON_follows";
+	const TableKey = "FollowID";
+	
+	public $FollowID;
+	public $RequestID;
+	public $RegDate;
+	public $RegPersonID;
+	public $StatusID;
+	public $details;
+	public $LawerName;
+	public $RefDate;
+	public $LawerDoc;
+	
+	function __construct($id = '') {
+		
+		$this->DT_RegDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		$this->DT_RefDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		
+		parent::__construct($id);
+	}
+	
+	static function Get($where = '', $whereParams = array(), $pdo = null) {
+		
+		return PdoDataAccess::runquery_fetchMode("
+			select f.*,concat_ws(' ',fname,lname) RegPersonName , t.letters
+			from LON_follows f
+			join BSC_persons p on(f.RegPersonID=p.PersonID)
+			join BaseInfo bf on(bf.TypeID=98 AND bf.InfoID=f.StatusID)
+			left join ( select FollowID,group_concat(LetterID) letters from LON_FollowLetters group by FollowID )t
+				on(t.FollowID=f.FollowID)
+			where 1=1 " . $where , $whereParams, $pdo);
+	}	
+}
+
+class LON_FollowLetters extends OperationClass{
+	
+	const TableName = "LON_FollowLetters";
+	const TableKey = "FollowID";
+	
+	public $FollowID;
+	public $LetterID;
+	
+	function __construct($id = '') {
+		
+		$this->DT_RegDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		$this->DT_RefDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		
+		parent::__construct($id);
+	}
+}
+
+class LON_FollowTemplates extends OperationClass{
+	
+	const TableName = "LON_FollowTemplates";
+	const TableKey = "TemplateID";
+	
+	public $TemplateID;
+	public $StatusID;
+	public $LetterSubject;
+	public $LetterContent;
+	
+	function __construct($id = '') {
+		
+		parent::__construct($id);
+	}
+	
+	static function Get($where = '', $whereParams = array(), $pdo = null) {
+		
+		return PdoDataAccess::runquery_fetchMode("
+			select f.*,bf.InfoDesc StatusDesc
+			from LON_FollowTemplates f
+			join BaseInfo bf on(bf.TypeID=98 AND bf.InfoID=f.StatusID)
+			where 1=1 " . $where , $whereParams, $pdo);
+	}	
 }
 
 class LON_guarantors extends OperationClass{

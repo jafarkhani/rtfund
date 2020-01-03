@@ -199,9 +199,13 @@ ManageRequest.prototype.OperationMenu = function(e){
 			},{
 				text : 'هزینه ها',
 				iconCls : "account",
-				hidden : true,
 				itemId : "cmp_costs",
 				handler : function(){ ManageRequestObject.ShowCosts(); }
+			},{
+				text : 'پیگیری مطالبات',
+				iconCls : "process",
+				itemId : "cmp_follows",
+				handler : function(){ ManageRequestObject.ShowFollows(); }
 			});
 	
 	
@@ -583,6 +587,43 @@ ManageRequest.prototype.ShowCosts = function(){
 		params : {
 			MenuID : this.MenuID,
 			ExtTabID : this.CostsWin.getEl().id,
+			RequestID : this.grid.getSelectionModel().getLastSelected().data.RequestID
+		}
+	});
+}
+
+ManageRequest.prototype.ShowFollows = function(){
+
+	if(!this.FollowWin)
+	{
+		this.FollowWin = new Ext.window.Window({
+			title: 'پیگیری مطالبات',
+			modal : true,
+			autoScroll : true,
+			width: 1000,
+			height : 400,
+			bodyStyle : "background-color:white",
+			closeAction : "hide",
+			loader : {
+				url : this.address_prefix + "follows.php",
+				scripts : true
+			},
+			buttons : [{
+				text : "بازگشت",
+				iconCls : "undo",
+				handler : function(){
+					this.up('window').hide();
+				}
+			}]
+		});
+		Ext.getCmp(this.TabID).add(this.FollowWin);
+	}
+	this.FollowWin.show();
+	this.FollowWin.center();	
+	this.FollowWin.loader.load({
+		params : {
+			MenuID : this.MenuID,
+			ExtTabID : this.FollowWin.getEl().id,
 			RequestID : this.grid.getSelectionModel().getLastSelected().data.RequestID
 		}
 	});

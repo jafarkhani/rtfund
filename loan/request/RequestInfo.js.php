@@ -301,9 +301,13 @@ RequestInfo.prototype.OperationMenu = function(e){
 	}		
 	
 	if(record.data.StatusID == "70")
+	{
+		op_menu.add({text: 'پیگیری مطالبات',iconCls: 'process', 
+		handler : function(){ return RequestInfoObject.ShowFollows(); }});
+	
 		op_menu.add({text: 'سابقه درخواست',iconCls: 'history', 
 		handler : function(){ return RequestInfoObject.ShowPartHistory(); }});
-	
+	}
 	op_menu.showAt(e.pageX-120, e.pageY);
 }
 
@@ -2533,6 +2537,43 @@ RequestInfo.prototype.ShowCosts = function(){
 		params : {
 			MenuID : this.MenuID,
 			ExtTabID : this.CostsWin.getEl().id,
+			RequestID : this.RequestID
+		}
+	});
+}
+
+RequestInfo.prototype.ShowFollows = function(){
+
+	if(!this.FollowWin)
+	{
+		this.FollowWin = new Ext.window.Window({
+			title: 'پیگیری مطالبات',
+			modal : true,
+			autoScroll : true,
+			width: 1200,
+			height : 400,
+			bodyStyle : "background-color:white",
+			closeAction : "hide",
+			loader : {
+				url : this.address_prefix + "follows.php",
+				scripts : true
+			},
+			buttons : [{
+				text : "بازگشت",
+				iconCls : "undo",
+				handler : function(){
+					this.up('window').hide();
+				}
+			}]
+		});
+		Ext.getCmp(this.TabID).add(this.FollowWin);
+	}
+	this.FollowWin.show();
+	this.FollowWin.center();	
+	this.FollowWin.loader.load({
+		params : {
+			MenuID : this.MenuID,
+			ExtTabID : this.FollowWin.getEl().id,
 			RequestID : this.RequestID
 		}
 	});
