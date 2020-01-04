@@ -43,9 +43,9 @@ foreach($days as $dayRow)
 	$params = array();
 	$query = "
 	select * 
-	from LON_requests  r
+	from LON_requests  r join aa on(r.RequestID=aa.DocID)
 	join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-	where ComputeMode='NEW' AND StatusID=" . LON_REQ_STATUS_CONFIRM ;
+	where ComputeMode='NEW' AND StatusID<>" . LON_REQ_STATUS_CONFIRM ;
 	if(!empty($_GET["RequestID"]))
 	{
 		$query .= " AND  r.RequestID=:r";
@@ -97,7 +97,7 @@ foreach($days as $dayRow)
 			$EarlyEvent = EVENT_LOANDAILY_agentEarly;
 		}
 	
-		/*$obj = new ExecuteEvent($eventID);
+		$obj = new ExecuteEvent($eventID);
 		$obj->DocObj = isset($objArr[$eventID]) ? $objArr[$eventID] : null;
 		$obj->DocDate = $ComputeDate;
 		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
@@ -109,7 +109,7 @@ foreach($days as $dayRow)
 			echo ExceptionHandler::GetExceptionsToString("<br>");
 			print_r(ExceptionHandler::PopAllExceptions());
 			echo "\n--------------------------------------------\n";
-		}*/
+		} 
 
 		$obj = new ExecuteEvent($LateEvent);
 		$obj->DocObj = isset($objArr[$LateEvent]) ? $objArr[$LateEvent] : null;
