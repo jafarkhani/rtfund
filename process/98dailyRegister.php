@@ -43,7 +43,7 @@ foreach($days as $dayRow)
 	$params = array();
 	$query = "
 	select * 
-	from LON_requests  r join aa on(r.RequestID=aa.DocID)
+	from LON_requests  r 
 	join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
 	where ComputeMode='NEW' AND StatusID<>" . LON_REQ_STATUS_CONFIRM ;
 	if(!empty($_GET["RequestID"]))
