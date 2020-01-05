@@ -113,12 +113,16 @@ function NewContract() {
                         me.MainForm.getComponent("LoanRequestID").enable();
                         me.MainForm.getComponent("WarrentyRequestID").disable();
                         me.MainForm.getComponent("PersonID2").enable();
+                        document.getElementById("cke_ContractEditor").style.display = "block";
+                        me.MainForm.getComponent("TemplateID").enable();
                     }
                     else if (records[0].data.InfoID == "2")
                     {
                         me.MainForm.getComponent("LoanRequestID").disable();
                         me.MainForm.getComponent("WarrentyRequestID").enable();
                         me.MainForm.getComponent("PersonID2").enable();
+                        document.getElementById("cke_ContractEditor").style.display = "block";
+                        me.MainForm.getComponent("TemplateID").enable();
                     }
                     else if (records[0].data.InfoID == "3")
                     {
@@ -128,10 +132,15 @@ function NewContract() {
                         me.MainForm.getComponent("WarrentyRequestID").disable();
                         me.MainForm.getComponent("PersonID2").setValue('');
                         me.MainForm.getComponent("PersonID2").disable();
+                        document.getElementById("cke_ContractEditor").style.display = "none";
+                        me.MainForm.getComponent("TemplateID").disable();
                     }else {
                         me.MainForm.getComponent("LoanRequestID").disable();
                         me.MainForm.getComponent("WarrentyRequestID").disable();
                         me.MainForm.getComponent("PersonID2").enable();
+                        document.getElementById("cke_ContractEditor").style.display = "block";
+                        me.MainForm.getComponent("TemplateID").setValue('');
+                        me.MainForm.getComponent("TemplateID").enable();
                     }
 				}
 			}
