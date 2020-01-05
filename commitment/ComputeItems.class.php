@@ -268,7 +268,7 @@ class EventComputeItems {
 		}
 		else 
 		{
-			$todayArr = LON_Computes::GetRemainAmounts($ReqObj->RequestID);
+			$todayArr = LON_Computes::GetRemainAmounts($ReqObj->RequestID, null, $Today);
 			$yesterdayArr = LON_Computes::GetRemainAmounts($ReqObj->RequestID, null, $Yesterday);
 			
 			self::$LoanComputeArray[ $ReqObj->RequestID ][$Today] = $todayArr;
@@ -301,6 +301,9 @@ class EventComputeItems {
 				$penalty = $todayArr["remain_pnlt"] - $yesterdayArr["remain_pnlt"];
 				$fundPenalty = round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$penalty);
 				return $penalty - $fundPenalty;
+			case 86 : 
+				$early = $todayArr["total_early"] - $yesterdayArr["total_early"];
+				return $early;
 		}
 
 	}
@@ -510,6 +513,8 @@ class EventComputeItems {
 			case EVENT_LOANDAILY_innerLate:
 			case EVENT_LOANDAILY_agentPenalty:
 			case EVENT_LOANDAILY_innerPenalty:
+			case EVENT_LOANDAILY_agentEarly:
+			case EVENT_LOANDAILY_innerEarly:
 			case EVENT_LOANCHEQUE_payed:
 			case EVENT_LOANCHEQUE_agentSource:
 			case EVENT_LOANCHEQUE_innerSource:

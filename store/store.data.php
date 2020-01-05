@@ -43,7 +43,7 @@ function SelectGoods() {
     $param = array();
 
     if (!empty($_REQUEST['query'])) {
-		$field = isset($_REQUEST['fields']) ? $_REQUEST['fields'] : "BudgetDesc";
+		$field = isset($_REQUEST['fields']) ? $_REQUEST['fields'] : "GoodName";
         $where .= ' and ' . $field . ' like :' . $field;
         $param[':' . $field] = '%' . $_REQUEST['query'] . '%';
     }
@@ -157,7 +157,7 @@ function SelectAllAssets() {
     $param = array();
 
     if (!empty($_REQUEST['query'])) {
-		$field = isset($_REQUEST['fields']) ? $_REQUEST['fields'] : "BudgetDesc";
+		$field = isset($_REQUEST['fields']) ? $_REQUEST['fields'] : "GoodName";
         $where .= ' and ' . $field . ' like :' . $field;
         $param[':' . $field] = '%' . $_REQUEST['query'] . '%';
     }
@@ -190,8 +190,9 @@ function SaveAsset() {
     if ($obj->AssetID == '')
 	{
 		$obj->StatusID = STO_STEPID_RAW;
+		$obj->RegDate = PDONOW;
 		$result = $obj->Add();
-		STO_AssetFlow::AddFlow($obj->AssetID, $obj->StatusID);
+		STO_AssetFlow::AddFlow($obj->AssetID, $obj->StatusID, true, $obj->amount);
 	}
     else
         $result = $obj->Edit();
@@ -216,6 +217,7 @@ function SaveAsset() {
 function DeleteAsset() {
 
 	$obj = new STO_Assets((int)$_POST["AssetID"]);
+
 	$result = $obj->remove();
     Response::createObjectiveResponse($result, '');
     die();
@@ -229,7 +231,7 @@ function SelectAllAssetFlow(){
     $param = array(":a" => $_REQUEST["AssetID"]);
 
     if (!empty($_REQUEST['query'])) {
-		$field = isset($_REQUEST['fields']) ? $_REQUEST['fields'] : "BudgetDesc";
+		$field = isset($_REQUEST['fields']) ? $_REQUEST['fields'] : "GoodName";
         $where .= ' and ' . $field . ' like :' . $field;
         $param[':' . $field] = '%' . $_REQUEST['query'] . '%';
     }

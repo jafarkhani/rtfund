@@ -182,6 +182,16 @@ function GetData(&$rpg){
 		$col = $rpg->addColumn("کد تفصیلی1", "TafsiliID");
 		$col = $rpg->addColumn("تفصیلی1", "TafsiliDesc", "levelRender");
 		$col->ExcelRender = false;
+		
+		$group .= ",tbl.TafsiliID2";
+		$col = $rpg->addColumn("کد تفصیلی2", "TafsiliID2");
+		$col = $rpg->addColumn("تفصیلی2", "TafsiliDesc2", "levelRender");
+		$col->ExcelRender = false;
+		
+		$group .= ",tbl.TafsiliID3";
+		$col = $rpg->addColumn("کد تفصیلی3", "TafsiliCode3");
+		$col = $rpg->addColumn("تفصیلی3", "TafsiliDesc3", "levelRender");
+		$col->ExcelRender = false;
 	}
 	if($level == "l6")
 	{
@@ -599,18 +609,14 @@ function ListData($IsDashboard = false){
 				form.action += "&level3=" + level3;
 			if(curlevel >= "l4" && level4 != '')
 				form.action += "&level4=" + level4;
-			if(curlevel == "l5")
+			if(curlevel >= "l5")
 			{
 				if(TafsiliID != '')
 					form.action += "&TafsiliID=" + TafsiliID;
-			}
-			if(curlevel == "l6")
-			{
+				
 				if(TafsiliID != '')
 					form.action += "&TafsiliID2=" + TafsiliID2;
-			}
-			if(curlevel == "l7")
-			{
+				
 				if(TafsiliID2 != '')
 					form.action += "&TafsiliID3=" + TafsiliID3;
 			}

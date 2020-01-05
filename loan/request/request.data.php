@@ -13,6 +13,7 @@ require_once DOCUMENT_ROOT . "/office/workflow/wfm.class.php";
 require_once DOCUMENT_ROOT . '/accounting/docs/import.data.php';
 require_once DOCUMENT_ROOT . '/framework/person/persons.class.php';
 require_once 'compute.inc.php';
+require_once inc_CurrencyModule;
 
 $task = isset($_REQUEST["task"]) ? $_REQUEST["task"] : "";
 switch($task)
@@ -82,7 +83,14 @@ switch($task)
 	case "emptyDataTable":
 	case "ComputeManualInstallments":
 	case "selectBackPayComputes":
-		
+	case "GetFollows":
+	case "SaveFollows":
+	case "DeleteFollows":
+	case 'GetFollowStatuses':	
+	case "GetFollowTemplates":
+	case "SaveFollowTemplates":
+	case "DeleteFollowTemplates":
+	case "RegisterLetter":
 	case "CustomerDefrayRequest":
 		$task();
 }
@@ -1870,6 +1878,181 @@ function DeleteGuarantor(){
 	$result = $obj->Remove();
 	echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
 	die();	
+}
+
+//------------------------------------------------
+
+function GetFollows(){
+	
+	$temp = LON_follows::Get("AND f.RequestID=?", array($_REQUEST["RequestID"]));
+	$res = $temp->fetchAll();
+	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
+	die();
+}
+
+function SaveFollows(){
+	
+	$obj = new LON_follows();
+	PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
+	
+	if(empty($obj->FollowID))
+	{
+		$obj->RegPersonID = $_SESSION["USER"]["PersonID"];
+		$result = $obj->Add();
+	}
+	else
+		$result = $obj->Edit();
+	
+	//print_r(ExceptionHandler::PopAllExceptions());
+	if(!$result)
+		echo Response::createObjectiveResponse(false, "خطا در ثبت ردیف");
+	else
+		echo Response::createObjectiveResponse(true, "");
+	die();
+}
+
+function DeleteFollows(){
+	
+	$obj = new LON_follows($_POST["FollowID"]);
+	$result = $obj->Remove();
+	echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+	die();	
+}
+
+function GetFollowStatuses(){
+	
+	$temp = PdoDataAccess::runquery_fetchMode("select * from BaseInfo where TypeID=98");
+	$res = $temp->fetchAll();
+	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
+	die();
+}
+
+function GetFollowTemplates(){
+	
+	$temp = LON_FollowTemplates::Get();
+	$res = $temp->fetchAll();
+	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
+	die();
+}
+
+function SaveFollowTemplates(){
+	
+	$obj = new LON_FollowTemplates();
+	PdoDataAccess::FillObjectByArray($obj, $_POST);
+	
+	if(empty($obj->TemplateID))
+	{
+		$result = $obj->Add();
+	}
+	else
+		$result = $obj->Edit();
+	
+	//print_r(ExceptionHandler::PopAllExceptions());
+	if(!$result)
+		echo Response::createObjectiveResponse(false, "خطا در ثبت ردیف");
+	else
+		echo Response::createObjectiveResponse(true, "");
+	die();
+}
+
+function DeleteFollowTemplates(){
+	
+	$obj = new LON_FollowTemplates($_POST["TemplateID"]);
+	$result = $obj->Remove();
+	echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+	die();	
+}
+
+function RegisterLetter(){
+	
+	require_once DOCUMENT_ROOT . '/office/letter/letter.class.php';
+	
+	$FollowID = $_POST["FollowID"];
+	$TemplateID = $_POST["TemplateID"];
+	$RequestID = $_POST["RequestID"];
+	
+	$TemplateObj = new LON_FollowTemplates($TemplateID);
+	$FollowObj = new LON_follows($FollowID);
+	$LoanObj = new LON_requests($RequestID);
+	
+	$dt = PdoDataAccess::runquery("
+		select r.*,p.*,p2.*,
+			concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
+			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
+				
+		from LON_requests r 
+		left join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
+		left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
+		left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
+			
+		where r.RequestID=?", array($RequestID));
+	$LoanRecord = $dt[0];
+	//--------------- create letter content --------------------
+	
+	$LoanRecord["amount_char"] = CurrencyModulesclass::CurrencyToString($LoanRecord["PartAmount"]);
+	$LoanRecord["totalRemain"] = number_format(LON_Computes::GetCurrentRemainAmount($RequestID));
+	$LoanRecord["PartDate"] = DateModules::miladi_to_shamsi($LoanRecord["PartDate"]);
+	$LoanRecord["PartAmount"] = number_format($LoanRecord["PartAmount"]);
+			
+	$content = $TemplateObj->LetterContent;
+	$contentArr = explode("#", $content);
+	$content = "";
+	for ($i = 0; $i < count($contentArr); $i++) {
+		if ($i % 2 == 0) 
+		{
+			$content .= $contentArr[$i];
+			continue;
+		}
+
+		$content .=  $LoanRecord[ $contentArr[$i] ];
+	}
+	//----------------------------------------------------------
+	
+	$LetterObj = new OFC_letters();
+	$LetterObj->LetterType = "OUTCOME";
+	$LetterObj->LetterTitle = $TemplateObj->LetterSubject;
+	$LetterObj->LetterDate = PDONOW;
+	$LetterObj->RegDate = PDONOW;
+	$LetterObj->PersonID = $_SESSION["USER"]["PersonID"];
+	$LetterObj->context = $content;
+	if(!$LetterObj->AddLetter())
+	{
+		print_r(ExceptionHandler::PopAllExceptions());
+		echo Response::createObjectiveResponse(false, "خطا در ثبت  نامه");
+		die();
+	}
+
+	$Cobj = new OFC_LetterCustomers();
+	$Cobj->LetterID = $LetterObj->LetterID;
+	$Cobj->PersonID = $LoanObj->LoanPersonID;
+	$Cobj->IsHide = "NO";
+	$Cobj->LetterTitle = $TemplateObj->LetterSubject;
+	if(!$Cobj->Add())
+	{
+		echo Response::createObjectiveResponse(false, "خطا در ثبت ذینفع نامه");
+		die();
+	}
+	if($LoanObj->ReqPersonID*1 > 0)
+	{
+		$Cobj = new OFC_LetterCustomers();
+		$Cobj->LetterID = $LetterObj->LetterID;
+		$Cobj->PersonID = $LoanObj->ReqPersonID;
+		$Cobj->IsHide = "NO";
+		$Cobj->LetterTitle = $TemplateObj->LetterSubject;
+		if(!$Cobj->Add())
+		{
+			echo Response::createObjectiveResponse(false, "خطا در ثبت ذینفع نامه");
+			die();
+		}
+	}
+	
+	$obj = new LON_FollowLetters();
+	$obj->FollowID = $FollowID;
+	$obj->LetterID = $LetterObj->LetterID;
+	$obj->Add();
+	
+	echo Response::createObjectiveResponse(true, $LetterObj->LetterID);
+	die();
 }
 
 //------------------------------------------------

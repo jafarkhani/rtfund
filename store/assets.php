@@ -24,6 +24,12 @@ $col->width = 100;
 $col = $dg->addColumn("کالا", "GoodName");
 $col->width = 120;
 
+$col = $dg->addColumn("مبلغ خرید", "BuyAmount", GridColumn::ColumnType_money);
+$col->width = 100;
+
+$col = $dg->addColumn("مبلغ استهلاک", "totalAmount", GridColumn::ColumnType_money);
+$col->width = 100;
+
 $col = $dg->addColumn("مبلغ", "amount", GridColumn::ColumnType_money);
 $col->width = 100;
 
