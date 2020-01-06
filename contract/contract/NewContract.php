@@ -134,6 +134,17 @@ function NewContract() {
                         me.MainForm.getComponent("PersonID2").disable();
                         document.getElementById("cke_ContractEditor").style.display = "none";
                         me.MainForm.getComponent("TemplateID").disable();
+                    }
+                    else if (records[0].data.InfoID == "4")
+                    {
+                        me.MainForm.getComponent("LoanRequestID").setValue('');
+                        me.MainForm.getComponent("LoanRequestID").disable();
+                        me.MainForm.getComponent("WarrentyRequestID").setValue('');
+                        me.MainForm.getComponent("WarrentyRequestID").disable();
+                        me.MainForm.getComponent("PersonID2").setValue('');
+                        me.MainForm.getComponent("PersonID2").disable();
+                        document.getElementById("cke_ContractEditor").style.display = "none";
+                        me.MainForm.getComponent("TemplateID").disable();
                     }else {
                         me.MainForm.getComponent("LoanRequestID").disable();
                         me.MainForm.getComponent("WarrentyRequestID").disable();
