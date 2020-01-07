@@ -52,7 +52,14 @@ function SaveContract() {
    
 	$pdo = PdoDataAccess::getPdoObject();
     $pdo->beginTransaction();
-	
+    if($_POST['ContractType'] == 3){
+        $_POST['content']='در قرارداد عاملیت، اطلاعات قرارداد به صورت پیوست قرار گرفته است.';
+        $_POST['TemplateID']=1;
+    }
+    if($_POST['ContractType'] == 4){
+        $_POST['content']='در قرارداد پیمانکاران، اطلاعات قرارداد به صورت پیوست قرار گرفته است.';
+        $_POST['TemplateID']=2;
+    }
 	$CntObj = new CNT_contracts();
 	PdoDataAccess::FillObjectByArray($CntObj, $_POST);
 	
