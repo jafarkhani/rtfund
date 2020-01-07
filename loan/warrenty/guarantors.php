@@ -3,7 +3,6 @@
 // programmer:	Jafarkhani
 // Create Date:	94.06
 //-------------------------
-echo 'Heloo';
 require_once('../header.inc.php');
 require_once 'request.class.php';
 require_once inc_dataGrid;

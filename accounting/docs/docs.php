@@ -73,6 +73,7 @@ $dg->addColumn("","Tafsili2GroupDesc","",true);
 $dg->addColumn("","Tafsili3Desc","",true);
 $dg->addColumn("","Tafsili3GroupDesc","",true);
 $dg->addColumn("ردیف سیستمی", "locked", "", true);
+$dg->addColumn("","details","",true);
 
 $dg->addColumn("", "paramDesc1", "", true);
 $dg->addColumn("", "paramDesc2", "", true);

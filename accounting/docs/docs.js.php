@@ -368,7 +368,7 @@ AccDocs.prototype.makeDetailWindow = function(){
 					},
 					listeners :{
 						select : function(combo,records){
-							AccDocsObject.SelectCostIDHandler(records[0]);
+							AccDocsObject.SelectCostIDHandler(records[0], null);
 						}
 					}
 				},{
@@ -520,28 +520,49 @@ AccDocs.prototype.makeDetailWindow = function(){
 	Ext.getCmp(this.TabID).add(this.detailWin);
 }
 
-AccDocs.prototype.SelectCostIDHandler = function(record){
-
+AccDocs.prototype.SelectCostIDHandler = function(record, valRecord){
+	
 	if(record.data.TafsiliType1 != null)
 	{
 		combo = this.detailWin.down("[name=TafsiliID]");
-		combo.setValue();
 		combo.getStore().proxy.extraParams["TafsiliType"] = record.data.TafsiliType1;
-		combo.getStore().load();
+		if(valRecord == null)
+		{
+			combo.setValue();
+			combo.getStore().load();
+		}
+		else
+		{
+			combo.getStore().load({	params : { TafsiliID : valRecord.data.TafsiliID} });
+		}
 	}
 	if(record.data.TafsiliType2 != null)
 	{
 		combo = this.detailWin.down("[name=TafsiliID2]");
-		combo.setValue();
 		combo.getStore().proxy.extraParams["TafsiliType"] = record.data.TafsiliType2;
-		combo.getStore().load();
+		if(valRecord == null)
+		{
+			combo.setValue();
+			combo.getStore().load();
+		}
+		else
+		{
+			combo.getStore().load({	params : { TafsiliID : valRecord.data.TafsiliID2} });
+		}
 	}
 	if(record.data.TafsiliType3 != null)
 	{
 		combo = this.detailWin.down("[name=TafsiliID3]");
-		combo.setValue();
 		combo.getStore().proxy.extraParams["TafsiliType"] = record.data.TafsiliType3;
-		combo.getStore().load();
+		if(valRecord == null)
+		{
+			combo.setValue();
+			combo.getStore().load();
+		}
+		else
+		{
+			combo.getStore().load({	params : { TafsiliID : valRecord.data.TafsiliID3} });
+		}
 	}
 	
 	var ParamsFS = this.detailWin.down('form').getComponent("ParamsFS");
@@ -1333,48 +1354,12 @@ AccDocs.prototype.EditItem = function(){
 	mask.show();
 	//....................................................
 	R1 = this.detailWin.down("[name=CostID]").getStore().load({
-		params : { CostID : record.data.CostID}
-	});
-	//....................................................
-	R2 = false;
-	if(record.data.TafsiliType != "" && record.data.TafsiliID != "")
-	{
-		this.detailWin.down("[name=TafsiliID]").getStore().proxy.extraParams.TafsiliType = 
-			record.data.TafsiliType;
-		R2 = this.detailWin.down("[name=TafsiliID]").getStore().load({
-			params : { TafsiliID : record.data.TafsiliID}
-		});
-	}
-	//....................................................
-	R3 = false;
-	if(record.data.TafsiliType2 != "" && record.data.TafsiliID2 != "")
-	{
-		this.detailWin.down("[name=TafsiliID2]").getStore().proxy.extraParams.TafsiliType = 
-			record.data.TafsiliType2;
-		R3 = this.detailWin.down("[name=TafsiliID2]").getStore().load({
-			params : { TafsiliID : record.data.TafsiliID2}
-		});
-	}
-	//....................................................
-	R4 = false;
-	if(record.data.TafsiliType3 != "" && record.data.TafsiliID3 != "")
-	{
-		this.detailWin.down("[name=TafsiliID3]").getStore().proxy.extraParams.TafsiliType = 
-			record.data.TafsiliType3;
-		R4 = this.detailWin.down("[name=TafsiliID3]").getStore().load({
-			params : { TafsiliID : record.data.TafsiliID3}
-		});
-	}
-	
-	//....................................................
-	var t = setInterval(function(){
-		if(!R1.isLoading() && (!R2 || !R2.isLoading()) && (!R3 || !R3.isLoading()) && (!R4 || !R4.isLoading()))
-		{
-			clearInterval(t);
+		params : { CostID : record.data.CostID},
+		callback : function(){
 			mask.hide();
 			AccDocsObject.detailWin.down('panel').loadRecord(record);
 			AccDocsObject.SelectCostIDHandler(
-					AccDocsObject.detailWin.down("[name=CostID]").getStore().getAt(0));
+					AccDocsObject.detailWin.down("[name=CostID]").getStore().getAt(0), record);
 			
 			fs = AccDocsObject.detailWin.down('form').getComponent("ParamsFS");
 			if(fs.down("[itemId=Cmp_param1]"))
@@ -1386,9 +1371,7 @@ AccDocs.prototype.EditItem = function(){
 			
 			AccDocsObject.beforeRowEdit(record);
 		}
-	}, 1000);
-	//....................................................
-	
+	});	
 }
 
 AccDocs.prototype.SaveItem = function(store,record){
