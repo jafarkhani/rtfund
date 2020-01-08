@@ -560,8 +560,29 @@ function ChangeOutcomeChequeStatus(){
 	$obj->CheckStatus = $Status;
 	$result = $obj->Edit($pdo);
 	
+	//------------------ execute event -------------------
+	$dt = PdoDataAccess::runquery("select * from BaseInfo where TypeID=4 AND InfoID=?", array($Status));
+	$EventID = $dt[0]["param3"];
+	$message = "";
+	
+	if($EventID != "")
+	{
+		$eventobj = new ExecuteEvent($EventID);
+		$eventobj->Sources = array($obj->DocID, $obj->DocChequeID);
+		$eventobj->AllRowsAmount = $obj->amount;
+		$result = $eventobj->RegisterEventDoc($pdo);
+		if(!$result)
+		{
+			$pdo->rollBack();
+			Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+			die();
+		}
+		$DocObj = $eventobj->DocObj;
+		$message = "سند با شماره " . $DocObj->LocalNo . " با موفقیت صادر گردید";
+	}
+	
 	$pdo->commit();
-	echo Response::createObjectiveResponse($result, "");
+	echo Response::createObjectiveResponse($result, $message);
 	die();
 }
 
@@ -861,9 +882,11 @@ function selectOutcomeCheques(){
 	}
 	$query .= dataReader::makeOrder();
 
-	$dataTable = PdoDataAccess::runquery($query, $whereParam);
+	$dataTable = PdoDataAccess::runquery_fetchMode($query, $whereParam);
 	//echo PdoDataAccess::GetLatestQueryString();
-	echo dataReader::getJsonData($dataTable, count($dataTable), $_GET["callback"]);
+	$count = $dataTable->rowCount();
+	$data = PdoDataAccess::fetchAll($dataTable, (int)$_GET["start"], (int)$_GET["limit"]);
+	echo dataReader::getJsonData($data,$count, $_GET["callback"]);
 	die();
 }
 

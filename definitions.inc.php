@@ -208,6 +208,8 @@ define("EVENT_LOANBACKPAY_agentSource_committal_non_cheque", 156);
 define("EVENT_LOANBACKPAY_agentSource_non_committal_cheque", 153);
 define("EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque", 154);
 
+define("EVENT_OutcomeCheque_vosul", 1755);
+
 define("EVENT_LOAN_COST_INNER", 1866);
 define("EVENT_LOAN_COST_AGENT", 1867);
 

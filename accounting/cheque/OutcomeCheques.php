@@ -208,14 +208,11 @@ OutcomeCheque.prototype.beforeChangeStatus = function(){
 						url: this.address_prefix + 'cheques.data.php?task=selectValidChequeStatuses',
 						reader: {root: 'rows',totalProperty: 'totalCount'}
 					},
-					/*fields :  ['InfoID',"InfoDesc"]*/
-					fields :  ['TafsiliID',"TafsiliDesc"]
+					fields :  ['InfoID',"InfoDesc"]
 				}),
 				queryMode : "local",
-				displayField: 'TafsiliDesc',
-				valueField : "TafsiliID",
-				/*displayField: 'InfoDesc',
-				valueField : "InfoID",*/
+				displayField: 'InfoDesc',
+				valueField : "InfoID",
 				width : 400,
 				name : "DstID"
 			}],
@@ -273,7 +270,11 @@ OutcomeCheque.prototype.ChangeStatus = function(){
 
 			result = Ext.decode(response.responseText);
 			if(result.success)
+			{
 				OutcomeChequeObject.grid.getStore().load();
+				if(result.data != "")
+					Ext.MessageBox.alert("",result.data);
+			}
 			else if(result.data != "")
 				Ext.MessageBox.alert("",result.data);
 			else
