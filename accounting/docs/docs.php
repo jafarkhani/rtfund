@@ -227,7 +227,7 @@ $dgh->DefaultSortDir = "ASC";
 $dgh->height = 315;
 $dgh->EnableSearch = false;
 $dgh->EnablePaging = false;
-
+$dgh->width = 1000;
 $checksgrid = $dgh->makeGrid_returnObjects();
 
 //-----------------------------------------

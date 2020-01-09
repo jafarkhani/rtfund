@@ -880,6 +880,13 @@ function selectOutcomeCheques(){
 		$query .= " AND c.tafsiliID = :taf ";
 		$whereParam[":taf"] = $_POST["tafsiliID"];
 	}
+	
+	if (isset($_GET["fields"]) && !empty($_GET["query"])) {
+		$field = $_GET["fields"];
+		$query .= " AND " . $field . " like :f";
+		$whereParam[":f"] = "%" . $_GET["query"] . "%";
+	}
+	
 	$query .= dataReader::makeOrder();
 
 	$dataTable = PdoDataAccess::runquery_fetchMode($query, $whereParam);

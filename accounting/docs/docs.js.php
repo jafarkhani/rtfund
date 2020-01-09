@@ -1104,16 +1104,6 @@ AccDocs.prototype.check_Add = function(){
 	});	
 		
 	return;
-	
-	var modelClass = this.checkGrid.getStore().model;
-	var record = new modelClass({
-		DocChequeID: "",
-		DocID : this.grid.getStore().getAt(0).data.DocID
-	});
-	
-	this.checkGrid.plugins[0].cancelEdit();
-	this.checkGrid.getStore().insert(0, record);
-	this.checkGrid.plugins[0].startEdit(0, 0);
 }
 
 AccDocs.prototype.check_Save = function(store,record){
