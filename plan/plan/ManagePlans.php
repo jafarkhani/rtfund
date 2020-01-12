@@ -38,6 +38,7 @@ $col->width = 150;
 
 
 $col = $dg->addColumn(" شماره نامه", "LetterID");
+$col->renderer = "ManagePlan.ParamValueRender";
 $col->width = 60;
 
 $col = $dg->addColumn("متقاضی ارزیابی", "askername");
