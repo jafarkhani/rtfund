@@ -101,6 +101,7 @@ class ExecuteEvent {
 			case EVENT_WAR_CANCEL_4:
 			case EVENT_WAR_CANCEL_6:
 			case EVENT_WAR_CANCEL_7:
+			case EVENT_WAR_CANCEL_8:
 			case EVENT_WAR_CANCEL_other:
 				$this->TriggerFunction = "WAR_requests::EventTrigger_cancel";
 				$this->EventFunction = "EventComputeItems::Warrenty";
@@ -110,18 +111,21 @@ class ExecuteEvent {
 			case EVENT_WAR_REG_4:
 			case EVENT_WAR_REG_6:
 			case EVENT_WAR_REG_7:
+			case EVENT_WAR_REG_8:
 			case EVENT_WAR_REG_other:
 			case EVENT_WAR_END_2:
 			case EVENT_WAR_END_3:
 			case EVENT_WAR_END_4:
 			case EVENT_WAR_END_6:
 			case EVENT_WAR_END_7:
+			case EVENT_WAR_REG_8:
 			case EVENT_WAR_END_other:
 			case EVENT_WAR_EXTEND_2:
 			case EVENT_WAR_EXTEND_3:
 			case EVENT_WAR_EXTEND_4:
 			case EVENT_WAR_EXTEND_6:
 			case EVENT_WAR_EXTEND_7:
+			case EVENT_WAR_EXTEND_8:
 			case EVENT_WAR_EXTEND_other:
 				$this->EventFunction = "EventComputeItems::Warrenty";
 				break;	
@@ -130,6 +134,7 @@ class ExecuteEvent {
 			case EVENT_WAR_SUB_4:
 			case EVENT_WAR_SUB_6:
 			case EVENT_WAR_SUB_7:
+			case EVENT_WAR_SUB_8:
 			case EVENT_WAR_SUB_other:
 				$this->AfterTriggerFunction = "WAR_requests::EventTrigger_reduce";				
 				$this->EventFunction = "EventComputeItems::Warrenty";

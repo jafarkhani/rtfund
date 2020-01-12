@@ -333,7 +333,7 @@ function CreatePayCheque(){
 	$DocID = $_POST["DocID"]*1;
 	
 	PdoDataAccess::runquery("insert into ACC_DocCheques(DocID,AccountID,CheckDate,amount,CheckStatus) 
-		select DocID,ObjectID,gdate,sum(CreditorAmount),3001 
+		select DocID,ObjectID,".PDONOW.",sum(CreditorAmount),3001 
 		from ACC_DocItems di 
 			join ACC_CostCodes cc using(CostID)
 			left join ACC_tafsilis t on(di.TafsiliID2=t.TafsiliID)  
@@ -342,12 +342,14 @@ function CreatePayCheque(){
 	
 	if(PdoDataAccess::AffectedRows() == 0)
 	{
+		print_r(ExceptionHandler::PopAllExceptions());
 		echo Response::createObjectiveResponse(false , "کد حسابی که قابلیت صدور چک داشته باشد یافت نشد");
 		die();	
 	}
 	echo Response::createObjectiveResponse(true , "");
 	die();	
 }
+
 //............................
 
 function selectDocItems() {

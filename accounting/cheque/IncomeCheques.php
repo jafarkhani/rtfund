@@ -184,15 +184,12 @@ IncomeCheque.prototype.MakeFilterPanel = function(){
 						"task=SelectIncomeChequeStatuses",
 					reader: {root: 'rows',totalProperty: 'totalCount'}
 				},
-				/*fields : ['InfoID','InfoDesc'],*/
-				fields : ['TafsiliID','TafsiliDesc'],
+				fields : ['InfoID','InfoDesc'],
 				autoLoad : true
 			}),
 			fieldLabel : "وضعیت چک",
-			/*displayField : "InfoDesc",
-			valueField : "InfoID",*/
-			displayField : "TafsiliDesc",
-			valueField : "TafsiliID",
+			displayField : "InfoDesc",
+			valueField : "InfoID",
 			queryMode : "local",			
 			hiddenName :"ChequeStatus"
 		}],
@@ -604,14 +601,11 @@ IncomeCheque.prototype.beforeChangeStatus = function(){
 						url: this.address_prefix + 'cheques.data.php?task=selectValidChequeStatuses',
 						reader: {root: 'rows',totalProperty: 'totalCount'}
 					},
-					/*fields :  ['InfoID',"InfoDesc"]*/
 					fields :  ['InfoID',"InfoDesc"]
 				}),
 				queryMode : "local",
 				displayField: 'InfoDesc',
 				valueField : "InfoID",
-				/*displayField: 'InfoDesc',
-				valueField : "InfoID",*/
 				width : 400,
 				name : "DstID",
 				listeners : {
@@ -668,10 +662,7 @@ IncomeCheque.prototype.beforeChangeStatus = function(){
 	
 	this.commentWin.down("[itemId=btn_save]").setHandler(function(){
 		status = this.up('window').down("[name=DstID]").getValue();
-		/*if(status == "<?= INCOMECHEQUE_VOSUL ?>")
-			IncomeChequeObject.AccountInfoWin();
-		else*/
-			IncomeChequeObject.ChangeStatus();
+		IncomeChequeObject.ChangeStatus();
 	});
 		
 	this.commentWin.show();
@@ -726,146 +717,12 @@ IncomeCheque.prototype.ReturnLatestOperation = function(){
 	});
 }
 
-IncomeCheque.prototype.AccountInfoWin = function(){
-	
-	if(!this.BankWin)
-	{
-		this.BankWin = new Ext.window.Window({
-			width : 400,
-			height : 350,
-			bodyStyle : "background-color:white",
-			modal : true,
-			closeAction : "hide",
-			items : [{
-				xtype : "form",
-				border : false,
-				items :[{
-					xtype : "combo",
-					width : 385,
-					fieldLabel : "حساب مربوطه",
-					colspan : 2,
-					store: new Ext.data.Store({
-						fields:["CostID","CostCode","CostDesc", "TafsiliType1","TafsiliType2",{
-							name : "fullDesc",
-							convert : function(value,record){
-								return "[ " + record.data.CostCode + " ] " + record.data.CostDesc
-							}				
-						}],
-						proxy: {
-							type: 'jsonp',
-							url: '/accounting/baseinfo/baseinfo.data.php?task=SelectCostCode',
-							reader: {root: 'rows',totalProperty: 'totalCount'}
-						}
-					}),
-					typeAhead: false,
-					name : "CostID",
-					valueField : "CostID",
-					displayField : "fullDesc",
-					listeners : {
-						select : function(combo,records){
-							me = IncomeChequeObject;
-							if(records[0].data.TafsiliType1 != null)
-							{
-								me.BankWin.down("[itemId=TafsiliID]").setValue();
-								me.BankWin.down("[itemId=TafsiliID]").getStore().proxy.extraParams.TafsiliType = records[0].data.TafsiliType1;
-								me.BankWin.down("[itemId=TafsiliID]").getStore().load();
-							}
-							if(records[0].data.TafsiliType2 != null)
-							{
-								me.BankWin.down("[itemId=TafsiliID2]").setValue();
-								me.BankWin.down("[itemId=TafsiliID2]").getStore().proxy.extraParams.TafsiliType = records[0].data.TafsiliType2;
-								me.BankWin.down("[itemId=TafsiliID2]").getStore().load();
-							}
-							
-							if(this.getValue() == "<?= COSTID_Bank ?>")
-							{
-								me.BankWin.down("[itemId=TafsiliID]").setValue(
-									"<?= $_SESSION["accounting"]["DefaultBankTafsiliID"] ?>");
-								me.BankWin.down("[itemId=TafsiliID2]").setValue(
-									"<?= $_SESSION["accounting"]["DefaultAccountTafsiliID"] ?>");
-							}
-						}
-					}
-				},{
-					xtype : "combo",
-					store: new Ext.data.Store({
-						fields:["TafsiliID","TafsiliCode","TafsiliDesc",{
-							name : "title",
-							convert : function(v,r){ return "[ " + r.data.TafsiliCode + " ] " + r.data.TafsiliDesc;}
-						}],
-						proxy: {
-							type: 'jsonp',
-							url: '/accounting/baseinfo/baseinfo.data.php?task=GetAllTafsilis',
-							reader: {root: 'rows',totalProperty: 'totalCount'}
-						}
-					}),
-					emptyText:'انتخاب تفصیلی1 ...',
-					typeAhead: false,
-					pageSize : 10,
-					width : 385,
-					valueField : "TafsiliID",
-					itemId : "TafsiliID",
-					name : "TafsiliID",
-					displayField : "title",
-					listeners : { 
-						change : function(){
-							t1 = this.getStore().proxy.extraParams["TafsiliType"];
-							combo = IncomeChequeObject.BankWin.down("[itemId=TafsiliID2]");
-
-							if(t1 == <?= TAFTYPE_BANKS ?>)
-							{
-								combo.getStore().proxy.extraParams["ParentTafsili"] = this.getValue();
-								combo.getStore().load();
-							}			
-							else
-								combo.getStore().proxy.extraParams["ParentTafsili"] = "";
-						}
-					}
-				},{
-					xtype : "combo",
-					store: new Ext.data.Store({
-						fields:["TafsiliID","TafsiliCode","TafsiliDesc",{
-							name : "title",
-							convert : function(v,r){ return "[ " + r.data.TafsiliCode + " ] " + r.data.TafsiliDesc;}
-						}],
-						proxy: {
-							type: 'jsonp',
-							url: '/accounting/baseinfo/baseinfo.data.php?task=GetAllTafsilis',
-							reader: {root: 'rows',totalProperty: 'totalCount'}
-						}
-					}),
-					emptyText:'انتخاب تفصیلی2 ...',
-					typeAhead: false,
-					pageSize : 10,
-					width : 385,
-					valueField : "TafsiliID",
-					itemId : "TafsiliID2",
-					name : "TafsiliID2",
-					displayField : "title"
-				}]
-			}],
-			buttons :[{
-				text : "ذخیره",
-				iconCls : "save",
-				itemId : "btn_save",
-				handler : function(){IncomeChequeObject.ChangeStatus();}
-			}]
-		});
-		Ext.getCmp(this.TabID).add(this.BankWin);
-	}
-	this.BankWin.show();
-	this.BankWin.down("[itemId=btn_save]").setHandler(function(){ 
-		IncomeChequeObject.BankWin.hide();
-		IncomeChequeObject.ChangeStatus(); 
-	});
-}
-
 IncomeCheque.prototype.ChangeStatus = function(){
 	
 	var record = this.grid.getSelectionModel().getLastSelected();
 	StatusID = this.commentWin.down("[name=DstID]").getValue();
 	PayedDate = "";
-	/*if(StatusID == "<?= INCOMECHEQUE_VOSUL ?>")
+	if(StatusID == "<?= INCOMECHEQUE_VOSUL ?>")
 	{
 		PayedDate = this.commentWin.down("[name=PayedDate]").getRawValue();
 		params.UpdateLoanBackPay = this.commentWin.down("[name=UpdateLoanBackPay]").getValue();
@@ -875,11 +732,7 @@ IncomeCheque.prototype.ChangeStatus = function(){
 			Ext.MessageBox.alert("Error","تنها بعد از تاریخ وصول چک می توانید سند مربوطه را صادر کنید");
 			return;
 		}
-		//params = mergeObjects(params, this.BankWin.down('form').getForm().getValues());
-	}	*/
-	
-	//this.ExecuteEvent(StatusID,PayedDate);
-	//return;
+	}	
 	
 	params = {
 		task : "ChangeChequeStatus",
@@ -898,7 +751,6 @@ IncomeCheque.prototype.ChangeStatus = function(){
 			Ext.MessageBox.alert("Error","تنها بعد از تاریخ وصول چک می توانید سند مربوطه را صادر کنید");
 			return;
 		}
-		//params = mergeObjects(params, this.BankWin.down('form').getForm().getValues());
 	}	
 	
 	if(StatusID == null || StatusID == "")
@@ -923,8 +775,6 @@ IncomeCheque.prototype.ChangeStatus = function(){
 				Ext.MessageBox.alert("",result.data);
 			else
 				Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
-
-
 		}
 	});
 }
@@ -1454,33 +1304,6 @@ IncomeCheque.prototype.beforeEdit = function(){
 		
 	this.editWin.show();
 	this.editWin.center();
-}
-
-IncomeCheque.prototype.ExecuteEvent = function(StatusID,PayedDate){
-	
-	var record = this.grid.getSelectionModel().getLastSelected();
-
-	Ext.Ajax.request({
-		url : this.address_prefix + "cheques.data.php?task=GetBackPays",
-		method : "POST",
-		params: {
-			IncomeChequeID : record.data.IncomeChequeID,
-			StatusID : StatusID
-		},
-		success : function(response){
-			result = Ext.decode(response.responseText);
-			
-			if(result.success)
-			{
-				result = result.data.split("_");
-				if(result.length == 0)
-					this.grid.getStore().load();
-				else
-					framework.ExecuteEvent(result[0], new Array(
-					result[1],result[2],result[3],StatusID,PayedDate));
-			}
-		}
-	})
 }
 
 </script>

@@ -80,6 +80,11 @@ $col = $dg->addColumn("توضیحات", "details", "");
 if($editable)
 	$col->editor = ColumnEditor::TextField(true);
 
+$col = $dg->addColumn("سند", "");
+$col->sortable = false;
+$col->renderer = "function(v,p,r){return LoanPay.RegDocRender(v,p,r);}";
+$col->width = 40;
+	
 if($editable && $accessObj->AddFlag)
 {
 	$dg->enableRowEdit = true;
@@ -87,10 +92,7 @@ if($editable && $accessObj->AddFlag)
 	
 	$dg->addButton("AddBtn", "ایجاد ردیف پرداخت", "add", "function(){LoanPayObject.AddPay();}");
 	
-	$col = $dg->addColumn("سند", "");
-	$col->sortable = false;
-	$col->renderer = "function(v,p,r){return LoanPay.RegDocRender(v,p,r);}";
-	$col->width = 40;
+	
 	if($accessObj->RemoveFlag)
 	{
 		$col = $dg->addColumn("حذف", "");

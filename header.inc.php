@@ -21,6 +21,7 @@ require_once getenv("DOCUMENT_ROOT") . '/framework/session.php';
 require_once getenv("DOCUMENT_ROOT") . '/framework/management/framework.class.php';
 
 session::sec_session_start();
+
 if(!session::checkLogin())
 {
 	echo "<script>window.location='/framework/login.php';</script>";

@@ -1316,6 +1316,7 @@ WarrentyRequest.prototype.ExecuteRegEvent = function(){
 		case "4" : eventID= "<?= EVENT_WAR_REG_4 ?>";break;
 		case "6" : eventID= "<?= EVENT_WAR_REG_6 ?>";break;
 		case "7" : eventID= "<?= EVENT_WAR_REG_7 ?>";break;
+		case "8" : eventID= "<?= EVENT_WAR_REG_8 ?>";break;
 		default  : eventID= "<?= EVENT_WAR_REG_other ?>";break;
 	}
 	framework.ExecuteEvent(eventID, new Array(record.data.RequestID));
@@ -1331,6 +1332,7 @@ WarrentyRequest.prototype.ExecuteEndEvent = function(){
 		case "4" : eventID= "<?= EVENT_WAR_END_4 ?>";break;
 		case "6" : eventID= "<?= EVENT_WAR_END_6 ?>";break;
 		case "7" : eventID= "<?= EVENT_WAR_END_7 ?>";break;
+		case "8" : eventID= "<?= EVENT_WAR_END_8 ?>";break;
 		default  : eventID= "<?= EVENT_WAR_END_other ?>";break;
 	}
 	framework.ExecuteEvent(eventID, new Array(record.data.RequestID));
@@ -1346,6 +1348,7 @@ WarrentyRequest.prototype.ExecuteCancelEvent = function(){
 		case "4" : eventID= "<?= EVENT_WAR_CANCEL_4 ?>";break;
 		case "6" : eventID= "<?= EVENT_WAR_CANCEL_6 ?>";break;
 		case "7" : eventID= "<?= EVENT_WAR_CANCEL_7 ?>";break;
+		case "8" : eventID= "<?= EVENT_WAR_CANCEL_8 ?>";break;
 		default  : eventID= "<?= EVENT_WAR_CANCEL_other ?>";break;
 	}
 	framework.ExecuteEvent(eventID, new Array(
@@ -1365,6 +1368,7 @@ WarrentyRequest.prototype.ExecuteReduceEvent = function(){
 		case "4" : eventID= "<?= EVENT_WAR_SUB_4 ?>";break;
 		case "6" : eventID= "<?= EVENT_WAR_SUB_6 ?>";break;
 		case "7" : eventID= "<?= EVENT_WAR_SUB_7 ?>";break;
+		case "8" : eventID= "<?= EVENT_WAR_SUB_8 ?>";break;
 		default  : eventID= "<?= EVENT_WAR_SUB_other ?>";break;
 	}
 	framework.ExecuteEvent(eventID, new Array(
@@ -1384,6 +1388,7 @@ WarrentyRequest.prototype.ExecuteExtendEvent = function(){
 		case "4" : eventID= "<?= EVENT_WAR_EXTEND_4 ?>";break;
 		case "6" : eventID= "<?= EVENT_WAR_EXTEND_6 ?>";break;
 		case "7" : eventID= "<?= EVENT_WAR_EXTEND_7 ?>";break;
+		case "8" : eventID= "<?= EVENT_WAR_EXTEND_8 ?>";break;
 		default  : eventID= "<?= EVENT_WAR_EXTEND_other ?>";break;
 	}
 	framework.ExecuteEvent(eventID, new Array(
