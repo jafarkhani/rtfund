@@ -16,6 +16,7 @@ if(empty($_REQUEST["RequestID"]))
 }
 
 $PayObj = new ACC_EPays();
+$PayObj->BankType = "tejarat"; 
 $PayObj->amount = $_REQUEST["amount"];
 $PayObj->PayDate = PDONOW;
 $PayObj->PersonID = $_SESSION["USER"]["PersonID"];

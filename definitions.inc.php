@@ -74,7 +74,7 @@ define("COSTID_SupportDeposite", "487");
 define("COSTID_Fund", "1");
 define("COSTID_Wage", "470"); // 550
 define("COSTID_DepositeWage", "418"); // 750-09
-define("COSTID_Bank", "253");
+define("COSTID_Bank", "1001");
 define("COSTID_share", "313"); 
 define("COSTID_ShareProfit", "167");
 define("COSTID_Commitment", "165");
@@ -208,7 +208,7 @@ define("EVENT_LOANBACKPAY_agentSource_committal_non_cheque", 156);
 define("EVENT_LOANBACKPAY_agentSource_non_committal_cheque", 153);
 define("EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque", 154);
 
-define("EVENT_OutcomeCheque_vosul", 1755);
+define("EVENT_OutcomeCheque_vosul", 1755); 
 
 define("EVENT_LOAN_COST_INNER", 1866);
 define("EVENT_LOAN_COST_AGENT", 1867);

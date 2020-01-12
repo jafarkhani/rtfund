@@ -115,12 +115,12 @@ function RegDoc($RequestID, $amount, $PayRefNo){
 	else
 		$EventID = EVENT_LOANBACKPAY_innerSource_non_cheque;
 
-	$_POST["TafsiliID1_168"] = 4025; //حساب جاری
-	$_POST["TafsiliID2_168"] = 1947; //تجارت کوتاه مدت
-	$_POST["param1_168"] = "تجارت کوتاه مدت 425273566";
-	
 	$eventobj = new ExecuteEvent($EventID);
 	$eventobj->Sources = array($RequestID, $partObj->PartID, $obj->BackPayID);
+	
+	$eventobj->tafsilis = array();
+	$eventobj->tafsilis[TAFSILITYPE_PERSON] = 1947; //تجارت کوتاه مدت
+	
 	$result = $eventobj->RegisterEventDoc($pdo);
 	if(!$result)
 	{

@@ -798,6 +798,7 @@ class ACC_EPays extends OperationClass {
 	public $StatusCode;
 	public $error;
 	public $PayRefNo;
+	public $BankType;
 	
 }
 ?>

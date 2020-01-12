@@ -722,18 +722,7 @@ IncomeCheque.prototype.ChangeStatus = function(){
 	var record = this.grid.getSelectionModel().getLastSelected();
 	StatusID = this.commentWin.down("[name=DstID]").getValue();
 	PayedDate = "";
-	if(StatusID == "<?= INCOMECHEQUE_VOSUL ?>")
-	{
-		PayedDate = this.commentWin.down("[name=PayedDate]").getRawValue();
-		params.UpdateLoanBackPay = this.commentWin.down("[name=UpdateLoanBackPay]").getValue();
 		
-		if(PayedDate > new Ext.SHDate().format("Y/m/d"))
-		{
-			Ext.MessageBox.alert("Error","تنها بعد از تاریخ وصول چک می توانید سند مربوطه را صادر کنید");
-			return;
-		}
-	}	
-	
 	params = {
 		task : "ChangeChequeStatus",
 		BackPayID : record.data.BackPayID,

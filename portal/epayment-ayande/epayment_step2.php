@@ -54,12 +54,12 @@ function RegDoc($RequestID, $amount,  $PayRefNo){
 	else
 		$EventID = EVENT_LOANBACKPAY_innerSource_non_cheque;
 
-	$_POST["TafsiliID1_168"] = 4025; //حساب جاری
-	$_POST["TafsiliID2_168"] = 3052; //حساب سپرده کوتاه مدت بانک آینده
-	$_POST["param1_168"] = "آینده کوتاه مدت 0202075850000";
-	
 	$eventobj = new ExecuteEvent($EventID);
 	$eventobj->Sources = array($RequestID, $partObj->PartID, $obj->BackPayID);
+	
+	$eventobj->tafsilis = array();
+	$eventobj->tafsilis[TAFSILITYPE_PERSON] = 3052; //حساب سپرده کوتاه مدت بانک آینده
+	
 	$result = $eventobj->RegisterEventDoc($pdo);
 	if(!$result)
 	{
@@ -95,8 +95,8 @@ else
 				$result = "خطا در اتصال به بانک";
 			}
 			// this is a succcessfull payment	
-			$PayObj->StatusCode = $_REQUEST["resultCode"];
-			$PayObj->PayRefNo = $referenceId;
+			$PayObj->StatusCode = $status;
+			$PayObj->PayRefNo = $RRN;
 			$PayObj->Edit();
 			$DocRegResult = RegDoc($PayObj->RequestID, $PayObj->amount, $RRN);
 			if(!$DocRegResult)

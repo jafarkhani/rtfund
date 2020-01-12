@@ -301,6 +301,19 @@ class ExecuteEvent {
 		$obj->TafsiliID = $result[0]["TafsiliID"];
 		$obj->TafsiliID2 = $result[1]["TafsiliID"];
 		$obj->TafsiliID3 = $result[2]["TafsiliID"];
+		
+		if(!empty($this->tafsilis))
+		{
+			if(!empty($eventRow["TafsiliType1"]) && !empty($this->tafsilis[ $eventRow["TafsiliType1"] ]))
+				$obj->TafsiliID = $this->tafsilis[ $eventRow["TafsiliType1"] ];
+			
+			if(!empty($eventRow["TafsiliType2"]) && !empty($this->tafsilis[ $eventRow["TafsiliType2"] ]))
+				$obj->TafsiliID2 = $this->tafsilis[ $eventRow["TafsiliType2"] ];
+			
+			if(!empty($eventRow["TafsiliType3"]) && !empty($this->tafsilis[ $eventRow["TafsiliType3"] ]))
+				$obj->TafsiliID3 = $this->tafsilis[ $eventRow["TafsiliType3"] ];
+		}
+		
 		//------------------- set SourceIDs  ---------------------
 		if(is_array($this->Sources))
 			for($i=0; $i < count($this->Sources); $i++)

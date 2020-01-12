@@ -232,32 +232,32 @@ function ListDate($IsDashboard = false){
 	
 	$col = $rpg->addColumn("تاریخ پرداخت", "realPayDate", "ReportDateRender");
 	$col->rowspaning = true;
-	$col->rowspanByFields = array("RRequestID", "realPayDate");
+	$col->rowspanByFields = array("RRequestID", "PayID", "realPayDate");
 	
 	$col = $rpg->addColumn("مبلغ پرداخت", "PayAmount", "ReportMoneyRender");
 	$col->rowspaning = true;
-	$col->rowspanByFields = array("RRequestID", "realPayDate");
+	$col->rowspanByFields = array("RRequestID", "PayID","realPayDate");
 	$col->EnableSummary();
 	
 	$col = $rpg->addColumn("نوع پرداخت", "PayTypeDesc");
 	$col->rowspaning = true;
-	$col->rowspanByFields = array("RRequestID", "realPayDate");
+	$col->rowspanByFields = array("RRequestID", "PayID","realPayDate");
 	
 	$col = $rpg->addColumn("شماره فیش", "PayBillNo");
 	$col->rowspaning = true;
-	$col->rowspanByFields = array("RRequestID", "realPayDate");
+	$col->rowspanByFields = array("RRequestID", "PayID","realPayDate");
 	
 	$col = $rpg->addColumn("کد پیگیری", "PayRefNo");
 	$col->rowspaning = true;
-	$col->rowspanByFields = array("RRequestID", "realPayDate");
+	$col->rowspanByFields = array("RRequestID", "PayID", "realPayDate");
 	
 	$col = $rpg->addColumn("شماره چک", "ChequeNo");
 	$col->rowspaning = true;
-	$col->rowspanByFields = array("RRequestID", "realPayDate");
+	$col->rowspanByFields = array("RRequestID", "PayID","realPayDate");
 	
 	$col = $rpg->addColumn("شماره سند", "LocalNo");
 	$col->rowspaning = true;
-	$col->rowspanByFields = array("RRequestID", "realPayDate");
+	$col->rowspanByFields = array("RRequestID","PayID", "realPayDate");
 	
 	if(!empty($_POST["IsInstallmentRowsInclude"]))
 	{
@@ -450,10 +450,26 @@ function LoanReport_Backays()
 			fieldLabel : "شعبه اخذ وام",
 			queryMode : 'local',
 			width : 370,
-			colspan : 2,
 			displayField : "BranchName",
 			valueField : "BranchID",
 			hiddenName : "BranchID"
+		},{
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../loan/loan.data.php?task=GetAllPayTypes',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['InfoID','InfoDesc'],
+				autoLoad : true					
+			}),
+			fieldLabel : "نوع پرداخت",
+			queryMode : 'local',
+			width : 370,
+			displayField : "InfoDesc",
+			valueField : "InfoID",
+			hiddenName : "PayType"
 		},{
 			xtype : "numberfield",
 			name : "fromRequestID",

@@ -672,10 +672,11 @@ class ACC_DocItems extends PdoDataAccess {
 			$dt = PdoDataAccess::runquery("select LocalNo from ACC_docs join ACC_DocItems using(DocID) where 
 				TafsiliID=? AND
 				DocDate>=? AND CycleID=" . $_SESSION["accounting"]["CycleID"] . "
-				AND BranchID=" . $hobj->BranchID . "
-				AND DocType=" . DOCTYPE_DEPOSIT_PROFIT, array($this->TafsiliID, $hobj->DocDate));
+				AND BranchID=?
+				AND DocType=" . DOCTYPE_DEPOSIT_PROFIT, array($this->TafsiliID, $hobj->DocDate, $hobj->BranchID));
 			if(count($dt) > 0)
 			{
+				
 				ExceptionHandler::PushException("سند سود سپرده با شماره " . 
 						$dt[0][0] . " بر اساس این ردیف صادر شده و قادر به ویرایش آن نمی باشید.");
 				return false;
@@ -696,12 +697,14 @@ class ACC_DocCheques extends PdoDataAccess {
 	public $CheckStatus;
 	public $TafsiliID;
 	public $description;
+	public $_AccountTafsiliID;
 
 	function __construct($id = "") {
 		
 		$this->DT_CheckDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		if($id != "")
-			return PdoDataAccess::FillObject($this, "select * from ACC_DocCheques where DocChequeID=?", array($id));
+			return PdoDataAccess::FillObject($this, "select c.*,t.TafsiliID _AccountTafsiliID from ACC_DocCheques c
+				left join ACC_tafsilis t on(ObjectType='account' and ObjectID=AccountID) where DocChequeID=?", array($id));
 	}
 
 	static function GetAll($where = "", $whereParam = array()) {
