@@ -23,17 +23,20 @@ class PLN_plans extends PdoDataAccess
 		if($PlanID != "")
 			PdoDataAccess::FillObject ($this, "select * from PLN_plans where PlanID=?", array($PlanID));
 	}
-	
-	static function SelectAll($where = "", $param = array(), $order= ""){
-		
-		return PdoDataAccess::runquery_fetchMode("
-			select p.* ,if(p1.IsReal='YES',concat(p1.fname, ' ', p1.lname),p1.CompanyName) ReqFullname, StepDesc
+
+    static function SelectAll($where = "", $param = array(), $order= ""){
+
+        return PdoDataAccess::runquery_fetchMode("
+			select p.* ,if(p1.IsReal='YES',concat(p1.fname, ' ', p1.lname),p1.CompanyName) ReqFullname, StepDesc, ol.LetterDate,
+			concat_ws(' ',p2.fname, p2.lname,p2.CompanyName) askername
 			from PLN_plans p
 			join BSC_persons p1 using(PersonID)
+			left join BSC_persons p2 on(p.evaluationAskerID=p2.PersonID)
 			left join WFM_FlowSteps fs on(FlowID=" . FLOWID . " AND p.StepID=fs.StepID)
 			left join PLN_experts e on(p.PlanID=e.PlanID)
+			left join OFC_letters ol on(p.LetterID=ol.LetterID)
 			where " . $where . " group by p.PlanID " . $order, $param);
-	}
+    }
 	
 	function AddPlan($pdo = null){
 		
