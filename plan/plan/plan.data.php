@@ -303,6 +303,9 @@ function SelectAllPlans(){
         if ($field == 'LetterID' ){
             $field = 'p.' . $field ;
         }
+        if ($field == 'InfoDesc' ){
+            $field = 'bi.' . $field ;
+        }
         $where .= ' and ' . $field . ' like :fld';
         $param[':fld'] = '%' . $_REQUEST['query'] . '%';
     }
