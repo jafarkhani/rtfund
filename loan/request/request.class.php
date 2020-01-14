@@ -1235,7 +1235,7 @@ class LON_requests extends PdoDataAccess{
 		if($diff < 0)
 			$diffInMonth = 0;
 		else
-			$diffInMonth = round($diff/30);
+			$diffInMonth = round($diff/30, 2);
 		
 		$levels = PdoDataAccess::runquery("select * from ACC_CostCodeParamItems where ParamID=" . 
 				ACC_COST_PARAM_LOAN_LEVEL);
