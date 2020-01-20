@@ -264,8 +264,66 @@ class WFM_FlowRows extends PdoDataAccess {
 		}
 
 		$this->UpdateSourceStatus($StepID);
-		
 		$this->RowID = parent::InsertID($pdo);
+
+        /*$PersonID=$_SESSION["USER"]["PersonID"];
+        $queryString="select r.PersonID,r.RequestID,fr.ObjectID
+              from wfm_flowrows fr
+              left join wfm_requests r on (fr.ObjectID=r.RequestID)
+              where IsLastRow='YES' AND IsEnded='YES' AND r.PersonID=?";
+        $findEnd = PdoDataAccess::runquery_fetchMode($queryString, array($PersonID));*/
+        $queryString1="select *
+              from WFM_FlowRows 
+              where IsLastRow='YES' AND IsEnded='YES' AND ObjectID=?";
+        $findEnd1 = PdoDataAccess::runquery_fetchMode($queryString1, array($this->ObjectID));
+        if ($findEnd1->rowCount() >0){
+            $result = $findEnd1->fetchAll();
+            $RequestID=$result[0]['ObjectID'];
+            $queryString2="select RequestNo,PersonID,f.FormTitle
+              from WFM_requests r
+              join WFM_forms f using(FormID) 
+              where r.RequestID=?";
+            $findEnd2 = PdoDataAccess::runquery_fetchMode($queryString2, array($RequestID));
+            if ($findEnd2->rowCount() > 0){
+                $resultant = $findEnd2->fetchAll();
+                $RequestNo=$resultant[0]['RequestNo'];
+                $PersonID=$resultant[0]['PersonID'];
+                $FormTitle=$resultant[0]['FormTitle'];
+                $_POST['MsgTitle']='تایید فرم';
+                $_POST['MsgDesc']="با سلام. فرم ".$FormTitle."  شما با شماره ".$RequestNo." مورد تایید قرار گرفت.";
+                $_POST['PersonID']=1000;
+
+
+                $obj = new OFC_messages();
+                PdoDataAccess::FillObjectByArray($obj, $_POST);
+                /*$obj->PersonID = $_POST['PersonID'];*/
+                $obj->MsgDate = PDONOW;
+                $pdoobj = PdoDataAccess::getPdoObject();
+                /*$pdoobj->beginTransaction();*/
+
+                if(!$obj->Add($pdoobj))
+                {
+                    $pdoobj->rollBack();
+                    echo Response::createObjectiveResponse(false, "خطا در ایجاد پیام");
+                    die();
+                }
+                $obj2 = new OFC_MessageReceivers();
+                $obj2->MessageID = $obj->MessageID;
+                $obj2->PersonID = $PersonID;
+                $obj2->Add($pdoobj);
+
+            }
+        }
+        /*if ($findEnd1){
+            echo 'query true barmigardanad';
+        }else{
+            echo 'query false barmigardanad';
+        }
+        if ($findEnd1->rowCount() >0){
+            echo 'query yek araye barmigardanad';
+        }else{
+            echo 'query hich arayeie barnemigardanad';
+        }*/
 
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_add;
