@@ -68,18 +68,18 @@ function MakeWhere(&$where , &$param){
 	//.........................................................
 	if (isset($_GET["fields"]) && !empty($_GET["query"])) {
 		$field = $_GET["fields"];
-		$where .= " AND " . $field . " like :f";
-		$param[":f"] = "%" . $_GET["query"] . "%";
+		$where .= " AND " . $field . " like :q";
+		$param[":q"] = "%" . $_GET["query"] . "%"; 
 	}
 }
 
 function selectIncomeCheques() {
 	
 	$where = "1=1";
-	$param = array();
-	
+	$param = array(); 
+			
 	MakeWhere($where, $param);
-	  
+			
 	$query = "
 		select t.*,b.BankDesc, bf.InfoDesc ChequeStatusDesc
 		from
@@ -95,6 +95,7 @@ function selectIncomeCheques() {
 			join BSC_persons p on(p.PersonID=r.LoanPersonID)
 			join LON_loans l using(LoanID)
 			join BSC_branches br on(r.BranchID=br.BranchID)
+			where $where
 			group by i.IncomeChequeID
 
 		union all
@@ -108,6 +109,7 @@ function selectIncomeCheques() {
 			join BSC_persons p on(p.PersonID=r.LoanPersonID)
 			join LON_loans l using(LoanID)
 			join BSC_branches br on(r.BranchID=br.BranchID)
+			where $where
 			group by i.IncomeChequeID
 
 		union all
@@ -122,19 +124,20 @@ function selectIncomeCheques() {
 			left join ACC_blocks b2 on(cc.level2=b2.BlockID)
 			left join ACC_blocks b3 on(cc.level3=b3.BlockID)
 			left join ACC_blocks b4 on(cc.level4=b4.BlockID)
+			where $where
 			group by i.IncomeChequeID
 		)t
 
 		left join ACC_banks b on(ChequeBank=BankID)
 		left join BaseInfo bf on(bf.TypeID=4 AND bf.InfoID=ChequeStatus)
-		where " . $where ;
+		";
 		
 	//.........................................................
 	$query .= dataReader::makeOrder();
 	$temp = PdoDataAccess::runquery_fetchMode($query, $param);
 	
 	print_r(ExceptionHandler::PopAllExceptions());
-	//echo PdoDataAccess::GetLatestQueryString();
+	echo "/*" . PdoDataAccess::GetLatestQueryString() . "*/";
 	
 	$no = $temp->rowCount();
 	$temp = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);
@@ -144,8 +147,8 @@ function selectIncomeCheques() {
 
 function SelectIncomeChequeStatuses() {
 	
-	//$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=4 AND IsActive='YES'");
-	$temp = PdoDataAccess::runquery("select * from ACC_tafsilis where TafsiliType=7");
+	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=4 AND IsActive='YES'");
+	//$temp = PdoDataAccess::runquery("select * from ACC_tafsilis where TafsiliType=7");
 	/*
 	$temp = PdoDataAccess::runquery("
 		select b.* , 
@@ -552,6 +555,7 @@ function ChangeOutcomeChequeStatus(){
 	
 	$DocChequeID = $_POST["DocChequeID"];
 	$Status = $_POST["StatusID"];
+	$DocDate = $_POST["DocDate"];
 	
 	$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
@@ -567,7 +571,15 @@ function ChangeOutcomeChequeStatus(){
 	
 	if($EventID != "")
 	{
+		$LocalNo = ExecuteEvent::GetRegisteredDoc($EventID, array($obj->DocID, $obj->DocChequeID));
+		if($LocalNo !== false)
+		{
+			echo Response::createObjectiveResponse(false, "تغییر وضعیت مربوطه قبلا انجام شده و سند مربوطه با شماره " . $LocalNo . " صادر گردیده است");
+			die();
+		}
+		
 		$eventobj = new ExecuteEvent($EventID);
+		$eventobj->DocDate = DateModules::shamsi_to_miladi($DocDate, "-");
 		$eventobj->Sources = array($obj->DocID, $obj->DocChequeID);
 		$eventobj->AllRowsAmount = $obj->amount;
 		$result = $eventobj->RegisterEventDoc($pdo);
@@ -796,7 +808,7 @@ function editCheque(){
 function selectOutcomeCheques(){
 	
 	$query = "
-		select c.*,d.LocalNo,d.DocDate,a.*,b.InfoDesc as StatusDesc,t.TafsiliDesc,bankDesc
+		select c.*,d.LocalNo,d.DocDate,a.*,b.InfoDesc as StatusDesc,t.TafsiliDesc,bankDesc,t.VosulLocalNo
 
 		from ACC_DocCheques c
 		left join ACC_tafsilis t using(tafsiliID)
@@ -804,7 +816,12 @@ function selectOutcomeCheques(){
 		join ACC_accounts a using(AccountID)
 		join ACC_banks bb using(BankID)
 		join BaseInfo b on(b.typeID=4 AND b.infoID=CheckStatus)
-
+		left join (
+			select SourceID2,LocalNo VosulLocalNo
+			from ACC_docs join ACC_DocItems using(DocID)
+			where EventID=".EVENT_LOANCHEQUE_payed." 
+			group by SourceID1,SourceID2
+		)t on(t.SourceID2=c.DocChequeID)
 		where CycleID=:c ";
 
 	$whereParam = array(
@@ -891,6 +908,7 @@ function selectOutcomeCheques(){
 
 	$dataTable = PdoDataAccess::runquery_fetchMode($query, $whereParam);
 	//echo PdoDataAccess::GetLatestQueryString();
+	print_r(ExceptionHandler::PopAllExceptions());
 	$count = $dataTable->rowCount();
 	$data = PdoDataAccess::fetchAll($dataTable, (int)$_GET["start"], (int)$_GET["limit"]);
 	echo dataReader::getJsonData($data,$count, $_GET["callback"]);

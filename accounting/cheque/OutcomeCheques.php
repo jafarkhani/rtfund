@@ -36,6 +36,10 @@ $col->width = 90;
 
 $col = $dg->addColumn("توضیحات", "description", "");
 
+$col = $dg->addColumn("سند وصول چک", "VosulLocalNo", "");
+$col->width = 90;
+
+
 $dg->addButton("", "تغییر وضعیت", "refresh", "function(){OutcomeChequeObject.beforeChangeStatus();}");
 
 $dg->emptyTextOfHiddenColumns = true;
@@ -215,12 +219,18 @@ OutcomeCheque.prototype.beforeChangeStatus = function(){
 				valueField : "InfoID",
 				width : 400,
 				name : "DstID"
+			},{
+				xtype : "shdatefield",
+				name : "DocDate",
+				fieldLabel : "تاریخ عملیات",
+				value : "<?= DateModules::shNow() ?>"
 			}],
 			closeAction : "hide",
 			buttons : [{
 				text : "تغییر وضعیت",				
 				iconCls : "refresh",
-				itemId : "btn_save"
+				itemId : "btn_save",
+				handler : function(){OutcomeChequeObject.ChangeStatus();}
 			},{
 				text : "بازگشت",
 				iconCls : "undo",
@@ -235,11 +245,6 @@ OutcomeCheque.prototype.beforeChangeStatus = function(){
 	this.commentWin.down("[name=DstID]").getStore().proxy.extraParams.SrcID = record.data.CheckStatus;
 	this.commentWin.down("[name=DstID]").getStore().load();
 	
-	this.commentWin.down("[itemId=btn_save]").setHandler(function(){
-		status = this.up('window').down("[name=DstID]").getValue();
-		OutcomeChequeObject.ChangeStatus();
-	});
-		
 	this.commentWin.show();
 	this.commentWin.center();
 }
@@ -262,7 +267,8 @@ OutcomeCheque.prototype.ChangeStatus = function(){
 		params : {
 			task : "ChangeOutcomeChequeStatus",
 			DocChequeID : record.data.DocChequeID,
-			StatusID : StatusID
+			StatusID : StatusID,
+			DocDate : this.commentWin.down("[name=DocDate]").getRawValue()
 		},
 
 		success : function(response){

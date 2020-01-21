@@ -64,6 +64,7 @@ define("TAFSILITYPE_LOAN", "130");
 define("TAFSILITYPE_PROCESS", "150");
 define("TAFSILITYPE_BRANCH", "300");
 define("TAFSILITYPE_SOURCE", "320");
+define("TAFSILITYPE_ACCOUNTTYPE", "326");
 
 //...............................
 
@@ -181,7 +182,9 @@ define("ACC_STEPID_CONFIRM", "200");
 define("ACC_COST_PARAM_LOAN_RequestID", "3");
 define("ACC_COST_PARAM_LOAN_LastInstallmentDate", "4");
 define("ACC_COST_PARAM_LOAN_LEVEL", "105");
+define("ACC_COST_PARAM_CHEQUE_NO", "103");
 define("ACC_COST_PARAM_CHEQUE_date", "95");
+define("ACC_COST_PARAM_ACCOUNT", "5");
 define("ACC_COST_PARAM_BANK", "1");
 
 

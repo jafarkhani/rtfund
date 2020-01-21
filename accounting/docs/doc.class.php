@@ -697,22 +697,30 @@ class ACC_DocCheques extends PdoDataAccess {
 	public $CheckStatus;
 	public $TafsiliID;
 	public $description;
+	public $AccountTafsiliID;
+	
 	public $_AccountTafsiliID;
+	public $_AccountNo;
 
 	function __construct($id = "") {
 		
 		$this->DT_CheckDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		if($id != "")
-			return PdoDataAccess::FillObject($this, "select c.*,t.TafsiliID _AccountTafsiliID from ACC_DocCheques c
-				left join ACC_tafsilis t on(ObjectType='account' and ObjectID=AccountID) where DocChequeID=?", array($id));
+			return PdoDataAccess::FillObject($this, "select c.*,a.AccountNo _AccountNo,t.TafsiliID _AccountTafsiliID 
+				from ACC_DocCheques c
+				left join ACC_accounts a using(AccountID)
+				left join ACC_tafsilis t on(ObjectType='account' and ObjectID=AccountID) 
+				
+				where DocChequeID=?", array($id));
 	}
 
 	static function GetAll($where = "", $whereParam = array()) {
-		$query = "select c.*,a.*,b.infoDesc as StatusTitle, bk.BankDesc, t.TafsiliDesc
+		$query = "select c.*,a.*,b.infoDesc as StatusTitle, bk.BankDesc, t.TafsiliDesc, t2.TafsiliDesc AccountTafsiliDesc
 					from ACC_DocCheques c
 					left join ACC_accounts a using(AccountID)
 					left join ACC_banks bk on(a.BankID=bk.BankID)
 					left join ACC_tafsilis t on(TafsiliType=" . TAFSILITYPE_PERSON . " AND t.TafsiliID=c.TafsiliID)
+					left join ACC_tafsilis t2 on(t2.TafsiliType=".TAFSILITYPE_ACCOUNTTYPE." AND t2.TafsiliID=AccountTafsiliID) 
 					join BaseInfo b on(b.typeID=4 AND b.InfoID=CheckStatus)
 			";
 		$query .= ($where != "") ? " where " . $where : "";

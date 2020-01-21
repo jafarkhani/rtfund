@@ -6,6 +6,7 @@
 
 require_once DOCUMENT_ROOT . '/loan/request/request.class.php';
 require_once DOCUMENT_ROOT . '/accounting/cheque/cheque.class.php';
+require_once DOCUMENT_ROOT . '/accounting/docs/doc.class.php';
 require_once DOCUMENT_ROOT . '/loan/warrenty/request.class.php';
 
 			
@@ -497,10 +498,11 @@ class EventComputeItems {
 			case EVENT_OutcomeCheque_vosul:
 				$ChequeObj = new ACC_DocCheques($params[1]);
 				if($EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
-					$t2 = self::FindTafsili(TAFSILITYPE_PERSON, $ChequeObj->TafsiliID);
+					$t2 = array("TafsiliID" => $ChequeObj->TafsiliID, "TafsiliDesc" => "");
 				if($EventRow["CostID"] == COSTID_Bank && $EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
 					$t2 = array("TafsiliID" => $ChequeObj->_AccountTafsiliID, "TafsiliDesc" => "");
-						
+				if($EventRow["TafsiliType1"] == TAFSILITYPE_ACCOUNTTYPE)
+					$t1 = array("TafsiliID" => $ChequeObj->AccountTafsiliID, "TafsiliDesc" => "");
 				
 				break;
 				
@@ -617,6 +619,7 @@ class EventComputeItems {
 					case ACC_COST_PARAM_LOAN_RequestID : //شماره تسهيلات
 						$obj->{ "param" . $i } = $params[0];
 						break;
+					
 					case ACC_COST_PARAM_LOAN_LastInstallmentDate : //سررسيد اقساط
 						if(array_search($EventID, array(
 									EVENT_LOANBACKPAY_innerSource_cheque,
@@ -624,11 +627,12 @@ class EventComputeItems {
 									EVENT_LOANBACKPAY_agentSource_committal_cheque,
 									EVENT_LOANBACKPAY_agentSource_committal_non_cheque,
 									EVENT_LOANBACKPAY_agentSource_non_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) !== false)
+									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) === false)
 								break;
 						$iObj = LON_installments::GetLastInstallmentObj($params[0]);
 						$obj->{ "param" . $i } = DateModules::miladi_to_shamsi($iObj->InstallmentDate);
 						break;
+						
 					case ACC_COST_PARAM_LOAN_LEVEL : // طبقه تسهيلات
 						$record = LON_requests::GetRequestLevel($params[0]);
 						$obj->{ "param" . $i } = $record["ItemID"];
@@ -641,10 +645,8 @@ class EventComputeItems {
 									EVENT_LOANBACKPAY_agentSource_committal_cheque,
 									EVENT_LOANBACKPAY_agentSource_committal_non_cheque,
 									EVENT_LOANBACKPAY_agentSource_non_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) !== false)
+									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) === false)
 								break;
-						if($EventID == EVENT_LOANPAYMENT_innerSource || $EventID == EVENT_LOANPAYMENT_agentSource)
-							break;
 						$IncChequObj = new ACC_IncomeCheques($params[1]);
 						$obj->{ "param" . $i } = DateModules::miladi_to_shamsi($IncChequObj->ChequeDate);
 						break;
@@ -656,11 +658,28 @@ class EventComputeItems {
 									EVENT_LOANBACKPAY_agentSource_committal_cheque,
 									EVENT_LOANBACKPAY_agentSource_committal_non_cheque,
 									EVENT_LOANBACKPAY_agentSource_non_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) !== false)
-						break;
+									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) === false)
+							break;
 						$IncChequObj = new ACC_IncomeCheques($params[1]);
 						$obj->{ "param" . $i } = $IncChequObj->ChequeBank;
 						break;
+					
+					case ACC_COST_PARAM_ACCOUNT:
+						if($EventID ==  EVENT_OutcomeCheque_vosul)
+						{
+							$ChequObj = new ACC_DocCheques($params[1]);
+							$obj->{ "param" . $i } = $ChequObj->_AccountNo;
+						}
+						break;
+						
+					case ACC_COST_PARAM_CHEQUE_NO:
+						if($EventID ==  EVENT_OutcomeCheque_vosul)
+						{
+							$ChequObj = new ACC_DocCheques($params[1]);
+							$obj->{ "param" . $i } = $ChequObj->CheckNo;
+						}
+						break;
+						
 				}
 			}
 		}

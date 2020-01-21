@@ -131,9 +131,9 @@ $col = $dg->addColumn("آیتم3", "param3");
 $col->renderer = "AccDocs.Param3Render";
 $col->width = 110;
 
-$col = $dg->addColumn("کدحساب قدیم", "OldCostCode");
+/*$col = $dg->addColumn("کدحساب قدیم", "OldCostCode");
 $col->editor = ColumnEditor::TextField(true);
-$col->width = 90;
+$col->width = 90;*/
 
 if($accessObj->RemoveFlag)
 {
@@ -165,9 +165,15 @@ $dgh->addColumn("","DocID","",true);
 $dgh->addColumn("","AccountDesc","",true);
 $dgh->addColumn("","TafsiliDesc","",true);
 $dgh->addColumn("","StatusTitle","",true);
+$dgh->addColumn("","AccountTafsiliDesc","",true);
 
 $col = $dgh->addColumn("کد","DocChequeID","",true);
 $col->width = 50;
+
+$col = $dgh->addColumn("نوع حساب", "AccountTafsiliID");
+$col->renderer = "function(v,p,r){return r.data.AccountTafsiliDesc;}";
+$col->editor = "AccDocsObject.accountTafsiliCombo";
+$col->width = 80;
 
 $col = $dgh->addColumn("حساب", "AccountID");
 $col->renderer = "function(v,p,r){return r.data.AccountDesc;}";
@@ -310,6 +316,8 @@ AccDocsObject.itemGrid.getView().getRowClass = function(record, index)
 AccDocsObject.checkGrid = <?= $checksgrid ?>;
 AccDocsObject.checkGrid.plugins[0].on("beforeedit", AccDocs.beforeCheckEdit);
 AccDocsObject.checkGrid.plugins[0].on("beforeedit", function(editor,e){
+	if(e.record.data.CheckStatus == '<?= INCOMECHEQUE_VOSUL ?>')
+		return false;
 	if(!e.record.data.DocChequeID)
 		return AccDocsObject.AddAccess;
 	return AccDocsObject.EditAccess;

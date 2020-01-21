@@ -28,13 +28,12 @@ function AccDocs(){
 	this.makeDetailWindow();
 	//--------------------------------------------------------------------------
 	
-	/*this.checkTafsiliCombo = new Ext.form.ComboBox({
+	this.checkTafsiliCombo = new Ext.form.ComboBox({
 		store: new Ext.data.Store({
 			fields:["TafsiliID","TafsiliDesc"],
 			proxy: {
 				type: 'jsonp',
-				//url: this.address_prefix + 'doc.data.php?task=GetTafsilis',
-				url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=GetAllTafsilis&TafsiliType=1',
+				url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=GetAllTafsilis&TafsiliType=<?= TAFSILITYPE_PERSON ?>',
 				reader: {root: 'rows',totalProperty: 'totalCount'}
 			}
 		}),
@@ -43,7 +42,7 @@ function AccDocs(){
 		valueField : "TafsiliID",
 		displayField : "TafsiliDesc"
 	});
-	*/
+	
 	this.accountCombo = new Ext.form.ComboBox({
 		store: new Ext.data.Store({
 			fields:["AccountID","AccountDesc","StartNo","EndNo","StartNo2","EndNo2"],
@@ -79,6 +78,21 @@ function AccDocs(){
 		queryMode: "local"
 	});
 
+	this.accountTafsiliCombo = new Ext.form.ComboBox({
+		store: new Ext.data.Store({
+			fields:["TafsiliID","TafsiliDesc"],
+			proxy: {
+				type: 'jsonp',
+				url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=GetAllTafsilis&TafsiliType=<?= TAFSILITYPE_ACCOUNTTYPE ?>',
+				reader: {root: 'rows',totalProperty: 'totalCount'}
+			}
+		}),
+		emptyText:'انتخاب تفصیلی ...',
+		allowBlank : false,
+		valueField : "TafsiliID",
+		displayField : "TafsiliDesc"
+	});
+	
 	//--------------------------------------------------------------------------
 	
 	this.mainTab = new Ext.TabPanel({
@@ -1063,7 +1077,10 @@ AccDocs.prototype.Documents = function(ObjectType){
 
 //.........................................................
 
-AccDocs.prototype.check_deleteRender = function(){
+AccDocs.prototype.check_deleteRender = function(v,p,r){
+	
+	if(r.data.CheckStatus == '<?= INCOMECHEQUE_VOSUL ?>')
+		return "";
 	
 	var record = AccDocsObject.grid.getStore().getAt(0);
 	if(record.data.StatusID == "<?= ACC_STEPID_RAW ?>" || (record.data.StepID == "1" && record.data.ActionType == "REJECT"))

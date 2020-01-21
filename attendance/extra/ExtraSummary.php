@@ -260,7 +260,11 @@ ExtraSummary.prototype.ConfirmSummary = function(){
     <form id="ExtraMainForm">
         <br>
         <div id="div_Years"></div>
-        <br>
+		محاسبه اضافه کار هر ماه از روز 
+		29ام ماه قبل تا روز 
+		28ام
+		ماه جاری محاسبه می گردد.
+		<br>&nbsp;<br>
         <div id="grid_div"></div>
     </form>
 </center>
