@@ -297,6 +297,15 @@ function SelectAllPlans(){
 	if (isset($_REQUEST['fields']) && isset($_REQUEST['query'])) {
         $field = $_REQUEST['fields'];
 		$field = $field == "ReqFullname" ? "concat_ws(' ',p1.fname,p1.lname,p1.CompanyName)" : $field;
+        if ($field == 'askername' ){
+            $field = "concat_ws(' ',p2.fname,p2.lname,p2.CompanyName)" ;
+        }
+        if ($field == 'LetterID' ){
+            $field = 'p.' . $field ;
+        }
+        if ($field == 'InfoDesc' ){
+            $field = 'bi.' . $field ;
+        }
         $where .= ' and ' . $field . ' like :fld';
         $param[':fld'] = '%' . $_REQUEST['query'] . '%';
     }

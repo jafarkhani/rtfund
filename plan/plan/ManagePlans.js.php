@@ -60,6 +60,18 @@ ManagePlan.DeleteRender = function(value, p, record){
 		"cursor:pointer;width:100%;height:16'></div>";
 }
 
+    ManagePlan.OpenLetter = function(LetterID){
+
+    framework.OpenPage('/office/letter/LetterInfo.php','مشخصات نامه',
+        {LetterID : LetterID});
+}
+    ManagePlan.ParamValueRender = function(v,p,r){
+
+    if(r.data.LetterID != 0 && r.data.LetterID != null)
+    /*return "<a href=javascript:void() onclick=Request.OpenLetter("+v+");>شماره نامه : "+v+"</a>";*/
+    return "<a href=javascript:void() onclick=ManagePlan.OpenLetter("+v+");> "+v+"</a>";
+
+}
 ManagePlan.prototype.OperationMenu = function(e){
 
 	record = this.grid.getSelectionModel().getLastSelected();

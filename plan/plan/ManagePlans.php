@@ -36,6 +36,21 @@ $col->width = 110;
 $col = $dg->addColumn("درخواست کننده", "ReqFullname");
 $col->width = 150;
 
+$col = $dg->addColumn(" شماره نامه", "LetterID");
+$col->renderer = "ManagePlan.ParamValueRender";
+$col->width = 60;
+
+$col = $dg->addColumn("متقاضی ارزیابی", "askername");
+$col->width = 100;
+
+/*$col = $dg->addColumn("نوع ارزیابی", "evaluationType" ,"evaluationType");
+$col->renderer = "function(v,p,r){return v == 1 ? 'تسهیلات' : v == 2 ? 'مشارکت مدنی' : v == 3 ? 'مشارکت حقوقی' : v == 4 ? 'صدور ضمانتنامه' : v == 5 ? 'سایر' : 'ندارد' ;}";*/
+$col = $dg->addColumn("نوع ارزیابی", "InfoDesc" );
+$col->width = 100;
+
+$col = $dg->addColumn("مبلغ تسهیلات", "FacilityAmount");
+$col->width = 100;
+
 $col = $dg->addColumn("وضعیت", "StepDesc", "");
 $col->width = 100;
 
@@ -67,7 +82,7 @@ $col->align = "center";
 $dg->emptyTextOfHiddenColumns = true;
 $dg->height = 450;
 $dg->pageSize = 15;
-$dg->width = 760;
+$dg->width = 920;
 $dg->title = "طرح های ارسالی";
 $dg->DefaultSortField = "RegDate";
 $dg->autoExpandColumn = "PlanDesc";
