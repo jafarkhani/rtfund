@@ -7,35 +7,38 @@ $dt = PdoDataAccess::runquery("select * from LON_payments p join LON_requests us
 			join LON_ReqParts rp on(rp.RequestID=p.RequestID AND isHistory='NO')
 		 where StatusID=70 and ReqPersonID in(1003) 
 		  and (DelayReturn != 'INSTALLMENT' OR AgentDelayReturn != 'INSTALLMENT')");
-flush();
-ob_flush();
 foreach($dt as $row)
 {
 	echo $row["RequestID"] . " - " . $row["PayID"] . " : ";
 	$PartObj = LON_ReqParts::GetValidPartObj($row["RequestID"]);
-	$result = ComputeWagesAndDelays($PartObj, $row["PayAmount"], $PartObj->PartDate, $row["PayDate"]);
-	$amount = 0;
-	if($row["DelayReturn"] != "INSTALLMENT")
-		PdoDataAccess::runquery("update LON_payments set OldFundDelayAmount=? where PayID=?", array(
-			$result["TotalFundDelay"], $row["PayID"]));
-	if($row["AgentDelayReturn"] != "INSTALLMENT")
-		PdoDataAccess::runquery("update LON_payments set OldAgentDelayAmount=? where PayID=?", array(
-			$result["TotalAgentDelay"], $row["PayID"]));
+	//$result = ComputeWagesAndDelays($PartObj, $row["PayAmount"], $PartObj->PartDate, $row["PayDate"]);
 	
-	$TotalFundWage = $result["TotalFundWage"];
-	$TotalCustomerWage = $result["TotalAgentWage"];
-	if($row["WageReturn"] == "CUSTOMER")
+	$PayAmount = $row["PayAmount"];
+	
+	$AgentWage = $FundWage = $FundDelay = $AgentDelay = 0;
+			
+	if($PartObj->AgentReturn == "CUSTOMER")
 	{
-		if($row["MaxFundWage"]*1 > 0)
-			PdoDataAccess::runquery("update LON_payments set OldFundWage=? where PayID=?", 
-				array($row["MaxFundWage"], $row["PayID"]));
-		else 
-			PdoDataAccess::runquery("update LON_payments set OldFundWage=? where PayID=?", 
-					array($result["TotalFundWage"], $row["PayID"]));
+		$totalWage = $PayAmount*$PartObj->CustomerWage/100;
+		$AgentFactor = ($PartObj->CustomerWage*1-$PartObj->FundWage*1)/$PartObj->CustomerWage*1;
+		$AgentWage = $totalWage*$AgentFactor;		
 	}
-	if($row["AgentReturn"] == "CUSTOMER" && $row["CustomerWage"]*1 > $row["FundWage"]*1)
-		PdoDataAccess::runquery("update LON_payments set OldAgentWage=? where PayID=?", 
-					array($result["TotalAgentWage"], $row["PayID"]));
+	if($PartObj->FundWage*1 > 0 && $PartObj->WageReturn == "CUSTOMER")
+	{
+		$FundWage = $PayAmount*$PartObj->FundWage/100;
+	}
+	
+	$endDelayDate = DateModules::AddToGDate($PartObj->PartDate, $PartObj->DelayDays*1, $PartObj->DelayMonths*1);
+	$DelayDuration = DateModules::GDateMinusGDate($endDelayDate, $PartObj->PartDate)+1;
+	
+	PdoDataAccess::runquery("update LON_payments set OldFundDelayAmount=? where PayID=?", array(
+		$FundDelay, $row["PayID"]));
+	PdoDataAccess::runquery("update LON_payments set OldAgentDelayAmount=? where PayID=?", array(
+		$AgentDelay, $row["PayID"]));
+	PdoDataAccess::runquery("update LON_payments set OldFundWage=? where PayID=?", array(
+		$FundWage, $row["PayID"]));
+	PdoDataAccess::runquery("update LON_payments set OldAgentWage=? where PayID=?", array(
+		$AgentWage, $row["PayID"]));
 	
 	
 	print_r(ExceptionHandler::PopAllExceptions());

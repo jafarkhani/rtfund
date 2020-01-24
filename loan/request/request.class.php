@@ -2811,24 +2811,9 @@ class LON_payments extends OperationClass{
 						- ifnull(OldAgentDelayAmount,0)
 						- ifnull(OldFundWage,0)
 						- ifnull(OldAgentWage,0)as PurePayAmount,
-				ifnull(RealPayedDate, PayDate) as PurePayDate
+				if(RealPayedDate is null or d.DociD is null, PayDate, RealPayedDate) as PurePayDate
 				
 			from LON_payments p
-			left join LON_PayDocs d on(p.PayID=d.PayID)
-			
-			where 1=1 " . $where .  
-			" group by p.PayID " . $order, $whereParams);
-	}
-	
-	static function FullSelect($where = '', $whereParams = array(), $order = "") {
-		
-		return parent::runquery_fetchMode("select p.*,rp.ComputeMode,
-				d.DocID,
-				d.LocalNo,
-				d.StatusID
-			from LON_payments p
-			join LON_ReqParts rp on(p.RequestID=rp.RequestID AND rp.IsHistory='NO')
-			
 			left join LON_PayDocs d on(p.PayID=d.PayID)
 			
 			where 1=1 " . $where .  

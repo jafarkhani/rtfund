@@ -34,36 +34,6 @@ while($Reqrow=$dt->fetch())
 	echo "-------------- " . $RequestID . " -----------------<br>";
 	ob_flush();flush();
 	
-	if(isset($LoanComputeArray[ $RequestID ]))
-		$ComputeArr = $LoanComputeArray[ $RequestID ];
-	else 
-	{
-		$ComputeArr = LON_Computes::ComputePayments($RequestID);
-		$LoanComputeArray[ $RequestID ] = $ComputeArr;
-	}
-	foreach($ComputeArr as $row)
-	{
-		if($row["type"] != "pay" || $row["BackPayID"] != $BackPayID)
-			continue;
-		
-		$pure = $row["pure"];
-		$wage = $row["wage"];
-		
-		PdoDataAccess::runquery("update ACC_DocItems join ACC_CostCodes using(CostID) 
-				set DebtorAmount=? 
-				where CostCode in(3010204,3010201,1030201,1030101,3010205) AND DocID=?", array(
-			$pure,
-			$DocID
-		));
-				
-		PdoDataAccess::runquery("update ACC_DocItems set CreditorAmount=0 where CostID=1023 AND DocID=?", array($DocID));
-		$temp = PdoDataAccess::runquery("select ItemID from ACC_DocItems where CostID=1023 AND DocID=?", array($DocID));
-		PdoDataAccess::runquery("update ACC_DocItems set CreditorAmount=? where CostID=1023 AND ItemID=?", array(
-			$wage,
-			$temp[0]["ItemID"]
-		));
-	}
-	
 	$reqObj = new LON_requests($requset["RequestID"]);
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	

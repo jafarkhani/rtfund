@@ -25,7 +25,8 @@ $dg = new sadaf_datagrid("dg", $js_prefix_address . "request.data.php?task=GetPa
 $dg->addColumn("", "PayID","", true);
 $dg->addColumn("", "RequestID","", true);
 $dg->addColumn("", "DocID","", true);
-$dg->addColumn("", "ComputeMode","", true);
+$dg->addColumn("", "OldAgentWage","", true);
+$dg->addColumn("", "OldFundWage","", true);
 
 $col = $dg->addColumn("تاریخ پرداخت مصوب", "PayDate", GridColumn::ColumnType_date);
 $col->editor = ColumnEditor::SHDateField();
@@ -38,26 +39,27 @@ $col->summaryType = GridColumn::SummeryType_sum;
 $col->summaryRenderer = "function(v){return Ext.util.Format.Money(v);}";
 $col->align = "center";
 
-$col = $dg->addColumn("تنفس صندوق", "OldFundDelayAmount", GridColumn::ColumnType_money);
+$col = $dg->addColumn("کسورات صندوق", "OldFundDelayAmount", GridColumn::ColumnType_money);
 $col->width = 120;
 $col->summaryType = GridColumn::SummeryType_sum;
-$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v);}";
+$col->renderer = "function(v,p,r){return Ext.util.Format.Money(v + r.data.OldFundWage);}";
+$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 $col->align = "center";
 
-$col = $dg->addColumn("تنفس سرمایه گذار", "OldAgentDelayAmount", GridColumn::ColumnType_money);
+$col = $dg->addColumn("کسورات سرمایه گذار", "OldAgentDelayAmount", GridColumn::ColumnType_money);
 $col->width = 120;
 $col->summaryType = GridColumn::SummeryType_sum;
-$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v);}";
+$col->renderer = "function(v,p,r){return Ext.util.Format.Money(v + r.data.OldAgentWage);}";
+$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 $col->align = "center";
 
 $col = $dg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate", GridColumn::ColumnType_date);
 $col->width = 120;
-$col->renderer = "function(v,p,r){if(r.data.DocID*1 == 0)return '';  return MiladiToShamsi(v);}";
+$col->renderer = "function(v,p,r){ return MiladiToShamsi(v);}";
 $col->align = "center";
 
-$col = $dg->addColumn("مبلغ پرداخت به مشتری", "PayAmount", GridColumn::ColumnType_money);
+$col = $dg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", GridColumn::ColumnType_money);
 $col->width = 120;
-$col->renderer = "PartPayment.RemainRender";
 $col->align = "center";
 
 if(session::IsFramework())
@@ -123,19 +125,6 @@ function PartPayment()
 		});
 	this.grid.render(this.get("div_grid"));
 	
-}
-
-PartPayment.RemainRender = function(v,p,r){
-	
-	if(r.data.DocID*1 == 0)
-		return 0;
-	
-	amount = r.data.PayAmount*1;
-	if(r.data.OldFundDelayAmount*1 > 0)
-		amount -= r.data.OldFundDelayAmount*1;
-	if(r.data.OldAgentDelayAmount*1 > 0)
-		amount -= r.data.OldAgentDelayAmount*1;
-	return Ext.util.Format.Money(amount);
 }
 
 PartPayment.DeleteRender = function(v,p,r){

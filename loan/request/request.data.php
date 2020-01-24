@@ -1423,7 +1423,7 @@ function GetEndedRequests(){
 
 function GetPartPayments(){
 	
-	$dt = LON_payments::FullSelect(" AND p.RequestID=? ", array($_REQUEST["RequestID"]),dataReader::makeOrder());
+	$dt = LON_payments::Get(" AND p.RequestID=? ", array($_REQUEST["RequestID"]),dataReader::makeOrder());
 	print_r(ExceptionHandler::PopAllExceptions());
 	echo dataReader::getJsonData($dt->fetchAll(), $dt->rowCount(), $_GET["callback"]);
 	die();

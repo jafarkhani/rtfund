@@ -51,6 +51,13 @@ $col->renderer = "EventRows.ChangeRender";
 if ($accessObj->AddFlag)
     $dg->addButton("", "ایجاد ردیف", "add", "function(v,p,r){ return EventRowsObj" . $random . ".AddItem(v,p,r);}");
 
+$col = $dg->addColumn("تاریخ تغییر", "ChangeDate", GridColumn::ColumnType_date);
+$col->width = 80;
+
+$col = $dg->addColumn("", "changePersonName");
+$col->width = 120;
+
+
 $col = $dg->addColumn("عملیات", "PlanID");
 $col->renderer = "EventRows.OperationRender";
 $col->width = 60;
