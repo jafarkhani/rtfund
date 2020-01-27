@@ -7,13 +7,28 @@ ini_set('memory_limit','4000M');
 header("X-Accel-Buffering: no");
 ob_start();
 
-$dt = PdoDataAccess::runquery("select * from `TABLE 235` " . (!empty($_GET["RequestID"]) ? " where id=" . $_GET["RequestID"] : "")); 
+$dt = PdoDataAccess::runquery("
+	
+select LoanRequestID from  ACC_IncomeCheques i join LON_requests r on(i.LoanRequestID=r.RequestID) 
+join LON_ReqParts p on(r.RequestID=p.RequestID and IsHistory='NO')
+group by LoanRequestID limit 40,10"); 
 flush();
 ob_flush();
 $i=0;
 foreach($dt as $row)
 {
-	$RequestID = $row["id"];
+	$RequestID = $row["LoanRequestID"];
+	LON_installments::ComputeInstallments($RequestID);
+	echo $RequestID . " : " ;
+	print_r(ExceptionHandler::PopAllExceptions());
+	continue;
+	
+	
+	
+	
+	
+	
+	
 	$oldAmount = $row["amount"];
 	
 	echo $RequestID . " : ";

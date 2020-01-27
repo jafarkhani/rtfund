@@ -955,7 +955,7 @@ RequestInfo.prototype.BuildForms = function(){
 			hidden : true,
 			iconCls : "account",
 			itemId : "cmp_accevents",
-			menu :[{
+			menu :[/*{
 				text : 'اجرای رویداد تخصیص وام به مشتری',
 				iconCls : "send",
 				handler : function(){ 
@@ -963,7 +963,7 @@ RequestInfo.prototype.BuildForms = function(){
 						new Array(RequestInfoObject.RequestRecord.data.RequestID,
 									RequestInfoObject.RequestRecord.data.PartID));
 				}
-			},{
+			},*/{
 				text : 'اجرای رویداد عقد قرارداد با مشتری',
 				iconCls : "send",
 				handler : function(){ RequestInfoObject.ExecuteEvent(); }

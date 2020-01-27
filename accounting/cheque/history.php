@@ -15,6 +15,7 @@ $query = "select h.*,
 				left join BaseInfo bf on(bf.TypeID=4 AND bf.InfoID=StatusID)
 				join BSC_persons using(PersonID) 
 				left join ACC_docs d on(d.DocID=h.DocID)
+				
 				where h.IncomeChequeID=?
 			order by RowID ";
 $Logs = PdoDataAccess::runquery($query, array($IncomeChequeID));

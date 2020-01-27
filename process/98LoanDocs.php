@@ -58,11 +58,11 @@ while($requset=$reqs->fetch())
 	BackPayCheques($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	$DocObj[ $reqObj->RequestID ] = null;
 
-	/*BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	$DocObj[ $reqObj->RequestID ] = null;
 	//DailyIncome($reqObj, $partObj, $pdo);
 	//DailyWage($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$DocObj[ $reqObj->RequestID ] = null;
+	/*$DocObj[ $reqObj->RequestID ] = null;
 	*/
 	//--------------------------------------------------
 	$pdo->commit();

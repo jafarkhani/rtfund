@@ -5,7 +5,7 @@ ini_set("display_errors", "On");
 
 $dt = PdoDataAccess::runquery("select * from LON_payments p join LON_requests using(RequestID) 
 			join LON_ReqParts rp on(rp.RequestID=p.RequestID AND isHistory='NO')
-		 where StatusID=70 and ReqPersonID in(1003) 
+		 where StatusID=70 and ReqPersonID in(1003) and p.RequestID=2000
 		  and (DelayReturn != 'INSTALLMENT' OR AgentDelayReturn != 'INSTALLMENT')");
 foreach($dt as $row)
 {
@@ -28,6 +28,8 @@ foreach($dt as $row)
 		$FundWage = $PayAmount*$PartObj->FundWage/100;
 	}
 	
+    echo "fundDelay:".$FundDelay. " - AgentDelay:". $AgentDelay. " - FundWage:".$FundWage." - AgentWage:".$AgentWage;
+    
 	$endDelayDate = DateModules::AddToGDate($PartObj->PartDate, $PartObj->DelayDays*1, $PartObj->DelayMonths*1);
 	$DelayDuration = DateModules::GDateMinusGDate($endDelayDate, $PartObj->PartDate)+1;
 	
@@ -43,8 +45,6 @@ foreach($dt as $row)
 	
 	print_r(ExceptionHandler::PopAllExceptions());
 	echo "<br>";
-	flush();
-	ob_flush();
 }
 die();
 ?>

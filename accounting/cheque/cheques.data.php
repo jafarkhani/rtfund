@@ -98,7 +98,7 @@ function selectIncomeCheques() {
 			where $where
 			group by i.IncomeChequeID
 
-		union all
+		/*union all
 
 			select i.*,group_concat(concat_ws(' ','[ وام ',r.RequestID,']',p.CompanyName,p.fname,p.lname) 
 					SEPARATOR '<br>') as fullname,
@@ -110,7 +110,7 @@ function selectIncomeCheques() {
 			join LON_loans l using(LoanID)
 			join BSC_branches br on(r.BranchID=br.BranchID)
 			where $where
-			group by i.IncomeChequeID
+			group by i.IncomeChequeID*/
 
 		union all
 
@@ -136,8 +136,8 @@ function selectIncomeCheques() {
 	$query .= dataReader::makeOrder();
 	$temp = PdoDataAccess::runquery_fetchMode($query, $param);
 	
-	print_r(ExceptionHandler::PopAllExceptions());
-	echo "/*" . PdoDataAccess::GetLatestQueryString() . "*/";
+	//print_r(ExceptionHandler::PopAllExceptions());
+	//echo "/*" . PdoDataAccess::GetLatestQueryString() . "*/";
 	
 	$no = $temp->rowCount();
 	$temp = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);

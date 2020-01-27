@@ -2790,14 +2790,21 @@ class LON_payments extends OperationClass{
 	public $OldFundWage;
 	public $OldAgentWage;
 	
+	public $_PurePayedAmount;
+	
 	function __construct($PayID = "") {
 		
 		$this->DT_PayDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_RealPayedDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		
 		if($PayID != "")
-			parent::FillObject ($this, "select *
-				from LON_payments  where payID=?", array($PayID));
+			parent::FillObject ($this, "select *,
+				PayAmount - ifnull(OldFundDelayAmount,0) 
+						- ifnull(OldAgentDelayAmount,0)
+						- ifnull(OldFundWage,0)
+						- ifnull(OldAgentWage,0)as _PurePayedAmount
+				from LON_payments  
+				where payID=?", array($PayID));
 	}
 	
 	static function Get($where = '', $whereParams = array(), $order = "") {
