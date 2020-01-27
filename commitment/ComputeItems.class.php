@@ -41,7 +41,7 @@ class EventComputeItems {
 			
 			case 3 : //مبلغ قابل پرداخت دراین مرحله	
 				
-				return $PayObj->PayAmount;
+				return $PayObj->_PurePayedAmount;
 				
 			case 5 : // مبلغ قابل پرداخت به مشتری
 				return LON_requests::GetPayedAmount($ReqObj->RequestID, $PartObj);
