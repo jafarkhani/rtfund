@@ -13,31 +13,31 @@ $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
 //...................................................
 
 if(!isset($_REQUEST["FormType"]))
-	die();
+    die();
 $FormType = $_REQUEST["FormType"];
 
 $framework = session::IsFramework();
 
 if(!$framework)
 {
-	$dt = PLN_plans::SelectAll("p.PersonID=? AND p.StepID<>" . STEPID_END, array($_SESSION["USER"]["PersonID"]));
-	$dt = $dt->fetchAll();
-	$Mode = count($dt) == 0 ? "new" : ($dt[0]["StepID"] == STEPID_RAW ? "edit" : "list");
+    $dt = PLN_plans::SelectAll("p.PersonID=? AND p.StepID<>" . STEPID_END, array($_SESSION["USER"]["PersonID"]));
+    $dt = $dt->fetchAll();
+    $Mode = count($dt) == 0 ? "new" : ($dt[0]["StepID"] == STEPID_RAW ? "edit" : "list");
 
-	$PlanID = $Mode == "new" ? "0" : $dt[0]["PlanID"];
-	$PlanDesc = $Mode == "new" ? "" : $dt[0]["PlanDesc"];
-	$LoanID = $Mode == "new" ? "" : $dt[0]["LoanID"];
-	
-	$accessObj->AddFlag = true;
-	$accessObj->EditFlag = true;
-	$accessObj->RemoveFlag = true;
+    $PlanID = $Mode == "new" ? "0" : $dt[0]["PlanID"];
+    $PlanDesc = $Mode == "new" ? "" : $dt[0]["PlanDesc"];
+    $LoanID = $Mode == "new" ? "" : $dt[0]["LoanID"];
+
+    $accessObj->AddFlag = true;
+    $accessObj->EditFlag = true;
+    $accessObj->RemoveFlag = true;
 }
 else
 {
-	$PlanID = 0;
-	$PlanDesc = '';
-	$LoanID = 0;
-	$Mode = "new";
+    $PlanID = 0;
+    $PlanDesc = '';
+    $LoanID = 0;
+    $Mode = "new";
 }
 //.............................................
 
@@ -77,232 +77,318 @@ $grid = $dg->makeGrid_returnObjects();
 
 ?>
 <center>
-	<div id="div_plan"></div>
-	<div id="div_grid"></div>
-</center>	
+    <div id="div_plan"></div>
+    <div id="div_grid"></div>
+</center>
 <script>
-NewPlan.prototype = {
-	TabID : '<?= $_REQUEST["ExtTabID"]?>',
-	address_prefix : "<?= $js_prefix_address?>",
-	MenuID : "<?= $_POST["MenuID"] ?>",
-	
-	FormType : <?= $FormType?>,
-	PlanID : <?= $PlanID ?>,
-	PlanDesc : '<?= $PlanDesc ?>',
-	LoanID : '<?= $LoanID ?>',
-	Mode : '<?= $Mode ?>',
-	
-	AddAccess : <?= $accessObj->AddFlag ? "true" : "false" ?>,
-	EditAccess : <?= $accessObj->EditFlag ? "true" : "false" ?>,
-	RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
-	
-	framework : <?= session::IsFramework() ? "true" : "false" ?>,
-	
-	get : function(elementID){
-		return findChild(this.TabID, elementID);
-	}
-};
+    NewPlan.prototype = {
+        TabID : '<?= $_REQUEST["ExtTabID"]?>',
+        address_prefix : "<?= $js_prefix_address?>",
+        MenuID : "<?= $_POST["MenuID"] ?>",
 
-function NewPlan(){
-	
-	if(this.Mode == "new" || this.Mode == "edit")
-	{
-		this.planFS = new Ext.form.FieldSet({
-			title : "ثبت طرح جدید",
-			width : 700,
-			layout : "vbox",
-			renderTo : this.get("div_plan"),
-			items : [{
-				xtype : "combo",
-				store : new Ext.data.SimpleStore({
-					proxy: {
-						type: 'jsonp',
-						url: this.address_prefix + '../../framework/person/persons.data.php?' +
-							"task=selectPersons&UserType=IsCustomer",
-						reader: {root: 'rows',totalProperty: 'totalCount'}
-					},
-					fields : ['PersonID','fullname']
-				}),
-				fieldLabel : "مشتری",
-				displayField : "fullname",
-				pageSize : 20,
-				width : 400,
-				hidden : true,
-				valueField : "PersonID",
-				name : "PersonID"
-			},{
-				xtype : "textfield",
-				fieldLabel : "عنوان طرح",
-				name : "PlanDesc",
-				width : 600,
-				value : this.PlanDesc
-			},{
-				xtype : "combo",
-				store : new Ext.data.SimpleStore({
-					proxy: {
-						type: 'jsonp',
-						url: this.address_prefix + '../../loan/loan/loan.data.php?task=GetAllLoans',
-						reader: {root: 'rows',totalProperty: 'totalCount'}
-					},
-					fields : ['LoanID','LoanDesc'],
-					autoLoad : true					
-				}),
-				fieldLabel : "وام درخواستی",
-				queryMode : 'local',
-				displayField : "LoanDesc",
-				valueField : "LoanID",
-				hidden : true,
-				name : "LoanID",
-				value : this.LoanID
-			},{
-				xtype : "button",
-				disabled : this.AddAccess ? false : true,
-				text : this.PlanID == 0 ? "ثبت طرح و تکمیل جداول اطلاعاتی" : "ویرایش جداول اطلاعاتی",
-				iconCls : "arrow_left",
-				handler : function(){ NewPlanObject.SaveNewPlan(); }
-			},{
-				xtype : "hidden",
-				name : "PlanID",
-				value : this.PlanID
-			},{
-				xtype : "hidden",
-				name : "FormType",
-				value : this.FormType				
-			}]
-		});
-	}
-	
-	if(this.framework)
-	{
-		this.planFS.down("[name=PersonID]").show();
-		this.planFS.down("[name=LoanID]").show();
-	}
-	else
-	{
-		this.grid = <?= $grid ?>;
-		this.grid.getView().getRowClass = function(record, index)
-		{
-			if(record.data.StepID == <?= STEPID_REJECT ?>)
-				return "pinkRow";
+        FormType : <?= $FormType?>,
+        PlanID : <?= $PlanID ?>,
+        PlanDesc : '<?= $PlanDesc ?>',
+        LoanID : '<?= $LoanID ?>',
+        Mode : '<?= $Mode ?>',
 
-			return "";
-		}
-		this.grid.render(this.get("div_grid"));
-	}
-	
-	
-	
-}
+        AddAccess : <?= $accessObj->AddFlag ? "true" : "false" ?>,
+        EditAccess : <?= $accessObj->EditFlag ? "true" : "false" ?>,
+        RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
 
-NewPlan.OperationRender = function(v,p,record){
+        framework : <?= session::IsFramework() ? "true" : "false" ?>,
 
-	var str = "";
-	
-	str += "<div  title='اطلاعات طرح' class='info2' onclick='NewPlanObject.ShowPlanInfo();' " +
-		"style='background-repeat:no-repeat;background-position:center;" +
-		"cursor:pointer;width:16px;height:16;float:right'></div>";
-	
-	str += "<div  title='سابقه درخواست' class='history' onclick='NewPlanObject.ShowHistory();' " +
-		"style='background-repeat:no-repeat;background-position:center;" +
-		"cursor:pointer;width:16px;height:16;float:right'></div>";
-	
-	return str;
-}
+        get : function(elementID){
+            return findChild(this.TabID, elementID);
+        }
+    };
 
-NewPlanObject = new NewPlan();
+    function NewPlan(){
 
-NewPlan.prototype.SaveNewPlan = function(){
+        if(this.Mode == "new" || this.Mode == "edit")
+        {
+            this.planFS = new Ext.form.FormPanel({
+                title : "ثبت طرح جدید",
+                width : 700,
+                layout : "vbox",
+                renderTo : this.get("div_plan"),
+                items : [{
+                    xtype : "combo",
+                    store : new Ext.data.SimpleStore({
+                        proxy: {
+                            type: 'jsonp',
+                            url: this.address_prefix + '../../framework/person/persons.data.php?' +
+                                "task=selectPersons&UserType=IsCustomer",
+                            reader: {root: 'rows',totalProperty: 'totalCount'}
+                        },
+                        fields : ['PersonID','fullname']
+                    }),
+                    fieldLabel : "مشتری",
+                    displayField : "fullname",
+                    pageSize : 20,
+                    width : 400,
+                    hidden : true,
+                    allowBlank: false,
+                    valueField : "PersonID",
+                    name : "PersonID"
+                },{
+                    xtype : "textfield",
+                    fieldLabel : "عنوان طرح",
+                    name : "PlanDesc",
+                    allowBlank: false,
+                    width : 600,
+                    value : this.PlanDesc
+                },{
+                    xtype : "combo",
+                    name : "LetterID",
+                    allowBlank: false,
+                    colspan : 2,
+                    width : 600,
+                    store: new Ext.data.Store({
+                        proxy:{
+                            type: 'jsonp',
+                            url:  this.address_prefix + '../../office/letter/letter.data.php?task=SelectLetter',
+                            reader: {root: 'rows', totalProperty: 'totalCount'}
+                        },
+                        fields :  ['LetterID','LetterTitle',{
+                            name : 'LetterDate',
+                            convert : function(v){return MiladiToShamsi(v);}
+                        },{
+                            name : "fulltitle",
+                            convert: function(v,r){
+                                return '['+r.data.LetterID + '] ' + r.data.LetterTitle + ' [ ' + r.data.LetterDate + ' ]'; }
+                        }],
+                        pageSize : 20
+                    }),
+                    pageSize : 20,
+                    fieldLabel : "شماره نامه",
+                    displayField: 'fulltitle',
+                    valueField : "LetterID"
 
-	mask = new Ext.LoadMask(Ext.getCmp(this.TabID), {msg:'در حال ذخيره سازي...'});
-	mask.show();  
+                },{
+                    xtype : "combo",
+                    store : new Ext.data.SimpleStore({
+                        proxy: {
+                            type: 'jsonp',
+                            url: this.address_prefix +'../../framework/person/persons.data.php?task=selectPersonInfoTypes&TypeID=97',
+                            reader: {root: 'rows',totalProperty: 'totalCount'}
+                        },
+                        fields : ['TypeID','InfoID','InfoDesc'],
+                        autoLoad : true
+                    }),
+                    width : 400,
+                    fieldLabel : "نوع ارزیابی",
+                    queryMode : 'local',
+                    displayField : "InfoDesc",
+                    valueField : "InfoID",
+                    allowBlank: false,
+                    /*hidden : true,*/
+                    listeners: {
+                        change : function() {
+                            var val = this.getValue();
+                            if(val==3 || val==5)
+                            {
+                                NewPlanObject.planFS.down("[name=FacilityAmount]").disable();
+                                NewPlanObject.planFS.down("[name=FacilityAmount]").setValue("");
+                            }
+                            else
+                            {
+                                NewPlanObject.planFS.down("[name=FacilityAmount]").enable();
+                            }
+                        }
+                    },
+                    name : "evaluationType"
+                },{
+                    xtype : "currencyfield",
+                    allowBlank: false,
+                    /*listeners: {
+                        render: onRenderTextField
+                    },*/
 
-	Ext.Ajax.request({
-		methos : "post",
-		url : this.address_prefix + "plan.data.php",
-		params : {
-			task : "SaveNewPlan",
-			PlanID : this.PlanID,
-			FormType : this.FormType,
-			PlanDesc : this.planFS.down("[name=PlanDesc]").getValue(),
-			LoanID : this.planFS.down("[name=LoanID]").getValue(),
-			PersonID : this.framework ? this.planFS.down("[name=PersonID]").getValue() : ""
-		},
+                    fieldLabel : "مبلغ درخواستی",
+                    name : "FacilityAmount",
+                    width : 400,
+                    hideTrigger: true,
+                    value : this.FacilityAmount
+                },{
+                    xtype : "combo",
+                    store : new Ext.data.SimpleStore({
+                        proxy: {
+                            type: 'jsonp',
+                            url: this.address_prefix + '../../framework/person/persons.data.php?' +
+                                "task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
+                            reader: {root: 'rows',totalProperty: 'totalCount'}
+                        },
+                        fields : ['PersonID','fullname']
+                    }),
+                    fieldLabel : "متقاضی ارزیابی",
+                    displayField : "fullname",
+                    pageSize : 20,
+                    width : 400,
+                    allowBlank: false,
+                    valueField : "PersonID",
+                    name : "evaluationAskerID"
+                },{
+                    xtype : "button",
+                    disabled : this.AddAccess ? false : true,
+                    text : this.PlanID == 0 ? "ثبت طرح و تکمیل جداول اطلاعاتی" : "ویرایش جداول اطلاعاتی",
+                    iconCls : "arrow_left",
+                    handler : function(){ NewPlanObject.SaveNewPlan(); }
+                },{
+                    xtype : "hidden",
+                    name : "PlanID",
+                    value : this.PlanID
+                },{
+                    xtype : "hidden",
+                    name : "FormType",
+                    value : this.FormType
+                }]
+            });
+        }
 
-		success : function(response){
-			mask.hide();
-			result = Ext.decode(response.responseText);
-			if(result.success)
-			{
-				if(NewPlanObject.framework)
-				{
-					framework.CloseTab(NewPlanObject.TabID);
-					framework.OpenPage("plan/plan/PlanInfo.php", "جداول اطلاعاتی طرح", {
-						MenuID : NewPlanObject.MenuID,
-						PlanID : result.data});
-				}	
-				else
-					portal.OpenPage("plan/plan/PlanInfo.php", {
-						MenuID : NewPlanObject.MenuID,
-						PlanID : result.data});
-			}
-			else
-				Ext.MessageBox.alert("Error", "عملیات مورد نظر با شکست مواجه شد");
-		}
-	});
-		
-}
+        if(this.framework)
+        {
+            this.planFS.down("[name=PersonID]").show();
+            /*this.planFS.down("[name=LoanID]").show();*/
+        }
+        else
+        {
+            this.grid = <?= $grid ?>;
+            this.grid.getView().getRowClass = function(record, index)
+            {
+                if(record.data.StepID == <?= STEPID_REJECT ?>)
+                    return "pinkRow";
 
-NewPlan.prototype.ShowPlanInfo = function(){
-	
-	record = this.grid.getSelectionModel().getLastSelected();
-	if(!record)
-	{
-		Ext.MessageBox.alert("","ابتدا رکورد مورد نظر را انتخاب کنید");
-		return;
-	}
-	portal.OpenPage("/plan/plan/PlanInfo.php", {
-		MenuID : this.MenuID,
-		PlanID : record.data.PlanID});
-}
+                return "";
+            }
+            this.grid.render(this.get("div_grid"));
+        }
 
-NewPlan.prototype.ShowHistory = function(){
 
-	record = this.grid.getSelectionModel().getLastSelected();
-	if(!record)
-	{
-		Ext.MessageBox.alert("","ابتدا رکورد مورد نظر را انتخاب کنید");
-		return;
-	}
-	if(!this.HistoryWin)
-	{
-		this.HistoryWin = new Ext.window.Window({
-			title: 'سابقه گردش طرح',
-			modal : true,
-			autoScroll : true,
-			width: 700,
-			height : 500,
-			closeAction : "hide",
-			loader : {
-				url : this.address_prefix + "history.php",
-				scripts : true
-			},
-			buttons : [{
-					text : "بازگشت",
-					iconCls : "undo",
-					handler : function(){
-						this.up('window').hide();
-					}
-				}]
-		});
-		Ext.getCmp(this.TabID).add(this.HistoryWin);
-	}
-	this.HistoryWin.show();
-	this.HistoryWin.center();
-	this.HistoryWin.loader.load({
-		params : {
-			PlanID : record.data.PlanID
-		}
-	});
-}
+
+    }
+
+    NewPlan.OperationRender = function(v,p,record){
+
+        var str = "";
+
+        str += "<div  title='اطلاعات طرح' class='info2' onclick='NewPlanObject.ShowPlanInfo();' " +
+            "style='background-repeat:no-repeat;background-position:center;" +
+            "cursor:pointer;width:16px;height:16;float:right'></div>";
+
+        str += "<div  title='سابقه درخواست' class='history' onclick='NewPlanObject.ShowHistory();' " +
+            "style='background-repeat:no-repeat;background-position:center;" +
+            "cursor:pointer;width:16px;height:16;float:right'></div>";
+
+        return str;
+    }
+
+    NewPlanObject = new NewPlan();
+
+    NewPlan.prototype.SaveNewPlan = function(){
+
+        mask = new Ext.LoadMask(Ext.getCmp(this.TabID), {msg:'در حال ذخيره سازي...'});
+        mask.show();
+
+        this.planFS.getForm().submit({
+            clientValidation: true,
+            methos : "post",
+            url : this.address_prefix + "plan.data.php",
+            params : {
+                task : "SaveNewPlan"
+            },
+
+            success : function(form,action){
+                mask.hide();
+                /*result = Ext.decode(response.responseText);*/
+                console.log(action.result.data);
+                if(action.result.success)
+                {
+                    if(action.result.data == "LetterExist"){
+                        console.log('UNIT LetterExist');
+                        Ext.MessageBox.alert("Error", "شماره نامه تکراری است");
+                        return;
+                    }
+
+                    if(NewPlanObject.framework)
+                    {
+                        console.log('UNIT Two');
+                        framework.CloseTab(NewPlanObject.TabID);
+                        framework.OpenPage("plan/plan/PlanInfo.php", "جداول اطلاعاتی طرح", {
+                            MenuID : NewPlanObject.MenuID,
+                            PlanID : action.result.data});
+                        console.log('UNIT Three');
+                    }
+                    else
+                        portal.OpenPage("plan/plan/PlanInfo.php", {
+                            MenuID : NewPlanObject.MenuID,
+                            PlanID : action.result.data});
+                }
+                else
+                    Ext.MessageBox.alert("Error", "عملیات مورد نظر با شکست مواجه شد");
+            },
+            failure : function(form,action){
+                mask.hide();
+                /*if(action.result.data == "")
+                    Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
+                else
+                    Ext.MessageBox.alert("Error",action.result.data);*/
+            }
+        });
+
+    }
+
+    NewPlan.prototype.ShowPlanInfo = function(){
+
+        record = this.grid.getSelectionModel().getLastSelected();
+        if(!record)
+        {
+            Ext.MessageBox.alert("","ابتدا رکورد مورد نظر را انتخاب کنید");
+            return;
+        }
+        portal.OpenPage("/plan/plan/PlanInfo.php", {
+            MenuID : this.MenuID,
+            PlanID : record.data.PlanID});
+    }
+
+    NewPlan.prototype.ShowHistory = function(){
+
+        record = this.grid.getSelectionModel().getLastSelected();
+        if(!record)
+        {
+            Ext.MessageBox.alert("","ابتدا رکورد مورد نظر را انتخاب کنید");
+            return;
+        }
+        if(!this.HistoryWin)
+        {
+            this.HistoryWin = new Ext.window.Window({
+                title: 'سابقه گردش طرح',
+                modal : true,
+                autoScroll : true,
+                width: 700,
+                height : 500,
+                closeAction : "hide",
+                loader : {
+                    url : this.address_prefix + "history.php",
+                    scripts : true
+                },
+                buttons : [{
+                    text : "بازگشت",
+                    iconCls : "undo",
+                    handler : function(){
+                        this.up('window').hide();
+                    }
+                }]
+            });
+            Ext.getCmp(this.TabID).add(this.HistoryWin);
+        }
+        this.HistoryWin.show();
+        this.HistoryWin.center();
+        this.HistoryWin.loader.load({
+            params : {
+                PlanID : record.data.PlanID
+            }
+        });
+    }
 
 </script>

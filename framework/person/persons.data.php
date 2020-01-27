@@ -44,11 +44,71 @@ if(isset($_REQUEST["task"]))
 		case "selectPersonInfoTypes":
 		case "ConfirmPerson":
 		case "SendRegisterProcess":
+        case "SearchPersons": /*new added*/
 			
 			call_user_func($_REQUEST["task"]);
 	}
 }
+/*Start new added*/
+function SearchPersons(){
 
+    $where = "1=1";
+    $param = array();
+    /*var_dump($_REQUEST);*/
+
+    if(!empty($_REQUEST["UserType"]))
+    {
+        switch($_REQUEST["UserType"])
+        {
+            case "IsAgent":		$where .= " AND IsAgent='YES'";break;
+            case "IsCustomer":	$where .= " AND IsCustomer='YES'";break;
+            case "IsStaff":		$where .= " AND IsStaff='YES'";break;
+            case "IsSupporter":	$where .= " AND IsSupporter='YES'";break;
+            case "IsExpert":	$where .= " AND IsExpert='YES'";break;
+        }
+    }
+
+    if(!empty($_REQUEST["UserTypes"]))
+    {
+        $arr = preg_split("/,/", $_REQUEST["UserTypes"]);
+        $where .= " AND ( 1=0 ";
+        foreach($arr as $r)
+            $where .= " OR $r='YES'";
+        $where .= ")";
+    }
+
+    if (isset($_REQUEST['fields']) && isset($_REQUEST['query']))
+    {
+        $field = $_REQUEST['fields'];
+        $field = $_REQUEST['fields'] == "fullname" ? "concat_ws(' ',fname,lname,CompanyName)" : $field;
+        $where .= ' and ' . $field . ' like :fld';
+        $_REQUEST['query'] = $_REQUEST['query'] == "*" ? "YES" : $_REQUEST['query'];
+        $param[':fld'] = '%' . $_REQUEST['query'] . '%';
+    }
+
+    if(!empty($_REQUEST["PersonID"]))
+    {
+        $where .= " AND PersonID=:p";
+        $param[":p"] = $_REQUEST["PersonID"];
+    }
+
+    if(!empty($_REQUEST["query"]) && !isset($_REQUEST['fields']))
+    {
+        $where .= " AND ( concat(fname,' ',lname) like :p or CompanyName like :p)";
+        $param[":p"] = "%" . $_REQUEST["query"] . "%";
+    }
+    $temp = BSC_persons::SelectSearch($where , $param);
+    $no = $temp->rowCount();
+    /*var_dump($temp->fetchAll());*/
+    $_GET["limit"]=10000;
+    $temp = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);
+
+    /*var_dump($where);
+    var_dump($param);*/
+    echo dataReader::getJsonData($temp, $no, $_GET["callback"]);
+    die();
+}
+/*End new added*/
 function selectPersons(){
 	
 	$where = "1=1";
