@@ -396,7 +396,18 @@ function SaveNewPlan(){
         /*$obj->RegDate = PDONOW;*/
         $obj->StepID = STEPID_RAW;
         /*echo $_POST["LetterID"];*/
-        if (PLN_plans::IsPlanExist($_POST["LetterID"])){
+
+        if (isset($_POST["LetterID"]) && !empty($_POST["LetterID"])){
+            $ParamType='Letter';
+            $ParamVal=$_POST["LetterID"];
+        }
+        if (isset($_POST["LoanID"]) && !empty($_POST["LoanID"])){
+            $ParamType='Loan';
+            $ParamVal=$_POST["LoanID"];
+        }
+
+        if (PLN_plans::IsPlanExist($ParamType,$ParamVal)){
+
             /*$message = "شماره نامه تکراری است";
             echo "<script type='text/javascript'>alert('$message');</script>";*/
             /*echo Response::createObjectiveResponse(true, "salam");
