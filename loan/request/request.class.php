@@ -32,6 +32,7 @@ class LON_requests extends PdoDataAccess{
 	public $RuleNo;
 	public $FundRules;
 	public $DomainID;
+	public $ContractType;
 
 	/* New Add Fields */
 	public $LetterID;
@@ -1011,6 +1012,16 @@ class LON_requests extends PdoDataAccess{
 		
 		$amount = 0;
 		
+		if($PartObj->ComputeMode == "NOAVARI")
+		{
+			if($PartObj->WageReturn == "CUSTOMER")
+				$amount += $PartObj->PartAmount*$PartObj->FundWage/100;
+			if($PartObj->AgentReturn == "CUSTOMER")
+				$amount += $PartObj->PartAmount*($PartObj->CustomerWage-$PartObj->FundWage)/100;
+			
+			return $amount;
+		}
+		
 		$result = self::GetDelayAmounts($RequestID, $PartObj);
 		if($PartObj->DelayReturn != "INSTALLMENT")
 			$amount += $result["FundDelay"];
@@ -1175,7 +1186,7 @@ class LON_requests extends PdoDataAccess{
 	 * @param type $computeArr
 	 * @return gdate 
 	 */
-	static function GetMinPayedInstallmentDate($RequestID, $computeArr=null){
+	static function GetMinNotPayedInstallmentDate($RequestID, $computeArr=null){
 		
 		if($computeArr == null)
 			$computeArr = LON_Computes::ComputePayments($RequestID);
@@ -1183,11 +1194,11 @@ class LON_requests extends PdoDataAccess{
 		foreach($computeArr as $row)
 			if($row["type"] == "installment")
 			{
-				if(count($row["pays"]) == 0)
-					return $row["RecordDate"];
-				
-				$remain = $row["pays"][ count($row["pays"])-1 ]["remain"]*1;
-				if($remain > 0)
+				if( $row["remain_pure"]*1 != 0 || 
+					$row["remain_wage"]*1 != 0 || 
+					$row["remain_late"]*1 != 0 || 
+					$row["remain_pnlt"]*1 != 0 )
+					
 					return $row["RecordDate"];
 			}
 		return null;
@@ -1242,6 +1253,27 @@ class LON_requests extends PdoDataAccess{
 		foreach($levels as $row)
 		{
 			if($diffInMonth >= $row["f1"]*1 && $diffInMonth <= $row["f2"]*1)
+				return $row;
+		}
+	}
+	
+	/**
+	 * طبقه پیگیری تسهیلات را برمی گرداند
+	 * @param int $RequestID
+	 */
+	static function GetRequestFollowLevel($RequestID, $computeArr = null){
+		
+		$ComputeDate = self::GetMinNotPayedInstallmentDate($RequestID, $computeArr);
+		$diff = 0;
+		if($ComputeDate != null)
+			$diff = DateModules::GDateMinusGDate(DateModules::Now(), $ComputeDate);
+		if($diff < 0)
+			$diff = 0;
+		
+		$levels = PdoDataAccess::runquery("select * from BaseInfo where TypeID=100");
+		foreach($levels as $row)
+		{
+			if($diff >= $row["param1"]*1 && $diff <= $row["param2"]*1)
 				return $row;
 		}
 	}
@@ -3109,12 +3141,18 @@ class LON_follows extends OperationClass{
 	static function Get($where = '', $whereParams = array(), $pdo = null) {
 		
 		return PdoDataAccess::runquery_fetchMode("
-			select f.*,concat_ws(' ',fname,lname) RegPersonName , t.letters
+			select f.*,concat_ws(' ',p.fname,p.lname) RegPersonName , t.letters,
+				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
+				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
 			from LON_follows f
+			join LON_requests r using(RequestID)
 			join BSC_persons p on(f.RegPersonID=p.PersonID)
 			join BaseInfo bf on(bf.TypeID=98 AND bf.InfoID=f.StatusID)
-			left join ( select FollowID,group_concat(LetterID) letters from LON_FollowLetters group by FollowID )t
+			left join ( select FollowID,group_concat(LetterID) letters 
+						from LON_FollowLetters join OFC_letters l using(LetterID) group by FollowID )t
 				on(t.FollowID=f.FollowID)
+			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
+			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
 			where 1=1 " . $where , $whereParams, $pdo);
 	}	
 }

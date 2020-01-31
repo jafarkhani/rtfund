@@ -37,7 +37,8 @@ class EventComputeItems {
 		switch($ItemID){
 			
 			case 1 : // مبلغ اصل تسهیلات
-				return $PartObj->PartAmount;
+				return $PartObj->PartAmount - 
+					LON_requests::TotalSubtractsOfPayAmount($ReqObj->RequestID,$PartObj);
 			
 			case 3 : //مبلغ قابل پرداخت دراین مرحله	
 				

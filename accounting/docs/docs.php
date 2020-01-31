@@ -108,16 +108,16 @@ $col->width = 110;
 
 $col = $dg->addColumn("بدهکار", "DebtorAmount", GridColumn::ColumnType_money);
 $col->editor = ColumnEditor::CurrencyField(true, "cmp_DebtorAmount");
-$col->width = 90;
+$col->width = 100;
 
 $col = $dg->addColumn("بستانکار", "CreditorAmount", GridColumn::ColumnType_money);
 $col->editor = ColumnEditor::CurrencyField(true, "cmp_CreditorAmount");
-$col->width = 90;
+$col->width = 100;
 
-/*$col = $dg->addColumn("جزئیات", "details");
+$col = $dg->addColumn("جزئیات", "details");
 //$col->editor = ColumnEditor::TextField(true, "cmp_details");
 $col->width = 100;
-$col->ellipsis = 50;*/
+$col->ellipsis = 50;
 
 $col = $dg->addColumn("آیتم1", "param1");
 $col->renderer = "AccDocs.Param1Render";

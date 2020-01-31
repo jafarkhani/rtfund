@@ -126,3 +126,6 @@ store : new Ext.data.TreeStore({
 }),
 multiselect : true,
 hiddenName : "FILTERPERSON_DomainID"
+****************************************************************
+listConfig: {width: 'auto'},
+matchFieldWidth : false,

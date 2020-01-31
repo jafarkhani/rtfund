@@ -1,4 +1,13 @@
 <?php
+
+/*
+update ACC_docs join ACC_DocItems using(DocID) join LON_payments on(SourceID3=PayID) 
+set DebtorAmount = if(DebtorAmount>0, PayAmount-OldFundWage-OldAgentWage, 0),
+CreditorAmount = if(CreditorAmount>0, PayAmount-OldFundWage-OldAgentWage, 0)
+where EventID in(141,143)
+ * 
+ *  */
+
 /*
 insert into aa select DocID,@i:=@i+1 from (select a.* from ACC_docs a, 
  * (select @i:=0)t where cycleID=1398 AND DocDate>1 order by DocDate)t 

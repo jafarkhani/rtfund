@@ -19,7 +19,7 @@ function IsFreeRender($row, $value){
 	return $value == "YES" ? "*" : "";
 }
 function FundRulesRender($row, $value){
-	return $value == "YES" ? "نظر صندوق" : "نظر معرفی کننده";
+	return $value == "YES" ? "نظر صندوق" : "نظر منبع";
 }
 
 $page_rpg = new ReportGenerator("mainForm","LoanReport_totalObj");
@@ -34,7 +34,7 @@ $col->queryField = "r.RequestID";
 
 $page_rpg->addColumn("نوع وام", "LoanDesc");
 $page_rpg->addColumn("عنوان طرح", "PlanTitle");	
-$page_rpg->addColumn("معرفی کننده", "ReqFullname","ReqPersonRender");
+$page_rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 $page_rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
 $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
 $col->type = "date";	
@@ -345,7 +345,7 @@ function ListData($IsDashboard = false){
 		
 	$rpg->addColumn("نوع وام", "LoanDesc");
 	$rpg->addColumn("عنوان طرح", "PlanTitle");	
-	$rpg->addColumn("معرفی کننده", "ReqFullname","ReqPersonRender");
+	$rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 	$rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
 	$rpg->addColumn("تاریخ درخواست", "ReqDate", "ReportDateRender");
 	$col = $rpg->addColumn("مبلغ درخواست", "ReqAmount", "ReportMoneyRender");
@@ -506,7 +506,7 @@ function LoanReport_total()
 				},
 				fields : ['PersonID','fullname']
 			}),
-			fieldLabel : "معرفی کننده",
+			fieldLabel : "منبع",
 			pageSize : 25,
 			width : 370,
 			displayField : "fullname",
@@ -744,7 +744,7 @@ function LoanReport_total()
 			xtype : "container",
 			html : "تضامین بر اساس&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
 				"<input name=FundRules type=radio value='YES' > نظر صندوق &nbsp;&nbsp;" +
-				"<input name=FundRules type=radio value='NO' > نظر معرفی کننده &nbsp;&nbsp;" +
+				"<input name=FundRules type=radio value='NO' > نظر منبع &nbsp;&nbsp;" +
 				"<input name=FundRules type=radio value='' checked > هردو " 
 		},{
 			xtype : "fieldset",

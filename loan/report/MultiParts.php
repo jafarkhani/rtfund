@@ -92,7 +92,7 @@ if(isset($_REQUEST["show"]))
 	$col = $rpg->addColumn("نوع وام", "LoanDesc");
 	$col->rowspanByFields = array("RequestID");
 	$col->rowspaning = true;
-	$col = $rpg->addColumn("معرفی کننده", "ReqFullname");
+	$col = $rpg->addColumn("منبع ", "ReqFullname");
 	$col->rowspanByFields = array("RequestID");
 	$col->rowspaning = true;
 	$col = $rpg->addColumn("تاریخ درخواست", "ReqDate", "ReportDateRender");
@@ -191,7 +191,7 @@ function LoanReport_multipart()
 				},
 				fields : ['PersonID','fullname']
 			}),
-			fieldLabel : "معرفی کننده",
+			fieldLabel : "منبع ",
 			pageSize : 25,
 			width : 370,
 			displayField : "fullname",
