@@ -49,6 +49,7 @@ $col = $page_rpg->addColumn("تعداد اقساط معوق", "delayedInstallmen
 $col = $page_rpg->addColumn("مانده کل تا انتها", "TotalRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
 $col = $page_rpg->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
 $col = $page_rpg->addColumn("طبقه وام", "LoanLevel"); $col->IsQueryField = false;
+$col = $page_rpg->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
 $col = $page_rpg->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	$col->IsQueryField = false;
 $col = $page_rpg->addColumn("مانده اصل وام تا انتها", "remain_pure","ReportMoneyRender"); $col->IsQueryField = false;
 $col = $page_rpg->addColumn("کارمزد معوقه", "remain_wage","ReportMoneyRender"); $col->IsQueryField = false;
@@ -121,6 +122,7 @@ function GetData(){
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqPersonName,
 				BranchName,
 				bi.InfoDesc StatusDesc,
+				bif.InfoDesc LatestFollowStatus,
 				tazamin,
 				t1.InstallmentAmount,
 				t1.LastInstallmentDate,
@@ -137,6 +139,10 @@ function GetData(){
 			left join BSC_persons p2 on(ReqPersonID=p2.PersonID)
 			join LON_ReqParts p on(p.RequestID=r.RequestID AND p.IsHistory='NO')
 			join BSC_branches using(BranchID)
+			left join (
+				select RequestID,max(StatusID) FollowStatusID from LON_follows group by RequestID
+			)t5 on(r.RequestID=t5.RequestID)
+			left join BaseInfo bif on(bif.TypeID=98 AND bif.InfoID=t5.FollowStatusID)
 			left join (
 				select RequestID,InstallmentAmount, max(InstallmentDate) LastInstallmentDate , min(InstallmentDate) FirstInstallmentDate
 				from LON_installments
@@ -213,7 +219,8 @@ function GetData(){
 			}
 		}
 		$row["delayedInstallmentsCount"] = $delayedInstallmentsCount;*/
-		$row["delayedInstallmentsCount"] = floor($remain/$row["InstallmentAmount"]);
+		
+		$row["delayedInstallmentsCount"] = round($remain/$row["InstallmentAmount"]);
 		
 		$row["remain_pure"] = $RemainArr["remain_pure"];
 		$row["remain_wage"] = $RemainArr["remain_wage"];
@@ -307,6 +314,8 @@ function ListData($IsDashboard = false){
 	$col->EnableSummary();
 	
 	$col = $rpt->addColumn("طبقه وام", "LoanLevel");
+	$col = $rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus"); 
+	
 	
 	$col = $rpt->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	
 	$col->EnableSummary();

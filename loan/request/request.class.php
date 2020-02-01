@@ -2152,7 +2152,6 @@ class LON_Computes extends PdoDataAccess{
 		$returnArr = array();
 		//$extra = LON_requests::TotalSubtractsOfPayAmount($RequestID, $PartObj);
 		$pays = LON_payments::Get(" AND p.RequestID=?", array($RequestID), " order by PayDate");
-		print_r(ExceptionHandler::PopAllExceptions());
 		$pays = $pays->fetchAll();
 		$totalPure = 0;
 		$totalZ = 0;

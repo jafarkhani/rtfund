@@ -9,6 +9,8 @@ require_once "ReportGenerator.class.php";
 require_once '../request/request.class.php'; 
 require_once '../request/request.data.php';
 
+ini_set("display_errors", "On");
+
 if(isset($_REQUEST["show"]))
 {
 	$RequestID = $_REQUEST["RequestID"];
