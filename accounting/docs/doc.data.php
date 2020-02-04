@@ -1016,22 +1016,22 @@ function GetAccountSummary($ReturnMode = false, $where = "", $param = array()){
 			
 			left join (select TafsiliID2,sum(CreditorAmount-DebtorAmount) amount
 						from ACC_DocItems join ACC_docs using(DocID)
-						where TafsiliType2=".TAFSILITYPE_PERSON." AND CycleID=:c AND CostID=".COSTID_saving."
+						where CycleID=:c AND CostID=".COSTID_saving."
 						group by TafsiliID2
 			)pasandaz on(pasandaz.TafsiliID2=t.TafsiliID)
 			/*left join (select TafsiliID,sum(CreditorAmount-DebtorAmount) amount
 						from ACC_DocItems join ACC_docs using(DocID)
-						where TafsiliType=".TAFSILITYPE_PERSON." AND CycleID=:c AND CostID=".COSTID_ShortDeposite."
+						where CycleID=:c AND CostID=".COSTID_ShortDeposite."
 						group by TafsiliID
 			)kootah on(kootah.TafsiliID=t.TafsiliID)
 			left join (select TafsiliID,sum(CreditorAmount-DebtorAmount) amount
 						from ACC_DocItems join ACC_docs using(DocID)
-						where TafsiliType=".TAFSILITYPE_PERSON." AND CycleID=:c AND CostID=".COSTID_LongDeposite."
+						where CycleID=:c AND CostID=".COSTID_LongDeposite."
 						group by TafsiliID
 			)boland on(boland.TafsiliID=t.TafsiliID)
 			left join (select TafsiliID,sum(CreditorAmount-DebtorAmount) amount
 						from ACC_DocItems join ACC_docs using(DocID)
-						where TafsiliType=".TAFSILITYPE_PERSON." AND CycleID=:c AND CostID=".COSTID_current."
+						where CycleID=:c AND CostID=".COSTID_current."
 						group by TafsiliID
 			)jari on(jari.TafsiliID=t.TafsiliID)*/
 		where TafsiliType=" . TAFSILITYPE_PERSON . $where . dataReader::makeOrder(), $param);
@@ -1055,12 +1055,11 @@ function GetAccountFlow() {
 		from ACC_DocItems di
 			join ACC_docs d using(DocID)
 		where d.CycleID=:cycle
-			AND di.CostID=:cost AND di.TafsiliType2 = :ttype AND di.TafsiliID2=:tid " . dataReader::makeOrder();
+			AND di.CostID=:cost AND di.TafsiliID2=:tid " . dataReader::makeOrder();
 	
 	$param = array(
 		":cycle" => $_SESSION["accounting"]["CycleID"],
 		":cost" => $CostID,
-		":ttype" => TAFSILITYPE_PERSON,
 		":tid" => $TafsiliID
 	);
 	

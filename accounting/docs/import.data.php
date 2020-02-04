@@ -3022,6 +3022,11 @@ function RegisterWarrantyDoc($ReqObj, $WageCost, $TafsiliID, $TafsiliID2,$Block_
 		$days -= 1;
 	$TotalWage = round($days*$ReqObj->amount*(1-$ReqObj->SavePercent/100)*$ReqObj->wage/36500);	
 	
+	if($ReqObj->StartDate > $ReqObj->EndDate)
+	{
+		ExceptionHandler::PushException("تاریخ پایان ضمانت نامه قبل از تاریخ شروع می باشد");
+		return false;
+	}	
 	$years = SplitYears(DateModules::miladi_to_shamsi($ReqObj->StartDate), 
 		DateModules::miladi_to_shamsi($ReqObj->EndDate), $TotalWage);
 	
@@ -3978,7 +3983,7 @@ function RegisterSalaryDoc($PObj, $pdo){
 	}
 	PdoDataAccess::runquery("
 		insert into ACC_DocItems(DocID,CostID,details,
-			TafsiliType,TafsiliID,DebtorAmount,CreditorAmount,
+			TafsiliType2,TafsiliID2,DebtorAmount,CreditorAmount,
 			locked,SourceType,SourceID1,SourceID2)
 
 		select $DocObj->DocID,
@@ -4161,7 +4166,7 @@ function RegisterPaySalaryDoc($PObj, $pdo){
 	}
 	
 	PdoDataAccess::runquery("
-		insert into ACC_DocItems(DocID,CostID,details,TafsiliType,TafsiliID,DebtorAmount,CreditorAmount,
+		insert into ACC_DocItems(DocID,CostID,details,TafsiliType2,TafsiliID2,DebtorAmount,CreditorAmount,
 			locked,SourceType,SourceID1,SourceID2)
 
 		select $DocObj->DocID,

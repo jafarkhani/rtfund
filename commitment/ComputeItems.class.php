@@ -163,6 +163,8 @@ class EventComputeItems {
 						case 33:
 						case 34:
 							$wagePercent = $PartObj->CustomerWage;
+							if($wagePercent == 0)
+								return 0;
 							$FundWage = round(($PartObj->FundWage/$wagePercent)*$row["wage"]);
 							$AgentWage = $row["wage"] - $FundWage;
 							if($ItemID == 34)

@@ -190,10 +190,8 @@ function SplitYears($startDate, $endDate, $TotalAmount){
 	$startDate = DateModules::miladi_to_shamsi($startDate);
 	$endDate = DateModules::miladi_to_shamsi($endDate);
 	
-	if(substr($startDate,0,1) == 2)
-		$startDate = DateModules::miladi_to_shamsi ($startDate);
-	if(substr($endDate,0,1) == 2)
-		$endDate = DateModules::miladi_to_shamsi ($endDate);
+	$startDate = DateModules::miladi_to_shamsi ($startDate);
+	$endDate = DateModules::miladi_to_shamsi ($endDate);
 	
 	$arr = preg_split('/[\-\/]/',$startDate);
 	$StartYear = $arr[0]*1;
