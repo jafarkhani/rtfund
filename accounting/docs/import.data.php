@@ -4543,14 +4543,11 @@ class DiffLoanProcess{
 	 */
 	function Contract(){
 
-		if($this->ReqObj->ReqPersonID*1 == 0)
-			$EventID = EVENT_LOANCONTRACT_innerSource;
-		else
+		$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanContract");
+		if($EventID == 0)
 		{
-			if($this->ReqObj->FundGuarantee == "YES")
-				$EventID = EVENT_LOANCONTRACT_agentSource_committal;
-			else
-				$EventID = EVENT_LOANCONTRACT_agentSource_non_committal;
+			ExceptionHandler::PushException("رویداد عقد قرارداد یافت نشد");
+			return false;
 		}
 
 		$eventobj = new ExecuteEvent($EventID);

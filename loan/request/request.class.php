@@ -50,6 +50,7 @@ class LON_requests extends PdoDataAccess{
 	public $_ReqPersonFullname;
 	public $_BranchName;
 	public $_SubAgentDesc;
+	public $_LoanGroupID;
 	
 	function __construct($RequestID = "") {
 		
@@ -67,11 +68,11 @@ class LON_requests extends PdoDataAccess{
 			PdoDataAccess::FillObject ($this, "
 				select r.* , concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) _LoanPersonFullname, LoanDesc _LoanDesc,
 						concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) _ReqPersonFullname, b.BranchName _BranchName,
-						SubDesc as _SubAgentDesc
+						SubDesc as _SubAgentDesc,l.GroupID _LoanGroupID
 						
 					from LON_requests r 
 					left join BSC_persons p1 on(p1.PersonID=LoanPersonID)
-					left join LON_loans using(LoanID)
+					left join LON_loans l using(LoanID)
 					left join BSC_persons p2 on(p2.PersonID=ReqPersonID)
 					left join BSC_branches b using(BranchID)
 					left join BSC_SubAgents sa on(SubID=SubAgentID)
@@ -1276,6 +1277,37 @@ class LON_requests extends PdoDataAccess{
 			if($diff >= $row["param1"]*1 && $diff <= $row["param2"]*1)
 				return $row;
 		}
+	}
+	
+	static function GetEventID($RequestID, $EventType){
+		
+		$ReqObj = new LON_requests($RequestID);
+		//----------------------------------------------------
+		$where .= " AND EventType='".$EventType."'";
+		//----------------------------------------------------
+		if($ReqObj->ReqPersonID*1 == 0)
+			$where .= " AND EventType2='inner'";
+
+		if($ReqObj->_LoanGroupID*1 == 1)
+		{
+			$where .= " AND EventType2='hemayati'";
+		}
+
+		if($ReqObj->ReqPersonID*1 == 1003)
+		{
+			$where .= " AND EventType2='noavari'";
+		}
+
+		if($ReqObj->FundGuarantee == "YES")
+			$where .= " AND ( EventType2='commit' OR EventType2='agent')";
+		else
+			$where .= " AND ( EventType2='noncommit' OR EventType2='agent')";
+		//----------------------------------------------------
+		$dt = PdoDataAccess::runquery("select * COM_events where 1=1 " . $where);
+		if(count($dt) == 0)
+			return 0;
+		
+		return $dt[0]["EventID"];
 	}
 }
 

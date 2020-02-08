@@ -32,29 +32,35 @@ function Event() {
 		bodyStyle: "text-align:right;padding:5px",
 		frame: true,
 		hidden: true,
-		width: 300,
+		width: 500,
+		defaults : {
+			width : 480
+		},
 		items: [{
 				xtype: "hidden",
 				name: "EventID",
-				itemId: "EventID",
-				fieldLabel: "کد",
-				labelWidth: 40,
-				hideTrigger: true
+				itemId: "EventID"
 			},{
-				xtype: "numberfield",
+				xtype: "textfield",
 				name: "ordering",
 				itemId: "ordering",
 				fieldLabel: "ترتیب",
-				labelWidth: 40,
 				hideTrigger: true
 			}, {
-				xtype: "textarea",
+				xtype: "textfield",
 				name: "EventTitle",
 				itemId: "EventTitle",
-				fieldLabel: "عنوان",
-				labelWidth: 40,
-				rows: 5,
-				width: 280
+				fieldLabel: "عنوان"
+			}, {
+				xtype: "textfield",
+				name: "EventType",
+				itemId: "EventType",
+				fieldLabel: "نوع رویداد"
+			}, {
+				xtype: "textfield",
+				name: "EventType2",
+				itemId: "EventType2",
+				fieldLabel: "نوع محاسبه"
 			}, {
 				xtype: "hidden",
 				itemId: "ParentID",
@@ -269,6 +275,8 @@ Event.prototype.BeforeSaveEvent = function (mode, obj){
 		this.infoPanel.getComponent("EventID").setValue(record.data.id);
 		this.infoPanel.getComponent("old_EventID").setValue(record.data.id);
 		this.infoPanel.getComponent("ordering").setValue(record.raw.ordering);
+		this.infoPanel.getComponent("EventType").setValue(record.raw.EventType);
+		this.infoPanel.getComponent("EventType2").setValue(record.raw.EventType2);
 	} else {
 		this.infoPanel.getComponent("ParentID").setValue(record.data.id == "source" ? 0 : record.data.id);
 	}

@@ -32,47 +32,7 @@ class ExecuteEvent {
 		
 		switch($this->EventID)
 		{
-			case EVENT_LOAN_ALLOCATE:
-				$this->EventFunction = "EventComputeItems::LoanAllocate";
-				break;	
 			
-			case EVENT_LOANPAYMENT_agentSource:
-			case EVENT_LOANPAYMENT_innerSource:
-				$this->TriggerFunction = "LON_payments::UpdateRealPayed";
-				$this->EventFunction = "EventComputeItems::PayLoan";
-				break;
-			
-			case EVENT_LOANCONTRACT_innerSource:
-			case EVENT_LOANCONTRACT_agentSource_committal:
-			case EVENT_LOANCONTRACT_agentSource_non_committal:
-				$this->EventFunction = "EventComputeItems::PayLoan";
-				break;
-			
-			case EVENT_LOANBACKPAY_innerSource_non_cheque:
-			case EVENT_LOANBACKPAY_agentSource_committal_non_cheque:
-			case EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque:
-				$this->EventFunction = "EventComputeItems::LoanBackPay";
-				break;
-			
-			case EVENT_LOANBACKPAY_agentSource_committal_cheque:
-			case EVENT_LOANBACKPAY_agentSource_non_committal_cheque:
-			case EVENT_LOANBACKPAY_innerSource_cheque:
-				//$this->AfterTriggerFunction = "ACC_IncomeCheques::EventTrigger_changeStatus";
-				$this->EventFunction = "EventComputeItems::LoanBackPay";
-				break;
-			
-			case EVENT_CHEQUE_SANDOGHAMANAT_inner:
-			case EVENT_CHEQUE_SANDOGHAMANAT_agent:
-			case EVENT_CHEQUE_SENDTOBANKFROMAMANAT_inner:
-			case EVENT_CHEQUE_SENDTOBANKFROMAMANAT_agent:
-			case EVENT_CHEQUE_SENDTOBANK_inner:
-			case EVENT_CHEQUE_SENDTOBANK_agent:
-			case EVENT_CHEQUE_BARGASHT_inner:
-			case EVENT_CHEQUE_BARGASHT_agent:
-			case EVENT_CHEQUE_BARGASHTHOGHUGHI_inner:
-			case EVENT_CHEQUE_BARGASHTHOGHUGHI_agent:
-				//$this->AfterTriggerFunction = "ACC_IncomeCheques::EventTrigger_changeStatus";
-				break;
 			
 			case EVENT_LOANDAILY_innerSource:
 			case EVENT_LOANDAILY_agentSource_committal:
@@ -96,49 +56,6 @@ class ExecuteEvent {
 				$this->EventFunction = "EventComputeItems::LoanEnd";
 				break;	
 
-			case EVENT_WAR_CANCEL_2:
-			case EVENT_WAR_CANCEL_3:
-			case EVENT_WAR_CANCEL_4:
-			case EVENT_WAR_CANCEL_6:
-			case EVENT_WAR_CANCEL_7:
-			case EVENT_WAR_CANCEL_8:
-			case EVENT_WAR_CANCEL_other:
-				$this->TriggerFunction = "WAR_requests::EventTrigger_cancel";
-				$this->EventFunction = "EventComputeItems::Warrenty";
-				break;	
-			case EVENT_WAR_REG_2:
-			case EVENT_WAR_REG_3:
-			case EVENT_WAR_REG_4:
-			case EVENT_WAR_REG_6:
-			case EVENT_WAR_REG_7:
-			case EVENT_WAR_REG_8:
-			case EVENT_WAR_REG_other:
-			case EVENT_WAR_END_2:
-			case EVENT_WAR_END_3:
-			case EVENT_WAR_END_4:
-			case EVENT_WAR_END_6:
-			case EVENT_WAR_END_7:
-			case EVENT_WAR_REG_8:
-			case EVENT_WAR_END_other:
-			case EVENT_WAR_EXTEND_2:
-			case EVENT_WAR_EXTEND_3:
-			case EVENT_WAR_EXTEND_4:
-			case EVENT_WAR_EXTEND_6:
-			case EVENT_WAR_EXTEND_7:
-			case EVENT_WAR_EXTEND_8:
-			case EVENT_WAR_EXTEND_other:
-				$this->EventFunction = "EventComputeItems::Warrenty";
-				break;	
-			case EVENT_WAR_SUB_2:
-			case EVENT_WAR_SUB_3:
-			case EVENT_WAR_SUB_4:
-			case EVENT_WAR_SUB_6:
-			case EVENT_WAR_SUB_7:
-			case EVENT_WAR_SUB_8:
-			case EVENT_WAR_SUB_other:
-				$this->AfterTriggerFunction = "WAR_requests::EventTrigger_reduce";				
-				$this->EventFunction = "EventComputeItems::Warrenty";
-				break;	
 			
 		}
 	}

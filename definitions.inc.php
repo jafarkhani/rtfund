@@ -200,9 +200,13 @@ define("EVENT_LOAN_ALLOCATE", 131);
 define("EVENT_LOANCONTRACT_innerSource", 132);
 define("EVENT_LOANCONTRACT_agentSource_committal", 134);
 define("EVENT_LOANCONTRACT_agentSource_non_committal", 133);
+define("EVENT_LOANCONTRACT_hemayati", 1903);
+define("EVENT_LOANCONTRACT_noavari", 1918);
 
 define("EVENT_LOANPAYMENT_innerSource", 141);
 define("EVENT_LOANPAYMENT_agentSource", 143);
+define("EVENT_LOANPAYMENT_hemayati", 143);
+define("EVENT_LOANPAYMENT_noavari", 143);
 
 define("EVENT_LOANBACKPAY_innerSource_cheque", 151);
 define("EVENT_LOANBACKPAY_innerSource_non_cheque", 152);

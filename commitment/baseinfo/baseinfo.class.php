@@ -11,6 +11,8 @@ class COM_events extends PdoDataAccess {
     public $EventID;
     public $ParentID;
     public $EventTitle;
+	public $EventType;
+	public $EventType2;
     public $IsActive;
 	public $ordering;
 	public $IsSystemic;
