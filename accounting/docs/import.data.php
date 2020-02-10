@@ -1348,8 +1348,6 @@ function RegisterDifferncePartsDoc($RequestID, $NewPartID, $pdo, $DocID=""){
 	$process->PartObj = $NewPartObj;
 	$process->pdo = $pdo;
 			
-	$process->Allocate();
-	ob_flush();flush();
 	$process->Contract();
 	ob_flush();flush();
 	$process->BackPay();
@@ -4516,29 +4514,6 @@ class DiffLoanProcess{
 	
 	
 	/**
-	 * رویداد تخصیص 
-	 */
-	function Allocate(){
-
-		if($this->ReqObj->ReqPersonID*1 == 0)
-			return;
-
-		$EventID = EVENT_LOAN_ALLOCATE;
-
-		$eventobj = new ExecuteEvent($EventID);
-		$eventobj->DocObj = $this->DocObj;
-		$eventobj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
-		$result = $eventobj->RegisterEventDoc($this->pdo);
-		if($result)
-			$this->DocObj = $eventobj->DocObj;
-		if(ExceptionHandler::GetExceptionCount() > 0)
-		{
-			return false;
-		}
-		return true;
-	}
-
-	/**
 	 * رویداد عقد قرارداد
 	 */
 	function Contract(){
@@ -4577,30 +4552,11 @@ class DiffLoanProcess{
 
 		foreach($backpays as $bpay)
 		{
-			if($this->ReqObj->ReqPersonID*1 > 0)
-			{
-				if($this->ReqObj->FundGuarantee == "YES")
-				{
-					if($bpay["IncomeChequeID"]*1 > 0)
-						$EventID = EVENT_LOANBACKPAY_agentSource_committal_cheque;
-					else
-						$EventID = EVENT_LOANBACKPAY_agentSource_committal_non_cheque;
-				}
-				else
-				{
-					if($bpay["IncomeChequeID"]*1 > 0)
-						$EventID = EVENT_LOANBACKPAY_agentSource_non_committal_cheque;
-					else
-						$EventID = EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque;
-				}
-			}
+			if($bpay["IncomeChequeID"]*1 > 0)
+				$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanBackPayCheque");
 			else
-			{
-				if($bpay["IncomeChequeID"]*1 > 0)
-					$EventID = EVENT_LOANBACKPAY_innerSource_cheque;
-				else
-					$EventID = EVENT_LOANBACKPAY_innerSource_non_cheque;
-			}
+				$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanBackPay");
+			
 			$eventobj = new ExecuteEvent($EventID);
 			$eventobj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID, $bpay["BackPayID"]);
 			$eventobj->DocObj = $this->DocObj;
@@ -4621,23 +4577,10 @@ class DiffLoanProcess{
 		$days = PdoDataAccess::runquery_fetchMode("select * from dates where Jdate between ? AND ?", 
 				array(DateModules::miladi_to_shamsi($this->PartObj->PartDate), DateModules::shNow()), $this->pdo);
 
-		if($this->ReqObj->ReqPersonID*1 == 0)
-		{
-			$eventID = EVENT_LOANDAILY_innerSource;
-			$LateEvent = EVENT_LOANDAILY_innerLate;
-			$PenaltyEvent = EVENT_LOANDAILY_innerPenalty;
-		}
-		else
-		{
-			if($this->ReqObj->FundGuarantee == "YES")
-				$eventID = EVENT_LOANDAILY_agentSource_committal;
-			else
-				$eventID = EVENT_LOANDAILY_agentSource_non_committal;
-
-			$LateEvent = EVENT_LOANDAILY_agentlate;
-			$PenaltyEvent = EVENT_LOANDAILY_agentPenalty;
-		}
-		
+		$eventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyIncome");
+		$LateEvent = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyLate");
+		$PenaltyEvent = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyPenalty");
+			
 		foreach($days as $day)
 		{
 			$EventObj = new ExecuteEvent($eventID);

@@ -169,7 +169,11 @@ LoanPay.prototype = {
 	RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
 	
 	RequestID : <?= $RequestID ?>,
+	PartID : <?= LON_ReqParts::GetValidPartObj($RequestID)->PartID ?>,
 	PartRecord : null,
+	
+	EventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanBackPay) ?>,
+	ChequeEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanBackPayCheque) ?>,
 	
 	GroupPays : new Array(),
 	GroupPaysTitles : new Array(),
@@ -816,48 +820,8 @@ LoanPay.prototype.BeforeSaveGroupPay = function(){
 LoanPay.prototype.ExecuteEvent = function(){
 	
 	var record = this.grid.getSelectionModel().getLastSelected();
-
-	var loanStore = new Ext.data.Store({
-		proxy:{
-			type: 'jsonp',
-			url: this.address_prefix + "request.data.php?task=SelectAllRequests&RequestID=" + record.data.RequestID,
-			reader: {root: 'rows',totalProperty: 'totalCount'}
-		},
-		fields : ["RequestID","ReqPersonID","PartID","FundGuarantee"]
-	});
-	loanStore.load({
-		callback : function(){
-			var eventID = "";
-			ReqRecord = this.getAt(0);
-			if(ReqRecord.data.ReqPersonID*1 > 0)
-			{
-				if(ReqRecord.data.FundGuarantee == "YES")
-				{
-					if(record.data.IncomeChequeID*1 > 0)
-						eventID = "<?= EVENT_LOANBACKPAY_agentSource_committal_cheque ?>";
-					else
-						eventID = "<?= EVENT_LOANBACKPAY_agentSource_committal_non_cheque ?>";
-				}
-				else
-				{
-					if(record.data.IncomeChequeID*1 > 0)
-						eventID = "<?= EVENT_LOANBACKPAY_agentSource_non_committal_cheque ?>";
-					else
-						eventID = "<?= EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque ?>";
-				}
-			}
-			else
-			{
-				if(record.data.IncomeChequeID*1 > 0)
-					eventID = "<?= EVENT_LOANBACKPAY_innerSource_cheque ?>";
-				else
-					eventID = "<?= EVENT_LOANBACKPAY_innerSource_non_cheque ?>";
-			}
-				
-			framework.ExecuteEvent(eventID, new Array(
-				ReqRecord.data.RequestID,ReqRecord.data.PartID,record.data.BackPayID));
-		}
-	})
+	framework.ExecuteEvent(this.EventID, new Array(
+		this.RequestID,this.PartID,record.data.BackPayID));
 }
 
 </script>

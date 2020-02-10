@@ -15,7 +15,11 @@ class COM_events extends PdoDataAccess {
 	public $EventType2;
     public $IsActive;
 	public $ordering;
-	public $IsSystemic;
+	public $EventFunction;
+	public $TriggerFunction;
+	public $AfterTriggerFunction;
+	
+	public $_ParentEventTitle;
 
     function __construct($id = "") {
         $this->DT_EventID = DataMember::CreateDMA(DataMember::Pattern_Num);
@@ -24,7 +28,9 @@ class COM_events extends PdoDataAccess {
         $this->DT_IsActive = DataMember::CreateDMA(DataMember::Pattern_EnAlphaNum);
 		
 		if ($id != '') {
-            parent::FillObject($this, "select * from COM_events where EventID =:id", array(":id" => $id));
+            parent::FillObject($this, "select e.*,e2.EventTitle _ParentEventTitle 
+				from COM_events e join COM_events e2 on(e.ParentID=e2.EventID) 
+				where e.EventID =:id", array(":id" => $id));
         }
     }
 
@@ -122,7 +128,7 @@ class COM_EventRows extends PdoDataAccess {
 
     static function SelectAll($where = '', $param = array()) {
  
-        $query = " select er.*,
+        $query = " select er.*,e.*,
 					
 					cc.TafsiliType1,
 					cc.TafsiliType2,
@@ -161,6 +167,7 @@ class COM_EventRows extends PdoDataAccess {
 					p3.SrcValueField as SrcValueField3				
 					
 			from COM_EventRows er 
+			join COM_events e using(EventID)
 			left join BSC_persons on(PersonID=ChangePersonID)
 			
 			join  ACC_CostCodes cc using(CostID)

@@ -9,6 +9,9 @@ require_once "../request/request.class.php";
 require_once "../request/request.data.php";
 require_once "ReportGenerator.class.php";
 
+ini_set('max_execution_time', 30000000);
+ini_set('memory_limit','4000M'); 
+
 function ReqPersonRender($row,$value){
 	return $value == "" ? "منابع داخلی" : $value;
 }

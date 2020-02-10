@@ -46,7 +46,7 @@ function selectEventRows(){
 	$returnArr = array();
 	for($i=0; $i < count($list); $i++)
 	{
-		$result = EventComputeItems::SetSpecialTafsilis($eObj->EventID, $list[$i], $SourcesArr);
+		$result = EventComputeItems::SetSpecialTafsilis($list[$i], $SourcesArr);
 		$list[$i]["TafsiliID1"] = $result[0]["TafsiliID"];
 		$list[$i]["TafsiliDesc1"] = $result[0]["TafsiliDesc"];
 		$list[$i]["TafsiliID2"] = $result[1]["TafsiliID"];

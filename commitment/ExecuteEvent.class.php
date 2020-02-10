@@ -30,34 +30,10 @@ class ExecuteEvent {
 		$this->EventID = $EventID;
 		$this->BranchID = $BranchID == "" ? BRANCH_BASE : $BranchID;
 		
-		switch($this->EventID)
-		{
-			
-			
-			case EVENT_LOANDAILY_innerSource:
-			case EVENT_LOANDAILY_agentSource_committal:
-			case EVENT_LOANDAILY_agentSource_non_committal:
-			case EVENT_LOANDAILY_innerLate:
-			case EVENT_LOANDAILY_agentlate:
-			case EVENT_LOANDAILY_innerPenalty:
-			case EVENT_LOANDAILY_agentPenalty:
-			case EVENT_LOANDAILY_innerEarly:
-			case EVENT_LOANDAILY_agentEarly:
-				$this->EventFunction = "EventComputeItems::LoanDaily";
-				break;	
-			
-			case EVENT_LOAN_COST_AGENT:
-			case EVENT_LOAN_COST_INNER:
-				$this->EventFunction = "EventComputeItems::LoanCost";
-				break;	
-			
-			case EVENT_LOAN_END:
-				$this->AfterTriggerFunction = "LON_requests::EventTrigger_end";
-				$this->EventFunction = "EventComputeItems::LoanEnd";
-				break;	
-
-			
-		}
+		$EventObj = new COM_events($EventID);
+		$this->TriggerFunction = $EventObj->TriggerFunction;
+		$this->EventFunction = "EventComputeItems::" . $EventObj->EventFunction;
+		$this->AfterTriggerFunction = $EventObj->AfterTriggerFunction;		
 	}
 	
 	function RegisterEventDoc($pdo = null){
@@ -214,7 +190,7 @@ class ExecuteEvent {
 		$obj->TafsiliType = $eventRow["TafsiliType1"];
 		$obj->TafsiliType2 = $eventRow["TafsiliType2"];
 		$obj->TafsiliType3 = $eventRow["TafsiliType3"];
-		$result = EventComputeItems::SetSpecialTafsilis($this->EventID, $eventRow, $this->Sources);
+		$result = EventComputeItems::SetSpecialTafsilis($eventRow, $this->Sources);
 		$obj->TafsiliID = $result[0]["TafsiliID"];
 		$obj->TafsiliID2 = $result[1]["TafsiliID"];
 		$obj->TafsiliID3 = $result[2]["TafsiliID"];

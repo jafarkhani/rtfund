@@ -140,10 +140,10 @@ function selectEventRows(){
 	if(!isset($_REQUEST["AllHistory"]) || $_REQUEST["AllHistory"] == "false")
 		$where .= " AND er.IsActive='YES'";
 		
-	$where .= " order by CostType,CostCode,IsActive desc,ChangeDate";
+	$where .= " order by CostType,CostCode,er.IsActive desc,ChangeDate";
 	
 	$list = COM_EventRows::SelectAll($where, array($_REQUEST["EventID"]));
-	//print_r(ExceptionHandler::PopAllExceptions());
+	print_r(ExceptionHandler::PopAllExceptions());
 	//echo PdoDataAccess::GetLatestQueryString();
 	echo dataReader::getJsonData($list, count($list), $_GET['callback']);
 	die();

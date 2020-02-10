@@ -60,7 +60,12 @@ function Event() {
 				xtype: "textfield",
 				name: "EventType2",
 				itemId: "EventType2",
-				fieldLabel: "نوع محاسبه"
+				fieldLabel: "EventType2"
+			},{
+				xtype: "textfield",
+				name: "EventType3",
+				itemId: "EventType3",
+				fieldLabel: "EventType3"
 			}, {
 				xtype: "hidden",
 				itemId: "ParentID",

@@ -494,9 +494,11 @@ function SavePart(){
 	if(!$firstPart)
 	{
 		$temp = PdoDataAccess::runquery("select DocID,LocalNo,CycleDesc,StatusID 
-			from ACC_DocItems join ACC_docs using(DocID)
+			from ACC_DocItems 
+			join ACC_docs using(DocID)
+			join COM_events using(EventID)
 			join ACC_cycles using(CycleID)
-			where EventID=" . EVENT_LOAN_CHANGE ." AND SourceID1=? AND SourceID2=?",
+			where EventType=" . EVENTTYPE_LoanChange ." AND SourceID1=? AND SourceID2=?",
 			array($obj->RequestID, $obj->PartID));
 
 		if(count($temp) > 0 && $temp[0]["StatusID"] != ACC_STEPID_RAW)

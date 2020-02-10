@@ -184,8 +184,8 @@ function SelectChequeStatuses(){
 
 function SaveChequeStatus(){
 	
-	PdoDataAccess::runquery("insert into ACC_ChequeStatuses(SrcID,DstID) values(?,?)", 
-		array($_POST["SrcID"],$_POST["DstID"]));
+	PdoDataAccess::runquery("insert into ACC_ChequeStatuses(SrcID,DstID,EventID) values(?,?,?)", 
+		array((int)$_POST["SrcID"], (int)$_POST["DstID"], (int)$_POST["EventID"]));
 	echo Response::createObjectiveResponse(true, "");
 	die();
 }
@@ -253,8 +253,7 @@ function SaveIncomeCheque(){
 			
 			//--------------- execute event ----------------
 			$ReqObj = new LON_requests($RequestID);
-			$EventID = $ReqObj->ReqPersonID*1 > 0 ? EVENT_LOANCHEQUE_agentSource : 
-													EVENT_LOANCHEQUE_innerSource;
+			$EventID = LON_requests::GetEventID($RequestID, "IncomeCheque");
 
 			$eventobj = new ExecuteEvent($EventID);
 			$eventobj->Sources = array($RequestID, $obj->IncomeChequeID);
@@ -349,47 +348,8 @@ function GetBackPays(){
 		$PayObj = new LON_BackPays($dt[0]["BackPayID"]);
 		$partObj = LON_ReqParts::GetValidPartObj($PayObj->RequestID);
 		$ReqObj = new LON_requests($PayObj->RequestID);
-		$IsInner = $ReqObj->ReqPersonID*1 > 0 ? false : true;
-
-		switch($Status)
-		{
-			case INCOMECHEQUE_VOSUL :
-				if(!$IsInner)
-				{
-					if($ReqObj->FundGuarantee == "YES")
-						$EventID = EVENT_LOANBACKPAY_agentSource_committal_cheque;
-					else
-						$EventID = EVENT_LOANBACKPAY_agentSource_non_committal_cheque;
-				}
-				else
-					$EventID = EVENT_LOANBACKPAY_innerSource_cheque;
-				break;
-
-			case INCOMECHEQUE_SANDOGHAMANAT :
-				$EventID = $IsInner ? EVENT_CHEQUE_SANDOGHAMANAT_inner : 
-					EVENT_CHEQUE_SANDOGHAMANAT_agent;
-				break;
-			case INCOMECHEQUE_FLOW_VOSUL :
-				if($PreStatus == INCOMECHEQUE_SANDOGHAMANAT)
-					$EventID = $IsInner ? EVENT_CHEQUE_SENDTOBANKFROMAMANAT_inner : 								
-						EVENT_CHEQUE_SENDTOBANKFROMAMANAT_agent;
-				else
-					$EventID = $IsInner ? EVENT_CHEQUE_SENDTOBANK_inner : 
-						EVENT_CHEQUE_SENDTOBANK_agent;
-				break;
-			case INCOMECHEQUE_BARGASHTI :
-				$EventID = $IsInner ? EVENT_CHEQUE_BARGASHT_inner : 
-					EVENT_CHEQUE_BARGASHT_agent;
-				break;
-			case INCOMECHEQUE_BARGASHTI_HOGHUGHI:
-				$EventID = $IsInner ? EVENT_CHEQUE_BARGASHTHOGHUGHI_inner : 
-					EVENT_CHEQUE_BARGASHTHOGHUGHI_agent;
-				break;
-			case INCOMECHEQUE_BARGASHTI_MOSTARAD:
-				$EventID = $IsInner ? EVENT_CHEQUE_BARGASHTMOSTARAD_inner : 
-					EVENT_CHEQUE_BARGASHTMOSTARAD_agent;
-				break;
-		}
+		
+		$EventID = LON_requests::GetEventID($ReqObj->RequestID, "LoanBackPayCheque", $Status);
 		echo Response::createObjectiveResponse("true", $EventID."_".
 				$ReqObj->RequestID."_".$partObj->PartID."_".$PayObj->BackPayID);
 		die();
@@ -402,46 +362,13 @@ function GetBackPays(){
 	{
 		$PayObj = new LON_BackPays($row["BackPayID"]);
 		$ReqObj = new LON_requests($PayObj->RequestID);
-		$IsInner = $ReqObj->ReqPersonID*1 > 0 ? false : true;
 
-		switch($Status)
+		$EventID = LON_requests::GetEventID($ReqObj->RequestID, "LoanBackPayCheque", $Status);
+		if($EventID == 0)
 		{
-			case INCOMECHEQUE_VOSUL :
-				if(!$IsInner)
-				{
-					if($ReqObj->FundGuarantee == "YES")
-						$EventID = EVENT_LOANBACKPAY_agentSource_committal_cheque;
-					else
-						$EventID = EVENT_LOANBACKPAY_agentSource_non_committal_cheque;
-				}
-				else
-					$EventID = EVENT_LOANBACKPAY_innerSource_cheque;
-				break;
-
-			case INCOMECHEQUE_SANDOGHAMANAT :
-				$EventID = $IsInner ? EVENT_CHEQUE_SANDOGHAMANAT_inner : 
-					EVENT_CHEQUE_SANDOGHAMANAT_agent;
-				break;
-			case INCOMECHEQUE_FLOW_VOSUL :
-				if($PreStatus == INCOMECHEQUE_SANDOGHAMANAT)
-					$EventID = $IsInner ? EVENT_CHEQUE_SENDTOBANKFROMAMANAT_inner : 								
-						EVENT_CHEQUE_SENDTOBANKFROMAMANAT_agent;
-				else
-					$EventID = $IsInner ? EVENT_CHEQUE_SENDTOBANK_inner : 
-						EVENT_CHEQUE_SENDTOBANK_agent;
-				break;
-			case INCOMECHEQUE_BARGASHTI :
-				$EventID = $IsInner ? EVENT_CHEQUE_BARGASHT_inner : 
-					EVENT_CHEQUE_BARGASHT_agent;
-				break;
-			case INCOMECHEQUE_BARGASHTI_HOGHUGHI:
-				$EventID = $IsInner ? EVENT_CHEQUE_BARGASHTHOGHUGHI_inner : 
-					EVENT_CHEQUE_BARGASHTHOGHUGHI_agent;
-				break;
-			case INCOMECHEQUE_BARGASHTI_MOSTARAD:
-				$EventID = $IsInner ? EVENT_CHEQUE_BARGASHTMOSTARAD_inner : 
-					EVENT_CHEQUE_BARGASHTMOSTARAD_agent;
-				break;
+			$pdo->rollBack();
+			Response::createObjectiveResponse(false, "رویداد مرتبط یافت نشد");
+			die();
 		}
 		$eventobj = new ExecuteEvent($EventID);
 		$eventobj->Sources = array($ReqObj->RequestID, $partObj->PartID, $PayObj->BackPayID);
@@ -505,25 +432,8 @@ function ChangeChequeStatus(){
 				}	
 			}
 
-			if($Status == INCOMECHEQUE_VOSUL)
-			{
-				if(!$IsInner)
-				{
-					if($ReqObj->FundGuarantee == "YES")
-						$EventID = EVENT_LOANBACKPAY_agentSource_committal_cheque;
-					else
-						$EventID = EVENT_LOANBACKPAY_agentSource_non_committal_cheque;
-				}
-				else
-					$EventID = EVENT_LOANBACKPAY_innerSource_cheque;
-			}
-			else
-			{
-				$dt = PdoDataAccess::runquery("select * from BaseInfo where TypeID=4 AND InfoID=?", array($Status));
-				$StatusInfo = $dt[0];
-				$EventID = $IsInner ? $StatusInfo["param1"] : $StatusInfo["param2"];
-			}
-			if($EventID != "")
+			$EventID = LON_requests::GetEventID($ReqObj->RequestID, "IncomeCheque", $Status);
+			if($EventID != 0)
 			{
 				$eventobj = new ExecuteEvent($EventID);
 				$eventobj->Sources = array($ReqObj->RequestID, $partObj->PartID, $PayObj->BackPayID);
@@ -703,16 +613,19 @@ function SaveLoanCheque(){
 		}
 		
 		//--------------- execute event ----------------
-		$EventID = $ReqObj->ReqPersonID*1 > 0 ? EVENT_LOANCHEQUE_agentSource : EVENT_LOANCHEQUE_innerSource;
-		$eventobj = new ExecuteEvent($EventID);
-		$eventobj->Sources = array($ReqObj->RequestID, $obj->IncomeChequeID);
-		$eventobj->AllRowsAmount = $obj->ChequeAmount;
-		$result = $eventobj->RegisterEventDoc($pdo);
-		if(!$result)
+		$EventID = LON_requests::GetEventID($ReqObj->RequestID, INCOMECHEQUE_NOTVOSUL);
+		if($EventID != 0)
 		{
-			$pdo->rollBack();
-			Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
-			die();
+			$eventobj = new ExecuteEvent($EventID);
+			$eventobj->Sources = array($ReqObj->RequestID, $obj->IncomeChequeID);
+			$eventobj->AllRowsAmount = $obj->ChequeAmount;
+			$result = $eventobj->RegisterEventDoc($pdo);
+			if(!$result)
+			{
+				$pdo->rollBack();
+				Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+				die();
+			}
 		}
 		//--------------------------------------------
 		ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, $obj->ChequeStatus, 
@@ -819,7 +732,8 @@ function selectOutcomeCheques(){
 		left join (
 			select SourceID2,LocalNo VosulLocalNo
 			from ACC_docs join ACC_DocItems using(DocID)
-			where EventID=".EVENT_LOANCHEQUE_payed." 
+			join COM_events e using(EventID)
+			where EventType='".EVENTTYPE_OutcomeCheque."' AND EventType2=".INCOMECHEQUE_VOSUL."
 			group by SourceID1,SourceID2
 		)t on(t.SourceID2=c.DocChequeID)
 		where CycleID=:c ";

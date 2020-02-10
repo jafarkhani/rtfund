@@ -14,6 +14,11 @@ RequestInfo.prototype = {
 	RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
 
 	RequestID : <?= $RequestID ?>,
+	
+	EndEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanEnd) ?>,
+	ContractEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanContract) ?>,
+	
+	
 	RequestRecord : null,
 	User : '<?= $User ?>',
 	ReadOnly : <?= $ReadOnly ? "true" : "false" ?>,
@@ -986,15 +991,7 @@ RequestInfo.prototype.BuildForms = function(){
 			hidden : true,
 			iconCls : "account",
 			itemId : "cmp_accevents",
-			menu :[/*{
-				text : 'اجرای رویداد تخصیص وام به مشتری',
-				iconCls : "send",
-				handler : function(){ 
-					framework.ExecuteEvent(<?= EVENT_LOAN_ALLOCATE?>, 
-						new Array(RequestInfoObject.RequestRecord.data.RequestID,
-									RequestInfoObject.RequestRecord.data.PartID));
-				}
-			},*/{
+			menu :[{
 				text : 'اجرای رویداد عقد قرارداد با مشتری',
 				iconCls : "send",
 				handler : function(){ RequestInfoObject.ExecuteEvent(); }
@@ -1663,7 +1660,7 @@ RequestInfo.prototype.SetStatus = function(){
 
 RequestInfo.prototype.EndRequest = function(){
 	
-	framework.ExecuteEvent(<?= EVENT_LOAN_END ?>, 
+	framework.ExecuteEvent(RequestInfoObject.EndEventID, 
 		new Array(RequestInfoObject.RequestRecord.data.RequestID,
 					RequestInfoObject.RequestRecord.data.PartID), "RequestInfoObject.afterEndLoan");
 	
@@ -2642,15 +2639,7 @@ RequestInfo.prototype.ShowCheckList = function(){
 RequestInfo.prototype.ExecuteEvent = function(){
 	
 	var eventID = "";
-	if(this.RequestRecord.data.ReqPersonID*1 == 0)
-		eventID = "<?= EVENT_LOANCONTRACT_innerSource ?>";
-	else
-	{
-		if(this.RequestRecord.data.FundGuarantee == "YES")
-			eventID = "<?= EVENT_LOANCONTRACT_agentSource_committal ?>";
-		else
-			eventID = "<?= EVENT_LOANCONTRACT_agentSource_non_committal ?>";
-	}
+	eventID = this.ContractEventID;
 
 	framework.ExecuteEvent(eventID, new Array(this.RequestRecord.data.RequestID,this.RequestRecord.data.PartID));
 }

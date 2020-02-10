@@ -409,7 +409,7 @@ function selectDocItems() {
 	//$temp = $temp->fetchAll();
 	
 	$temp = ACC_DocItems::GetAll($where, $whereParam);
-	//print_r(ExceptionHandler::PopAllExceptions());	
+	print_r(ExceptionHandler::PopAllExceptions());	
 	$no = $temp->rowCount();
 	$temp = PdoDataAccess::fetchAll($temp, $_REQUEST["start"], $_REQUEST["limit"]);
 
@@ -545,6 +545,7 @@ function selectCheques() {
 	$where .= dataReader::makeOrder();
 
 	$temp = ACC_DocCheques::GetAll($where, $whereParam);
+	print_r(ExceptionHandler::PopAllExceptions());
 	$no = count($temp);
 	echo dataReader::getJsonData($temp, $no, $_GET["callback"]);
 	die();

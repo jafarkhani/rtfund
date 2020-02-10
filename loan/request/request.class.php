@@ -1279,33 +1279,37 @@ class LON_requests extends PdoDataAccess{
 		}
 	}
 	
-	static function GetEventID($RequestID, $EventType){
+	static function GetEventID($RequestID, $EventType, $EventType3 = ""){
 		
 		$ReqObj = new LON_requests($RequestID);
 		//----------------------------------------------------
-		$where .= " AND EventType='".$EventType."'";
+		$where = " AND EventType='".$EventType."'";
 		//----------------------------------------------------
 		if($ReqObj->ReqPersonID*1 == 0)
 			$where .= " AND EventType2='inner'";
 
 		if($ReqObj->_LoanGroupID*1 == 1)
 		{
-			$where .= " AND EventType2='hemayati'";
+			$where .= " AND ( EventType2='hemayati' OR EventType2='agent')";
 		}
-
-		if($ReqObj->ReqPersonID*1 == 1003)
+		else if($ReqObj->ReqPersonID*1 == 1003)
 		{
-			$where .= " AND EventType2='noavari'";
+			$where .= " AND ( EventType2='agent' OR EventType2='noavari')";
 		}
-
-		if($ReqObj->FundGuarantee == "YES")
-			$where .= " AND ( EventType2='commit' OR EventType2='agent')";
-		else
-			$where .= " AND ( EventType2='noncommit' OR EventType2='agent')";
+		else{
+			if($ReqObj->FundGuarantee == "YES")
+				$where .= " AND ( EventType2='commit' OR EventType2='agent')";
+			else
+				$where .= " AND ( EventType2='noncommit' OR EventType2='agent')";
+		}
+		if($EventType3 != "")
+			$where .= " AND EventType3='".$EventType3."'";
 		//----------------------------------------------------
-		$dt = PdoDataAccess::runquery("select * COM_events where 1=1 " . $where);
+		$dt = PdoDataAccess::runquery("select * from COM_events where 1=1 " . $where);
 		if(count($dt) == 0)
+		{
 			return 0;
+		}
 		
 		return $dt[0]["EventID"];
 	}
