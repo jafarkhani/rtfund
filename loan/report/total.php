@@ -507,6 +507,7 @@ function ListData($IsDashboard = false){
 		echo "</td></tr></table>";
 		
 	}
+	
 	if($IsDashboard)
 	{
 		echo "<div style=direction:rtl;padding-right:10px>";

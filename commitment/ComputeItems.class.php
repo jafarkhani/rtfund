@@ -59,25 +59,15 @@ class EventComputeItems {
 				if($ItemID == 15)
 					return $result["FundWage"];
 			
-			case 16 : //مبلغ تنفس
-			case 17 : //سهم اصل از تنفس
-			case 18 : //سهم کارمزد از تنفس
-				$result = LON_requests::GetDelayAmounts($ReqObj->RequestID, $PartObj);
-				$wage = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj);
-				if($ItemID == 16)
-					return $result["CustomerDelay"];
-				if($ItemID == 17)
-				{
-					return $result["CustomerDelay"];
-					/*return round($result["CustomerDelay"]*$PartObj->PartAmount/
-						($wage["CustomerWage"]*1 + $PartObj->PartAmount*1));*/
-				}
-				if($ItemID == 18)
-				{
-					return 0;
-					/*return $result["CustomerDelay"]*1 - round($result["CustomerDelay"]*$PartObj->PartAmount/
-						($wage["CustomerWage"]*1 + $PartObj->PartAmount*1));*/
-				}
+			case 20: //کارمزد ثابت صندوق
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, $PayObj->_PurePayedAmount);
+				if($PartObj->WageReturn != "INSTALLMENT")
+					return $result["FundWage"];
+				
+			case 21: //کارمزد ثابت سرمایه گذار
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, $PayObj->_PurePayedAmount);
+				if($PartObj->AgentReturn != "INSTALLMENT")
+					return $result["AgentWage"];
 				
 			case 6 : // مبلغ تضمین
 				$dt =  array();
@@ -285,24 +275,32 @@ class EventComputeItems {
 				if($PartObj->CustomerWage == 0)
 					return 0;
 				$late = $todayArr["remain_late"] - $yesterdayArr["remain_late"];
-				 $fundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$late);
+				if($late < 0)
+					return 0;
+				$fundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$late);
 				return $fundLate;
 			case 83 : 
 				if($PartObj->CustomerWage == 0)
 					return 0;
 				$late = $todayArr["remain_late"] - $yesterdayArr["remain_late"];
-				 $fundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$late);
+				if($late < 0)
+					return 0;
+				$fundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$late);
 				return $late - $fundLate;
 			case 84 : 
 				if($PartObj->ForfeitPercent == 0)
 					return 0;
 				$penalty = $todayArr["remain_pnlt"] - $yesterdayArr["remain_pnlt"];
+				if($penalty < 0)
+					return 0;
 				$fundPenalty = round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$penalty);
 				return $fundPenalty;
 			case 85 : 
 				if($PartObj->ForfeitPercent == 0)
 					return 0;
 				$penalty = $todayArr["remain_pnlt"] - $yesterdayArr["remain_pnlt"];
+				if($penalty < 0)
+					return 0;
 				$fundPenalty = round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$penalty);
 				return $penalty - $fundPenalty;
 			case 86 : 

@@ -427,10 +427,6 @@ function GetRequestParts(){
 		$dt[$i]["TotalCustomerWage"] = $result["CustomerWage"];
 		$dt[$i]["TotalAgentWage"] = $result["AgentWage"];
 		$dt[$i]["TotalFundWage"] = $result["FundWage"];
-		$FundYears = $result["FundWageYears"];
-		$index = 1;
-		foreach($FundYears as $row)
-			$dt[$i]["WageYear" . ($index++)] = $row;
 
 		$res = LON_requests::GetDelayAmounts($PartObj->RequestID, $PartObj);
 		$dt[$i]["FundDelay"] = $res["FundDelay"];

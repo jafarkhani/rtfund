@@ -53,7 +53,7 @@ function Event() {
 				fieldLabel: "عنوان"
 			}, {
 				xtype: "textfield",
-				name: "EventType",
+				name: "EventType", 
 				itemId: "EventType",
 				fieldLabel: "نوع رویداد"
 			}, {

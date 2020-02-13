@@ -78,9 +78,6 @@ function MakeWhere(&$where, &$whereParam){
 
 function GetData(){
 	
-	ini_set("memory_limit", "1000M");
-	ini_set("max_execution_time", "600");
-	
 	$where = "";
 	$whereParam = array();
 	$userFields = ReportGenerator::UserDefinedFields();
@@ -89,8 +86,8 @@ function GetData(){
 	$query = "select py.*,r.*,l.*,p.*,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
-				if(count(di.ItemID) > 0, 'YES', 'NO') IsDocRegistered,
-				dh.LocalNo,
+				if(pd.DocID is not null, 'YES', 'NO') IsDocRegistered,
+				pd.LocalNo,
 				BranchName".
 				($userFields != "" ? "," . $userFields : "")."
 				
@@ -101,14 +98,13 @@ function GetData(){
 			join BSC_branches using(BranchID)
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
-			left join ACC_DocItems di on(di.SourceType=".DOCTYPE_LOAN_PAYMENT." AND di.SourceID1=py.RequestID AND di.SourceID3=py.PayID)
-			left join ACC_docs dh on(di.DocID=dh.DocID)
+			left join LON_PayDocs pd on(py.PayID=pd.PayID)
+
 			where 1=1 " . $where;
 	
 	$group = ReportGenerator::GetSelectedColumnsStr();
 	$query .= $group == "" ? " group by py.PayID" : " group by " . $group;
 	$query .= $group == "" ? " order by py.PayDate" : " order by " . $group;		
-	
 	return PdoDataAccess::runquery($query, $whereParam);
 	
 }	

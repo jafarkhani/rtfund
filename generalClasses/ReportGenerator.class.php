@@ -14,8 +14,8 @@
 				
 class ReportGenerator {
 
-	const TempFolderAddress = "/tmp/temp.xls";
-	//const TempFolderAddress = "d:/webserver/temp/temp.xls";
+	public $TempFolderAddress = "/tmp/temp.xls";
+	//public $TempFolderAddress = "/home/framewor/public_html/temp/temp.xls";
 	
 	public $fontFamily = "nazanin";
 	public $fontSize = "16px";
@@ -150,6 +150,9 @@ class ReportGenerator {
 
 	public function generateReport() {
 		
+		ini_set('max_execution_time', 30000);
+		ini_set('memory_limit','1000M');
+
 		if ($this->mysql_resource instanceof ADORecordSet)
 			$this->mysql_resource = $this->mysql_resource->GetRows();
 
@@ -210,12 +213,13 @@ class ReportGenerator {
 
 	function ExcelGeneration() {
 		
+		ini_set("display_errors", "On");
 		$worksheet = "";
 		require_once 'excel.php';
 		require_once "php_writeexcel-0.3.0/class.writeexcel_workbook.inc.php";
 		require_once "php_writeexcel-0.3.0/class.writeexcel_worksheet.inc.php";
 
-		$workbook = new writeexcel_workbook(self::TempFolderAddress);
+		$workbook = new writeexcel_workbook($this->TempFolderAddress);
 		$worksheet = & $workbook->addworksheet("Sheet1");
 		$heading = & $workbook->addformat(array('align' => 'center', 'bold' => 1, 'bg_color' => 'blue', 'color' => 'white'));
 
@@ -282,8 +286,8 @@ class ReportGenerator {
 
 		header("Content-type: application/ms-excel");
 		header("Content-disposition: inline; filename=excel.xls");
-		echo file_get_contents(self::TempFolderAddress);
-		unlink(self::TempFolderAddress);
+		echo file_get_contents($this->TempFolderAddress);
+		unlink($this->TempFolderAddress);
 		die();
 	}
 

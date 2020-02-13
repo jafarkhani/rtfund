@@ -45,7 +45,7 @@ foreach($days as $dayRow)
 	select * 
 	from LON_requests  r 
 	join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-	where ComputeMode='NEW' AND StatusID=" . LON_REQ_STATUS_CONFIRM ; 
+	where ComputeMode='NEW' AND r.RequestID>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM ; 
 	if(!empty($_GET["RequestID"]))
 	{
 		$query .= " AND  r.RequestID=:r";
@@ -53,16 +53,7 @@ foreach($days as $dayRow)
 	}
 	$reqs = PdoDataAccess::runquery_fetchMode($query,$params);
 	
-	$objArr = array(
-		EVENT_LOANDAILY_innerSource => null, 
-		EVENT_LOANDAILY_agentSource_committal => null,
-		EVENT_LOANDAILY_agentSource_non_committal => null,
-
-		EVENT_LOANDAILY_innerLate => null, 
-		EVENT_LOANDAILY_agentlate => null, 
-		EVENT_LOANDAILY_innerPenalty => null, 
-		EVENT_LOANDAILY_agentPenalty => null
-	);
+	$objArr = array();
 
 	$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
@@ -74,29 +65,11 @@ foreach($days as $dayRow)
 	while($row = $reqs->fetch())
 	{
 		$ComputeDate = $dayRow["gdate"];
-		$eventID = "";
-		$LateEvent = "";
-		$PenaltyEvent = "";
-
-		if($row["ReqPersonID"]*1 == 0)
-		{
-			$eventID = EVENT_LOANDAILY_innerSource;
-			$LateEvent = EVENT_LOANDAILY_innerLate;
-			$PenaltyEvent = EVENT_LOANDAILY_innerPenalty;
-			$EarlyEvent = EVENT_LOANDAILY_innerEarly;
-		}
-		else
-		{
-			if($row["FundGuarantee"] == "YES")
-				$eventID = EVENT_LOANDAILY_agentSource_committal;
-			else
-				$eventID = EVENT_LOANDAILY_agentSource_non_committal;
-
-			$LateEvent = EVENT_LOANDAILY_agentlate;
-			$PenaltyEvent = EVENT_LOANDAILY_agentPenalty;
-			$EarlyEvent = EVENT_LOANDAILY_agentEarly;
-		}
-	
+		
+		$eventID = 0;//LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyIncome);
+		$LateEvent = 0;//LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyLate);
+		$PenaltyEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyPenalty);
+		
 		$obj = new ExecuteEvent($eventID);
 		$obj->DocObj = isset($objArr[$eventID]) ? $objArr[$eventID] : null;
 		$obj->DocDate = $ComputeDate;
@@ -131,20 +104,6 @@ foreach($days as $dayRow)
 		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
 		$result = $obj->RegisterEventDoc($pdo);
 		$objArr[$PenaltyEvent] = $obj->DocObj;
-		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
-		{
-			echo "وام " .  $row["RequestID"] . " : <br>";
-			echo ExceptionHandler::GetExceptionsToString("<br>");
-			print_r(ExceptionHandler::PopAllExceptions());
-			echo "\n--------------------------------------------\n";
-		}
-		
-		$obj = new ExecuteEvent($EarlyEvent);
-		$obj->DocObj = isset($objArr[$EarlyEvent]) ? $objArr[$EarlyEvent] : null;
-		$obj->DocDate = $ComputeDate;
-		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
-		$result = $obj->RegisterEventDoc($pdo);
-		$objArr[$EarlyEvent] = $obj->DocObj;
 		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
 		{
 			echo "وام " .  $row["RequestID"] . " : <br>";

@@ -313,8 +313,6 @@ function ComputeWagesAndDelays($PartObj, $PayAmount, $StartDate, $PayDate){
 		"TotalFundWage" => round($TotalWage*$FundFactor),
 		"TotalAgentWage" => round($TotalWage*$AgentFactor),
 		"TotalCustomerWage" => round($TotalWage*$CustomerFactor),
-		"FundWageYears" => $FundYears,
-		"AgentWageYears" => $AgentYears,
 		
 		"TotalCustomerDelay" => $CustomerDelay,
 		"TotalFundDelay" => $FundDelay,

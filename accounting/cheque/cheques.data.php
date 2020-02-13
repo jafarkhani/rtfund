@@ -432,7 +432,19 @@ function ChangeChequeStatus(){
 				}	
 			}
 
-			$EventID = LON_requests::GetEventID($ReqObj->RequestID, "IncomeCheque", $Status);
+			if($Status == INCOMECHEQUE_VOSUL)
+			{
+				$EventID = LON_requests::GetEventID($ReqObj->RequestID, EVENTTYPE_LoanBackPayCheque, $Status);
+				if($EventID == 0)
+				{
+					$pdo->rollBack();
+					Response::createObjectiveResponse(false, "رویداد وصول چک یافت نشد");
+					die();
+				}
+			}
+			else
+				$EventID = LON_requests::GetEventID($ReqObj->RequestID, EVENTTYPE_IncomeCheque, $Status);
+				
 			if($EventID != 0)
 			{
 				$eventobj = new ExecuteEvent($EventID);

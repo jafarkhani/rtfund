@@ -13,6 +13,7 @@ class COM_events extends PdoDataAccess {
     public $EventTitle;
 	public $EventType;
 	public $EventType2;
+	public $EventType3;
     public $IsActive;
 	public $ordering;
 	public $EventFunction;
@@ -128,7 +129,9 @@ class COM_EventRows extends PdoDataAccess {
 
     static function SelectAll($where = '', $param = array()) {
  
-        $query = " select er.*,e.*,
+        $query = " select er.*,
+			
+					e.EventType,e.EventType2,e.EventType3,
 					
 					cc.TafsiliType1,
 					cc.TafsiliType2,

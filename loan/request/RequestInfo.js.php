@@ -48,11 +48,11 @@ function RequestInfo(){
 	
 		RequestInfoObject.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
 		RequestInfoObject.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
-		if(record.data.ComputeMode == "BANK")
+		/*if(record.data.ComputeMode == "BANK")
 		{
 			RequestInfoObject.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "block";
 			RequestInfoObject.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "block";
-		}
+		}*/
 	
 	});
 	this.grid.getView().getRowClass = function(record, index)
@@ -1253,8 +1253,8 @@ RequestInfo.prototype.CustomizeForm = function(record){
 			//this.PartsPanel.down("[name=PayCompute]").getEl().dom.style.display = "none";
 			//this.PartsPanel.down("[name=MaxFundWage]").getEl().dom.style.display = "none";
 			this.PartsPanel.down("[name=AgentReturn]").getEl().dom.style.display = "none";
-			this.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
-			this.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
+			//this.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
+			//this.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
 			this.get("TR_FundWage").style.display = "none";
 			this.get("TR_AgentWage").style.display = "none";
 			this.get("div_yearly").style.display = "none";
@@ -2006,7 +2006,7 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 						name : "AgentReturn",
 						inputValue : "CUSTOMER"
 					}]
-				},{
+				}/*,{
 					xtype : "fieldset",
 					itemId : "fs_DelayCompute",
 					title : "نحوه دریافت تنفس صندوق",
@@ -2062,7 +2062,7 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 						name : "AgentDelayReturn",
 						inputValue : "NEXTYEARCHEQUE"
 					}]
-				}/*,{
+				}*//*,{
 					xtype : "fieldset",
 					colspan :2,
 					width : 450,
@@ -2121,8 +2121,8 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 			this.PartWin.down("[name=PartDate]").hide();
 			this.PartWin.down("[itemId=fs_WageCompute]").hide();
 			this.PartWin.down("[itemId=fs_AgentWageCompute]").hide();
-			this.PartWin.down("[itemId=fs_DelayCompute]").hide();
-			this.PartWin.down("[itemId=fs_AgentDelayCompute]").hide();
+			//this.PartWin.down("[itemId=fs_DelayCompute]").hide();
+			//this.PartWin.down("[itemId=fs_AgentDelayCompute]").hide();
 			//this.PartWin.down("[itemId=fs_PayCompute]").hide();
 			//this.PartWin.down("[itemId=fs_MaxFundWage]").hide();
 			this.PartWin.down("[name=PartAmount]").colspan = 2;
@@ -2156,13 +2156,6 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 }
 
 RequestInfo.prototype.SavePart = function(){
-
-	/*if(this.PartWin.down('[name=MaxFundWage]').getValue()*1 > 0 && 
-		this.PartWin.down('[name=FundWage]').getValue()*1 > 0 )
-	{
-		Ext.MessageBox.alert("Error","در صورتی که سقف کارمزد صندوق را تعیین می کنید باید کارمزد صندوق را صفر نمایید");
-		return;
-	}*/
 
 	mask = new Ext.LoadMask(this.PartWin, {msg:'در حال ذخیره سازی ...'});
 	mask.show();

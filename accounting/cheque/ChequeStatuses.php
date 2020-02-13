@@ -24,10 +24,6 @@ $col=$dgh->addColumn("وضعیت مقصد", "DstID");
 $col->editor = ColumnEditor::ComboBox($temp, "InfoID", "InfoDesc");
 $col->width = 200; 
 
-$col=$dgh->addColumn("شماره رویداد مربوطه", "EventID");
-$col->editor = ColumnEditor::TextField(true);
-$col->width = 200; 
-
 
 if($accessObj->RemoveFlag)
 {

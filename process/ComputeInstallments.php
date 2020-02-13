@@ -9,15 +9,15 @@ ob_start();
 
 $dt = PdoDataAccess::runquery("
 	
-select LoanRequestID from  ACC_IncomeCheques i join LON_requests r on(i.LoanRequestID=r.RequestID) 
+select r.RequestID from LON_requests r 
 join LON_ReqParts p on(r.RequestID=p.RequestID and IsHistory='NO')
-group by LoanRequestID limit 40,10"); 
+where ComputeMode='PERCENT'"); 
 flush();
 ob_flush();
 $i=0;
 foreach($dt as $row)
 {
-	$RequestID = $row["LoanRequestID"];
+	$RequestID = $row["RequestID"];
 	LON_installments::ComputeInstallments($RequestID);
 	echo $RequestID . " : " ;
 	print_r(ExceptionHandler::PopAllExceptions());

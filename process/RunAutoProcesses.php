@@ -33,7 +33,7 @@ require_once '../commitment/ExecuteEvent.class.php';
 
 $query = " select * from LON_requests  r
 join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-where ComputeMode='NEW' AND StatusID=" . LON_REQ_STATUS_CONFIRM;
+where ComputeMode='NEW' AND r.RequestID>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM;
 
 $reqs = PdoDataAccess::runquery_fetchMode($query);
 
@@ -55,7 +55,7 @@ while($row = $reqs->fetch())
 	$eventID = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyIncome);
 	$LateEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyLate);
 	$PenaltyEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyPenalty);
-	
+			
 	$obj = new ExecuteEvent($eventID);
 	$obj->DocObj = isset($objArr[$eventID]) ? $objArr[$eventID] : null;
 	$obj->DocDate = $ComputeDate;
@@ -98,6 +98,7 @@ while($row = $reqs->fetch())
 		print_r(ExceptionHandler::PopAllExceptions());
 		echo "\n--------------------------------------------\n";
 	}
+
 
 }
 $pdo->commit();	
