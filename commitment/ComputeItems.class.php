@@ -597,7 +597,7 @@ class EventComputeItems {
 						break;
 					
 					case ACC_COST_PARAM_ACCOUNT:
-						if($EventRow["EventType"] != "OutcomeCheque" && $EventRow["EventType2"] != INCOMECHEQUE_VOSUL)
+						if($EventRow["EventType"] == "OutcomeCheque")
 						{
 							$ChequObj = new ACC_DocCheques($params[1]);
 							$obj->{ "param" . $i } = $ChequObj->_AccountNo;
@@ -605,7 +605,7 @@ class EventComputeItems {
 						break;
 						
 					case ACC_COST_PARAM_CHEQUE_NO:
-						if($EventRow["EventType"] != "OutcomeCheque" && $EventRow["EventType2"] != INCOMECHEQUE_VOSUL)
+						if($EventRow["EventType"] == "OutcomeCheque")
 						{
 							$ChequObj = new ACC_DocCheques($params[1]);
 							$obj->{ "param" . $i } = $ChequObj->CheckNo;
