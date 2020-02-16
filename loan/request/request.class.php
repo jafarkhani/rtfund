@@ -32,6 +32,7 @@ class LON_requests extends PdoDataAccess{
 	public $RuleNo;
 	public $FundRules;
 	public $DomainID;
+	public $ContractType;
 
 	/* New Add Fields */
 	public $LetterID;
@@ -49,6 +50,7 @@ class LON_requests extends PdoDataAccess{
 	public $_ReqPersonFullname;
 	public $_BranchName;
 	public $_SubAgentDesc;
+	public $_LoanGroupID;
 	
 	function __construct($RequestID = "") {
 		
@@ -66,11 +68,11 @@ class LON_requests extends PdoDataAccess{
 			PdoDataAccess::FillObject ($this, "
 				select r.* , concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) _LoanPersonFullname, LoanDesc _LoanDesc,
 						concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) _ReqPersonFullname, b.BranchName _BranchName,
-						SubDesc as _SubAgentDesc
+						SubDesc as _SubAgentDesc,l.GroupID _LoanGroupID
 						
 					from LON_requests r 
 					left join BSC_persons p1 on(p1.PersonID=LoanPersonID)
-					left join LON_loans using(LoanID)
+					left join LON_loans l using(LoanID)
 					left join BSC_persons p2 on(p2.PersonID=ReqPersonID)
 					left join BSC_branches b using(BranchID)
 					left join BSC_SubAgents sa on(SubID=SubAgentID)
@@ -459,7 +461,11 @@ class LON_requests extends PdoDataAccess{
 				break;
 			
 			case "PERCENT":
-				$TotalWage = $PayAmount*$PartObj->CustomerWage/100;
+				return array(
+					"FundWage" => round($PayAmount*$PartObj->FundWage/100),
+					"AgentWage" => round($PayAmount*min($PartObj->CustomerWage,$PartObj->CustomerWage-$PartObj->FundWage)/100),
+					"CustomerWage" => round($PayAmount*$PartObj->CustomerWage/100)
+				);
 		}
 		
 		//...................................
@@ -468,61 +474,27 @@ class LON_requests extends PdoDataAccess{
 		$AgentWage = 0;
 		$FundYears = array();
 		$AgentYears = array();
-		if($PartObj->MaxFundWage*1 > 0)
+		
+		if($PartObj->FundWage <= $PartObj->CustomerWage)
 		{
-			if($PartObj->WageReturn == "INSTALLMENT")
-				$FundYears = self::YearWageCompute($PartObj, $PartObj->MaxFundWage*1, $YearMonths);
-			$FundWage = $PartObj->MaxFundWage*1;
+			if($PartObj->CustomerWage*1 != 0)
+				$FundWage = $TotalWage*$PartObj->FundWage/$PartObj->CustomerWage;
+			else
+				$FundWage = $TotalWage*$PartObj->FundWage;
 			$AgentWage = $TotalWage - $FundWage;
-		}	
+		}
 		else
 		{
-			if($PartObj->WageReturn != "AGENT")
-			{
-				if($PartObj->FundWage <= $PartObj->CustomerWage)
-				{
-					if($PartObj->CustomerWage*1 != 0)
-						$FundWage = $TotalWage*$PartObj->FundWage/$PartObj->CustomerWage;
-					else
-						$FundWage = $TotalWage*$PartObj->FundWage;
-			 		$AgentWage = $TotalWage - $FundWage;
-				}
-				else
-				{
-					$FundWage = $TotalWage + round($PayAmount*($PartObj->CustomerWage-$PartObj->FundWage)/100);
-					$AgentWage = 0;
-				}				
-			}
-			else
-			{
-				$FundWage = round($PayAmount*$PartObj->FundWage/100);
-				$AgentWage = $TotalWage;
-			}
-			/*
-			$years = self::YearWageCompute($PartObj, $TotalWage*1, $YearMonths);
-			if($PartObj->WageReturn == "INSTALLMENT" && $PartObj->FundWage <= $PartObj->CustomerWage)
-			{
-				foreach($years as $year => $amount)
-				{
-					$FundYears[$year] = round($PartObj->FundWage*$amount/$PartObj->CustomerWage);
-					$AgentYears[$year] = round($amount - $FundYears[$year]);
-				}
-			}
-			if($PartObj->WageReturn == "AGENT")
-			{
-				$FundYears[$firstYear] = round($PayAmount*$PartObj->FundWage/100);
-				$FundWage = $FundYears[$firstYear];
-			}*/
-		}	
-	
+			$FundWage = $TotalWage + round($PayAmount*($PartObj->CustomerWage-$PartObj->FundWage)/100);
+			$AgentWage = 0;
+		}				
+		
 		//...................................
 		
 		return array(
 			"FundWage" => $FundWage,
 			"AgentWage" => $AgentWage,
-			"CustomerWage" => $TotalWage,
-			"FundWageYears" => $FundYears,
-			"AgentWageYears" => $AgentYears
+			"CustomerWage" => $TotalWage
 		);
 	}
 	//-------------------------------------
@@ -975,25 +947,7 @@ class LON_requests extends PdoDataAccess{
 			return $PartObj->PartAmount*1;
 		}
 		
-		$amount = LON_payments::GetTotalTanziledPayAmount($RequestID, $PartObj);
-		
-		/*$result = self::GetDelayAmounts($RequestID, $PartObj);
-		if($PartObj->DelayReturn != "INSTALLMENT")
-			$amount -= $result["FundDelay"];
-		if($PartObj->AgentDelayReturn != "INSTALLMENT")
-			$amount -= $result["AgentDelay"];
-		
-		if($PartObj->FirstTotalWage*1 > 0)
-			$amount -= $PartObj->FirstTotalWage*1;
-		else if($PartObj->WageReturn == "CUSTOMER" || $PartObj->AgentReturn == "CUSTOMER")
-		{
-			$result = self::GetWageAmounts($RequestID, $PartObj);
-			if($PartObj->WageReturn == "CUSTOMER")
-				$amount -= $result["FundWage"];
-			if($PartObj->AgentReturn == "CUSTOMER")
-				$amount -= $result["AgentWage"];
-		}*/
-		
+		$amount = LON_payments::GetTotalTanziledPayAmount($RequestID, $PartObj);		
 		return round($amount);		
 	}
 	
@@ -1010,6 +964,16 @@ class LON_requests extends PdoDataAccess{
 		/*@var $PartObj LON_ReqParts */
 		
 		$amount = 0;
+		
+		if($PartObj->ComputeMode == "NOAVARI")
+		{
+			if($PartObj->WageReturn == "CUSTOMER")
+				$amount += $PartObj->PartAmount*$PartObj->FundWage/100;
+			if($PartObj->AgentReturn == "CUSTOMER")
+				$amount += $PartObj->PartAmount*($PartObj->CustomerWage-$PartObj->FundWage)/100;
+			
+			return $amount;
+		}
 		
 		$result = self::GetDelayAmounts($RequestID, $PartObj);
 		if($PartObj->DelayReturn != "INSTALLMENT")
@@ -1175,7 +1139,7 @@ class LON_requests extends PdoDataAccess{
 	 * @param type $computeArr
 	 * @return gdate 
 	 */
-	static function GetMinPayedInstallmentDate($RequestID, $computeArr=null){
+	static function GetMinNotPayedInstallmentDate($RequestID, $computeArr=null){
 		
 		if($computeArr == null)
 			$computeArr = LON_Computes::ComputePayments($RequestID);
@@ -1183,11 +1147,11 @@ class LON_requests extends PdoDataAccess{
 		foreach($computeArr as $row)
 			if($row["type"] == "installment")
 			{
-				if(count($row["pays"]) == 0)
-					return $row["RecordDate"];
-				
-				$remain = $row["pays"][ count($row["pays"])-1 ]["remain"]*1;
-				if($remain > 0)
+				if( $row["remain_pure"]*1 != 0 || 
+					$row["remain_wage"]*1 != 0 || 
+					$row["remain_late"]*1 != 0 || 
+					$row["remain_pnlt"]*1 != 0 )
+					
 					return $row["RecordDate"];
 			}
 		return null;
@@ -1245,6 +1209,61 @@ class LON_requests extends PdoDataAccess{
 				return $row;
 		}
 	}
+	
+	/**
+	 * طبقه پیگیری تسهیلات را برمی گرداند
+	 * @param int $RequestID
+	 */
+	static function GetRequestFollowLevel($RequestID, $computeArr = null){
+		
+		$ComputeDate = self::GetMinNotPayedInstallmentDate($RequestID, $computeArr);
+		$diff = 0;
+		if($ComputeDate != null)
+			$diff = DateModules::GDateMinusGDate(DateModules::Now(), $ComputeDate);
+		if($diff < 0)
+			$diff = 0;
+		
+		$levels = PdoDataAccess::runquery("select * from BaseInfo where TypeID=100");
+		foreach($levels as $row)
+		{
+			if($diff >= $row["param1"]*1 && $diff <= $row["param2"]*1)
+				return $row;
+		}
+	}
+	
+	static function GetEventID($RequestID, $EventType, $EventType3 = ""){
+		
+		$ReqObj = new LON_requests($RequestID);
+		//----------------------------------------------------
+		$where = " AND EventType='".$EventType."'";
+		//----------------------------------------------------
+		if($ReqObj->ReqPersonID*1 == 0)
+			$where .= " AND EventType2='inner'";
+		else if($ReqObj->ReqPersonID*1 == 1003)
+		{
+			$where .= " AND ( EventType2='agent' OR EventType2='noavari')";
+		}
+		else if($ReqObj->_LoanGroupID*1 == 1)
+		{
+			$where .= " AND ( EventType2='hemayati' OR EventType2='agent')";
+		}
+		else{
+			if($ReqObj->FundGuarantee == "YES")
+				$where .= " AND ( EventType2='commit' OR EventType2='agent')";
+			else
+				$where .= " AND ( EventType2='noncommit' OR EventType2='agent')";
+		}
+		if($EventType3 != "")
+			$where .= " AND EventType3='".$EventType3."'";
+		//----------------------------------------------------
+		$dt = PdoDataAccess::runquery("select * from COM_events where 1=1 " . $where);
+		if(count($dt) == 0)
+		{
+			return 0;
+		}
+		
+		return $dt[0]["EventID"];
+	}
 }
 
 class LON_NOAVARI_compute extends PdoDataAccess{
@@ -1288,7 +1307,13 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 				$installmentDate = DateModules::shamsi_to_miladi($installmentDate);
 				$jdiff = DateModules::GDateMinusGDate($installmentDate, $row["PayDate"]);
 
-				$wage = round(($row["PayAmount"]/$partObj->InstallmentCount)*$jdiff*$partObj->CustomerWage/36500);
+				$wagePercent = 0;
+				if($partObj->WageReturn == "INSTSALLMENT" )
+					$wagePercent += $partObj->FundWage;
+				if($partObj->AgentReturn == "INSTSALLMENT")
+					$wagePercent += $partObj->CustomerWage - $partObj->FundWage;
+				
+				$wage = round(($row["PayAmount"]/$partObj->InstallmentCount)*$jdiff*$wagePercent/36500);
 				$wages[$wageindex][] = $wage;
 				$totalWage += $wage;
 			}
@@ -1866,6 +1891,11 @@ class LON_Computes extends PdoDataAccess{
 						$diffDays = 0;
 						$EarlyAmount = 0;
 					}
+					else if($obj->ComputeMode == "NOAVARI")
+					{
+						$diffDays = 0;
+						$EarlyAmount = 0;
+					}
 					else
 					{
 						$diffDays = DateModules::GDateMinusGDate($records[$k]["RecordDate"],$PayRecord["RecordDate"]);
@@ -1917,7 +1947,7 @@ class LON_Computes extends PdoDataAccess{
 						
 					);
 
-					//$PayRecord["early"] += $EarlyAmount;
+					$PayRecord["early"] += $EarlyAmount;
 					$PayRecord["remainPayAmount"] -= $tmp;
 					$PayRecord["pure"] += $pure;
 					$PayRecord["wage"] += $wage;
@@ -2120,7 +2150,6 @@ class LON_Computes extends PdoDataAccess{
 		$returnArr = array();
 		//$extra = LON_requests::TotalSubtractsOfPayAmount($RequestID, $PartObj);
 		$pays = LON_payments::Get(" AND p.RequestID=?", array($RequestID), " order by PayDate");
-		print_r(ExceptionHandler::PopAllExceptions());
 		$pays = $pays->fetchAll();
 		$totalPure = 0;
 		$totalZ = 0;
@@ -2463,10 +2492,7 @@ class LON_installments extends PdoDataAccess{
 			//--------------- total pay months -------------
 			$paymentPeriod = $partObj->PayDuration*1;
 			//----------------------------------------------	
-			if($partObj->AgentReturn == "CUSTOMER")
-				$totalWage = 0;
-			else
-				$totalWage = LON_NOAVARI_compute::ComputeWage($partObj);
+			$totalWage = LON_NOAVARI_compute::ComputeWage($partObj);
 
 			if($pdo2 == null)
 			{
@@ -2588,7 +2614,14 @@ class LON_installments extends PdoDataAccess{
 				. "where RequestID=? AND history='NO' AND IsDelayed='NO'", array($RequestID));
 			
 			$TotalPure = LON_payments::GetTotalPureAmount($partObj->RequestID, $partObj);
-			$TotalAmount = $TotalPure + LON_requests::TotalAddedToBackPay($partObj->RequestID, $partObj, $TotalPure);
+			$result = LON_requests::GetWageAmounts($partObj->RequestID, $partObj, $TotalPure);
+			$TotalAmount = $TotalPure;
+			
+			if($partObj->WageReturn == "INSTALLMENT")
+				$TotalAmount += $result["FundWage"];
+			if($partObj->AgentReturn == "INSTALLMENT")
+				$TotalAmount += $result["AgentWage"];
+			
 			$allPay = $TotalAmount/$partObj->InstallmentCount;
 
 			if($partObj->InstallmentCount > 1)
@@ -2790,14 +2823,21 @@ class LON_payments extends OperationClass{
 	public $OldFundWage;
 	public $OldAgentWage;
 	
+	public $_PurePayedAmount;
+	
 	function __construct($PayID = "") {
 		
 		$this->DT_PayDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_RealPayedDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		
 		if($PayID != "")
-			parent::FillObject ($this, "select *
-				from LON_payments  where payID=?", array($PayID));
+			parent::FillObject ($this, "select *,
+				PayAmount - ifnull(OldFundDelayAmount,0) 
+						- ifnull(OldAgentDelayAmount,0)
+						- ifnull(OldFundWage,0)
+						- ifnull(OldAgentWage,0)as _PurePayedAmount
+				from LON_payments  
+				where payID=?", array($PayID));
 	}
 	
 	static function Get($where = '', $whereParams = array(), $order = "") {
@@ -3102,12 +3142,18 @@ class LON_follows extends OperationClass{
 	static function Get($where = '', $whereParams = array(), $pdo = null) {
 		
 		return PdoDataAccess::runquery_fetchMode("
-			select f.*,concat_ws(' ',fname,lname) RegPersonName , t.letters
+			select f.*,concat_ws(' ',p.fname,p.lname) RegPersonName , t.letters,
+				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
+				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
 			from LON_follows f
+			join LON_requests r using(RequestID)
 			join BSC_persons p on(f.RegPersonID=p.PersonID)
 			join BaseInfo bf on(bf.TypeID=98 AND bf.InfoID=f.StatusID)
-			left join ( select FollowID,group_concat(LetterID) letters from LON_FollowLetters group by FollowID )t
+			left join ( select FollowID,group_concat(LetterID) letters 
+						from LON_FollowLetters join OFC_letters l using(LetterID) group by FollowID )t
 				on(t.FollowID=f.FollowID)
+			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
+			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
 			where 1=1 " . $where , $whereParams, $pdo);
 	}	
 }

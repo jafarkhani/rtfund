@@ -70,40 +70,6 @@ process_rundaily.prototype.Run = function(){
 			"fdate=" + this.wizardPanel.down("[name=fdate]").getRawValue() + 
 			"&tdate=" +	this.wizardPanel.down("[name=tdate]").getRawValue() +
 			(RequestID*1>0 ? "&RequestID=" + RequestID : "" ));
-	return;
-	
-	mask = new Ext.LoadMask(Ext.getCmp(this.TabID),{msg:'در حال ذخیره سازی ...'});
-	mask.show();
-
-	Ext.Ajax.request({
-		url: this.address_prefix + 'process.data.php',
-		method: "POST",
-		form : this.get("mainForm"),
-		params: {
-			task: "RunDaily"			
-		},
-		success: function(response){
-			mask.hide();
-			var st = Ext.decode(response.responseText);
-
-			if(st.success)					
-			{
-				Ext.MessageBox.alert("","عملیات با موفقیت انجام شد");
-				window.open('../storage/loanDaily.html');
-			}
-			else
-			{
-				if(st.data == "")
-					Ext.MessageBox.alert("","خطا در اجرای عملیات");
-				else
-					Ext.MessageBox.alert("",st.data);
-			}
-		},
-		failure: function(){
-			mask.hide();
-			Ext.MessageBox.alert("","خطا در اجرای عملیات");
-		}
-	});
 }
 
 var process_rundailyObject = new process_rundaily();

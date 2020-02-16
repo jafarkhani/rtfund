@@ -9,6 +9,8 @@ require_once "ReportGenerator.class.php";
 require_once '../request/request.class.php'; 
 require_once '../request/request.data.php';
 
+ini_set("display_errors", "On");
+
 if(isset($_REQUEST["show"]))
 {
 	$RequestID = $_REQUEST["RequestID"];
@@ -181,7 +183,7 @@ if(isset($_REQUEST["show"]))
 						<td><b><?= $ReqObj->RequestID ?></b></td>
 					</tr>
 					<tr>
-						<td>معرفی کننده :</td>
+						<td>منبع  :</td>
 						<td><b><?= $ReqObj->_ReqPersonFullname ?></b></td>
 					</tr>
 					<tr>
@@ -218,11 +220,8 @@ if(isset($_REQUEST["show"]))
 						<td><b><?= number_format($totalPayed) ?> ریال
 							</b></td>
 					</tr>
+					
 					<? if(session::IsFramework()) {?>
-					<tr>
-						<td>مانده بدهی تا امروز : </td>
-						<td><b><?= $CurrentRemain ?></b></td>
-					</tr>
 					<tr>
 						<td>مانده جریمه تاخیر: </td>
 						<td><b><?= number_format($remains["remain_pnlt"]) ?> ریال							</b></td>
@@ -232,6 +231,10 @@ if(isset($_REQUEST["show"]))
 			</td>
 			<td style="font-family: nazanin; font-size: 18px; font-weight: bold;line-height: 23px;">
 				<table>
+					<tr>
+						<td>مانده بدهی تا امروز : </td>
+						<td><b><?= $CurrentRemain ?></b></td>
+					</tr>
 					<tr>
 						<td>مانده تا انتها : </td>
 						<td><b><?= $TotalRemain?></b></td>

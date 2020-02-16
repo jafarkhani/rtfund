@@ -24,6 +24,7 @@ $col=$dgh->addColumn("وضعیت مقصد", "DstID");
 $col->editor = ColumnEditor::ComboBox($temp, "InfoID", "InfoDesc");
 $col->width = 200; 
 
+
 if($accessObj->RemoveFlag)
 {
 	$col = $dgh->addColumn("حذف", "", "string");

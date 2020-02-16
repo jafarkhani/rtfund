@@ -42,8 +42,7 @@ $col->width = 120;
 $col->ellipsis = 40; 
 
 $col = $dg->addColumn("آیتم محاسباتی", "ComputeItemDesc");
-$col->width = 120;
-$col->ellipsis = 40; 
+$col->width = 200;
 
 $col = $dg->addColumn("توضیحات", "ChangeDesc");
 $col->width = 150;

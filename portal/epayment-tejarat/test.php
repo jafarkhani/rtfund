@@ -35,15 +35,7 @@ function RegDoc($RequestID, $amount, $PayRefNo){
 
 	$reqObj = new LON_requests($RequestID);
 	$partObj = LON_ReqParts::GetValidPartObj($RequestID);
-	if($reqObj->ReqPersonID*1 > 0)
-	{
-		if($reqObj->FundGuarantee == "YES")
-			$EventID = EVENT_LOANBACKPAY_agentSource_committal_non_cheque;
-		else
-			$EventID = EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque;
-	}
-	else
-		$EventID = EVENT_LOANBACKPAY_innerSource_non_cheque;
+	$EventID = LON_requests::GetEventID($RequestID, EVENTTYPE_LoanBackPay);
 
 	$_POST["TafsiliID1_168"] = 4025; //حساب جاری
 	$_POST["TafsiliID2_168"] = 1947; //تجارت کوتاه مدت

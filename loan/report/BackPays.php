@@ -12,7 +12,7 @@ function ReqPersonRender($row,$value){
 $page_rpg = new ReportGenerator("mainForm","LoanReport_BackaysObj");
 $page_rpg->addColumn("شماره وام", "RequestID");
 $page_rpg->addColumn("نوع وام", "LoanDesc");
-$page_rpg->addColumn("معرفی کننده", "ReqFullname", "ReqPersonRender");
+$page_rpg->addColumn("منبع", "ReqFullname", "ReqPersonRender");
 $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
 $col->type = "date";
 $page_rpg->addColumn("مبلغ درخواست", "ReqAmount");
@@ -209,7 +209,7 @@ function ListDate($IsDashboard = false){
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RRequestID");
 	
-	$col = $rpg->addColumn("معرفی کننده", "ReqFullname");
+	$col = $rpg->addColumn("منبع", "ReqFullname");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RRequestID");
 	
@@ -370,7 +370,7 @@ function LoanReport_Backays()
 				},
 				fields : ['PersonID','fullname']
 			}),
-			fieldLabel : "معرفی کننده",
+			fieldLabel : "منبع",
 			pageSize : 25,
 			width : 370,
 			displayField : "fullname",

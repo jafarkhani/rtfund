@@ -7,13 +7,28 @@ ini_set('memory_limit','4000M');
 header("X-Accel-Buffering: no");
 ob_start();
 
-$dt = PdoDataAccess::runquery("select * from `TABLE 235` " . (!empty($_GET["RequestID"]) ? " where id=" . $_GET["RequestID"] : "")); 
+$dt = PdoDataAccess::runquery("
+	
+select r.RequestID from LON_requests r 
+join LON_ReqParts p on(r.RequestID=p.RequestID and IsHistory='NO')
+where ComputeMode='PERCENT'"); 
 flush();
 ob_flush();
 $i=0;
 foreach($dt as $row)
 {
-	$RequestID = $row["id"];
+	$RequestID = $row["RequestID"];
+	LON_installments::ComputeInstallments($RequestID);
+	echo $RequestID . " : " ;
+	print_r(ExceptionHandler::PopAllExceptions());
+	continue;
+	
+	
+	
+	
+	
+	
+	
 	$oldAmount = $row["amount"];
 	
 	echo $RequestID . " : ";

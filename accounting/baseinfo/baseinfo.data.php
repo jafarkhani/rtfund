@@ -160,7 +160,7 @@ function SaveBlockData() {
 			left join ACC_blocks cb3 on cb3.BlockID = cc.Level3 
 			left join ACC_blocks cb4 on cb4.BlockID = cc.Level4 
 
-		set cc.CostCode = concat_ws('-',cb1.BlockCode,cb2.BlockCode,cb3.BlockCode,cb4.BlockCode)
+		set cc.CostCode = concat_ws('',cb1.BlockCode,cb2.BlockCode,cb3.BlockCode,cb4.BlockCode)
 
 		where level" . $block->LevelID . " = " . $block->BlockID);
     }

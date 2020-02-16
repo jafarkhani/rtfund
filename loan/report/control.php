@@ -15,7 +15,7 @@ function IsDocRegisteredRender($row,$value){
 $page_rpg = new ReportGenerator("mainForm","LoanReport_controlObj");
 $page_rpg->addColumn("شماره وام", "ReqID");
 $page_rpg->addColumn("نوع وام", "LoanDesc");
-$page_rpg->addColumn("معرفی کننده", "ReqFullname", "ReqPersonRender");
+$page_rpg->addColumn("منبع ", "ReqFullname", "ReqPersonRender");
 $page_rpg->addColumn("مبلغ درخواست", "ReqAmount");
 $page_rpg->addColumn("مشتری", "LoanFullname");
 $page_rpg->addColumn("شعبه", "BranchName");
@@ -209,7 +209,7 @@ function ListData($IsDashboard = false){
 	$col = $rpg->addColumn("شماره وام", "RequestID", "LoanRender");
 	$col->ExcelRender = false;
 	$col = $rpg->addColumn("نوع وام", "LoanDesc");
-	$col = $rpg->addColumn("معرفی کننده", "ReqFullname");
+	$col = $rpg->addColumn("منبع ", "ReqFullname");
 	$col = $rpg->addColumn("مشتری", "LoanFullname");
 	$col = $rpg->addColumn("تفصیلی مشتری", "TafsiliID");
 	
@@ -350,7 +350,7 @@ function LoanReport_control()
 				},
 				fields : ['PersonID','fullname']
 			}),
-			fieldLabel : "معرفی کننده",
+			fieldLabel : "منبع ",
 			pageSize : 25,
 			width : 370,
 			displayField : "fullname",

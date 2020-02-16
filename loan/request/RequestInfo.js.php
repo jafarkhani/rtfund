@@ -14,6 +14,11 @@ RequestInfo.prototype = {
 	RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
 
 	RequestID : <?= $RequestID ?>,
+	
+	EndEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanEnd) ?>,
+	ContractEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanContract) ?>,
+	
+	
 	RequestRecord : null,
 	User : '<?= $User ?>',
 	ReadOnly : <?= $ReadOnly ? "true" : "false" ?>,
@@ -40,6 +45,15 @@ function RequestInfo(){
 		RequestInfoObject.LoadSummary(record);
 		RequestInfoObject.PartsPanel.down("[name=PayInterval]").setValue(record.data.PayInterval + " " + 
 			(record.data.IntervalType == "DAY" ? "روز" : "ماه"));
+	
+		RequestInfoObject.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
+		RequestInfoObject.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
+		/*if(record.data.ComputeMode == "BANK")
+		{
+			RequestInfoObject.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "block";
+			RequestInfoObject.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "block";
+		}*/
+	
 	});
 	this.grid.getView().getRowClass = function(record, index)
 	{
@@ -77,7 +91,7 @@ RequestInfo.prototype.LoadRequestInfo = function(){
 					"imp_GirandehCode","imp_VamCode","IsEnded","SubAgentID","PlanTitle","RuleNo","FundRules",
 					"DomainID","DomainDesc",
             		"LetterID","SourceID","ExpertPersonID","DocRequestDate","DocReceiveDate",
-					"MeetingDate","VisitDate","WorkgroupDiscussDate"],
+					"MeetingDate","VisitDate","WorkgroupDiscussDate","ContractType"],
 		autoLoad : true,
 		listeners :{
 			load : function(){
@@ -419,6 +433,7 @@ RequestInfo.prototype.MakePartsPanel = function(){
 					}
 				},{
 					name : "DelayReturn",
+					colspan : 2,
 					fieldLabel: 'تنفس صندوق',
 					renderer : function(v){
 						if(v == "CUSTOMER") return "هنگام پرداخت وام";
@@ -442,7 +457,7 @@ RequestInfo.prototype.MakePartsPanel = function(){
 						if(v == "CHEQUE") return 'چک';
 						if(v == "NEXTYEARCHEQUE") return 'چک سالهای بعد';
 					},
-					colspan : 3
+					colspan : 2
 				}/*,{
 					name : "MaxFundWage",
 					labelWidth : 110,
@@ -533,7 +548,7 @@ RequestInfo.prototype.BuildForms = function(){
 				},
 				fields : ['PersonID','fullname']
 			}),
-			fieldLabel : "معرفی کننده",
+			fieldLabel : "منبع",
 			pageSize : 25,
 			displayField : "fullname",
 			valueField : "PersonID",
@@ -558,7 +573,7 @@ RequestInfo.prototype.BuildForms = function(){
 				fields : ['SubID','SubDesc'],
 				autoLoad : true
 			}),
-			fieldLabel : "زیر واحد سرمایه گذار",
+			fieldLabel : "منبع فرعی",
 			queryMode : "local",
 			displayField : "SubDesc",
 			valueField : "SubID",
@@ -632,12 +647,28 @@ RequestInfo.prototype.BuildForms = function(){
 			}),
 			fieldLabel : "شعبه اخذ وام",
 			queryMode : 'local',
-			colspan : 2,
 			allowBlank : false,
 			hidden : true,
 			displayField : "BranchName",
 			valueField : "BranchID",
 			name : "BranchID"
+		},{
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + 'request.data.php?' +
+						"task=SelectContractType",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['InfoID','InfoDesc'],
+				autoLoad : true					
+			}),
+			fieldLabel : "نوع قرارداد",
+			queryMode : 'local',
+			displayField : "InfoDesc",
+			valueField : "InfoID",
+			name : "ContractType"
 		},{
 			xtype : "trigger",
 			colspan : 2,
@@ -716,7 +747,7 @@ RequestInfo.prototype.BuildForms = function(){
 					itemId : "Cmp_FundRule",
 					name : "FundRules"
 				},{
-					boxLabel : "نظر معرفی کننده",
+					boxLabel : "نظر منبع",
 					inputValue : "NO",
 					itemId : "Cmp_AgentRule",
 					name : "FundRules"
@@ -924,6 +955,11 @@ RequestInfo.prototype.BuildForms = function(){
 				itemId : "cmp_costs",
 				handler : function(){ RequestInfoObject.ShowCosts(); }
 			},{
+				text : 'پیگیری مطالبات',
+				iconCls : "process",
+				itemId : "cmp_follows",
+				handler : function(){ RequestInfoObject.ShowFollows(); }
+			},{
 				text : 'چک لیست',
 				iconCls : "check",
 				hidden : true,
@@ -956,14 +992,6 @@ RequestInfo.prototype.BuildForms = function(){
 			iconCls : "account",
 			itemId : "cmp_accevents",
 			menu :[{
-				text : 'اجرای رویداد تخصیص وام به مشتری',
-				iconCls : "send",
-				handler : function(){ 
-					framework.ExecuteEvent(<?= EVENT_LOAN_ALLOCATE?>, 
-						new Array(RequestInfoObject.RequestRecord.data.RequestID,
-									RequestInfoObject.RequestRecord.data.PartID));
-				}
-			},{
 				text : 'اجرای رویداد عقد قرارداد با مشتری',
 				iconCls : "send",
 				handler : function(){ RequestInfoObject.ExecuteEvent(); }
@@ -1225,8 +1253,8 @@ RequestInfo.prototype.CustomizeForm = function(record){
 			//this.PartsPanel.down("[name=PayCompute]").getEl().dom.style.display = "none";
 			//this.PartsPanel.down("[name=MaxFundWage]").getEl().dom.style.display = "none";
 			this.PartsPanel.down("[name=AgentReturn]").getEl().dom.style.display = "none";
-			this.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
-			this.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
+			//this.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
+			//this.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
 			this.get("TR_FundWage").style.display = "none";
 			this.get("TR_AgentWage").style.display = "none";
 			this.get("div_yearly").style.display = "none";
@@ -1326,7 +1354,7 @@ RequestInfo.prototype.SaveRequest = function(mode){
 	if(this.companyPanel.down("[name=ReqPersonID]").getValue()*1 == 0 &&
 		this.companyPanel.down("[name=LoanID]").getValue()*1 == 9)
 	{
-		Ext.MessageBox.alert("Error", "برای وام های عاملیت انتخاب معرفی کننده الزامی است");
+		Ext.MessageBox.alert("Error", "برای وام های عاملیت انتخاب منبع الزامی است");
 		return;
 	}
 
@@ -1632,7 +1660,7 @@ RequestInfo.prototype.SetStatus = function(){
 
 RequestInfo.prototype.EndRequest = function(){
 	
-	framework.ExecuteEvent(<?= EVENT_LOAN_END ?>, 
+	framework.ExecuteEvent(RequestInfoObject.EndEventID, 
 		new Array(RequestInfoObject.RequestRecord.data.RequestID,
 					RequestInfoObject.RequestRecord.data.PartID), "RequestInfoObject.afterEndLoan");
 	
@@ -1978,7 +2006,7 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 						name : "AgentReturn",
 						inputValue : "CUSTOMER"
 					}]
-				},{
+				}/*,{
 					xtype : "fieldset",
 					itemId : "fs_DelayCompute",
 					title : "نحوه دریافت تنفس صندوق",
@@ -2034,7 +2062,7 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 						name : "AgentDelayReturn",
 						inputValue : "NEXTYEARCHEQUE"
 					}]
-				}/*,{
+				}*//*,{
 					xtype : "fieldset",
 					colspan :2,
 					width : 450,
@@ -2093,8 +2121,8 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 			this.PartWin.down("[name=PartDate]").hide();
 			this.PartWin.down("[itemId=fs_WageCompute]").hide();
 			this.PartWin.down("[itemId=fs_AgentWageCompute]").hide();
-			this.PartWin.down("[itemId=fs_DelayCompute]").hide();
-			this.PartWin.down("[itemId=fs_AgentDelayCompute]").hide();
+			//this.PartWin.down("[itemId=fs_DelayCompute]").hide();
+			//this.PartWin.down("[itemId=fs_AgentDelayCompute]").hide();
 			//this.PartWin.down("[itemId=fs_PayCompute]").hide();
 			//this.PartWin.down("[itemId=fs_MaxFundWage]").hide();
 			this.PartWin.down("[name=PartAmount]").colspan = 2;
@@ -2128,13 +2156,6 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 }
 
 RequestInfo.prototype.SavePart = function(){
-
-	/*if(this.PartWin.down('[name=MaxFundWage]').getValue()*1 > 0 && 
-		this.PartWin.down('[name=FundWage]').getValue()*1 > 0 )
-	{
-		Ext.MessageBox.alert("Error","در صورتی که سقف کارمزد صندوق را تعیین می کنید باید کارمزد صندوق را صفر نمایید");
-		return;
-	}*/
 
 	mask = new Ext.LoadMask(this.PartWin, {msg:'در حال ذخیره سازی ...'});
 	mask.show();
@@ -2235,15 +2256,6 @@ RequestInfo.prototype.SplitYears = function(startDate, endDate, TotalAmount){
 
 RequestInfo.prototype.LoadSummary = function(record){
 
-	if(record.data.ReqPersonID == "<?= SHEKOOFAI ?>")
-	{
-		this.get("SUM_InstallmentAmount").innerHTML = Ext.util.Format.Money(record.data.AllPay);
-		this.get("SUM_LastInstallmentAmount").innerHTML = Ext.util.Format.Money(record.data.LastPay);
-		this.get("SUM_TotalWage").innerHTML = Ext.util.Format.Money(record.data.TotalCustomerWage);
-		this.get("SUM_NetAmount").innerHTML = Ext.util.Format.Money(record.data.PartAmount);	
-		return;
-	}
-	
 	this.get("SUM_InstallmentAmount").innerHTML = Ext.util.Format.Money(record.data.AllPay);
 	this.get("SUM_LastInstallmentAmount").innerHTML = Ext.util.Format.Money(record.data.LastPay);
 	this.get("SUM_FundDelay").innerHTML = Ext.util.Format.Money(record.data.FundDelay);
@@ -2550,7 +2562,7 @@ RequestInfo.prototype.ShowFollows = function(){
 			title: 'پیگیری مطالبات',
 			modal : true,
 			autoScroll : true,
-			width: 1200,
+			width: 1000,
 			height : 400,
 			bodyStyle : "background-color:white",
 			closeAction : "hide",
@@ -2620,15 +2632,7 @@ RequestInfo.prototype.ShowCheckList = function(){
 RequestInfo.prototype.ExecuteEvent = function(){
 	
 	var eventID = "";
-	if(this.RequestRecord.data.ReqPersonID*1 == 0)
-		eventID = "<?= EVENT_LOANCONTRACT_innerSource ?>";
-	else
-	{
-		if(this.RequestRecord.data.FundGuarantee == "YES")
-			eventID = "<?= EVENT_LOANCONTRACT_agentSource_committal ?>";
-		else
-			eventID = "<?= EVENT_LOANCONTRACT_agentSource_non_committal ?>";
-	}
+	eventID = this.ContractEventID;
 
 	framework.ExecuteEvent(eventID, new Array(this.RequestRecord.data.RequestID,this.RequestRecord.data.PartID));
 }

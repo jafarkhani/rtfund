@@ -5,8 +5,8 @@ ini_set("display_errors", "On");
 
 $dt = PdoDataAccess::runquery("select * from LON_payments p join LON_requests using(RequestID) 
 			join LON_ReqParts rp on(rp.RequestID=p.RequestID AND isHistory='NO')
-		 where StatusID=70 and ReqPersonID in(1003) 
-		  and (DelayReturn != 'INSTALLMENT' OR AgentDelayReturn != 'INSTALLMENT')");
+		 where StatusID=70 and RequestID=654
+		  and (WageReturn != 'INSTALLMENT' OR AgentReturn != 'INSTALLMENT')");
 foreach($dt as $row)
 {
 	echo $row["RequestID"] . " - " . $row["PayID"] . " : ";
@@ -43,8 +43,6 @@ foreach($dt as $row)
 	
 	print_r(ExceptionHandler::PopAllExceptions());
 	echo "<br>";
-	flush();
-	ob_flush();
 }
 die();
 ?>

@@ -195,14 +195,41 @@ define("DEFRAYLOAN_WFMFORM", "16");
 define("STO_STEPID_RAW", "1");
 define("STO_STEPID_DEPRICATE", "4");
 //------------ events ---------------
+
+define("EVENTTYPE_LoanContract", "LoanContract");
+define("EVENTTYPE_LoanPayment", "LoanPayment");
+define("EVENTTYPE_LoanBackPay", "LoanBackPay");
+define("EVENTTYPE_LoanBackPayCheque", "LoanBackPayCheque");
+define("EVENTTYPE_LoanDailyIncome", "LoanDailyIncome");
+define("EVENTTYPE_LoanDailyLate", "LoanDailyLate");
+define("EVENTTYPE_LoanDailyPenalty", "LoanDailyPenalty");
+define("EVENTTYPE_LoanDailyEarly", "LoanDailyEarly");
+define("EVENTTYPE_LoanEnd", "LoanEnd");
+define("EVENTTYPE_LoanCost", "LoanCost");
+define("EVENTTYPE_LoanChange", "LoanChange");
+
+define("EVENTTYPE_IncomeCheque", "IncomeCheque");
+define("EVENTTYPE_OutcomeCheque", "OutcomeCheque");
+
+define("EVENTTYPE_RegisterWarrenty", "RegisterWarrenty");
+define("EVENTTYPE_CancelWarrenty", "CancelWarrenty");
+define("EVENTTYPE_EndWarrenty", "EndWarrenty");
+define("EVENTTYPE_SubWarrenty", "SubWarrenty");
+define("EVENTTYPE_ExtendWarrenty", "ExtendWarrenty");
+
+
 define("EVENT_LOAN_ALLOCATE", 131);
 
 define("EVENT_LOANCONTRACT_innerSource", 132);
 define("EVENT_LOANCONTRACT_agentSource_committal", 134);
 define("EVENT_LOANCONTRACT_agentSource_non_committal", 133);
+define("EVENT_LOANCONTRACT_hemayati", 1903);
+define("EVENT_LOANCONTRACT_noavari", 1918);
 
 define("EVENT_LOANPAYMENT_innerSource", 141);
 define("EVENT_LOANPAYMENT_agentSource", 143);
+define("EVENT_LOANPAYMENT_hemayati", 143);
+define("EVENT_LOANPAYMENT_noavari", 143);
 
 define("EVENT_LOANBACKPAY_innerSource_cheque", 151);
 define("EVENT_LOANBACKPAY_innerSource_non_cheque", 152);

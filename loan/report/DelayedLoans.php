@@ -18,18 +18,16 @@ function intervslRender($row, $value){
 	
 $page_rpg = new ReportGenerator("mainForm","LoanReport_DelayedInstallsObj");
 
-
 $page_rpg->addColumn("شماره وام", "RequestID");
 $page_rpg->addColumn("شعبه وام", "BranchName");
 $page_rpg->addColumn("نوع وام", "LoanDesc");
+$page_rpg->addColumn("تضامین", "tazamin");
 $page_rpg->addColumn("معرف", "ReqPersonName");
 $page_rpg->addColumn("وام گیرنده", "LoanPersonName");
-$page_rpg->addColumn("تضامین", "tazamin");
+$page_rpg->addColumn("موبایل", "mobile");
 $page_rpg->addColumn("وضعیت", "StatusDesc");
 $col = $page_rpg->addColumn("تاریخ خاتمه", "EndingDate");
 $col->type = "date";
-$page_rpg->addColumn("موبایل", "mobile");
-
 $page_rpg->addColumn("مبلغ وام", "PartAmount");
 $page_rpg->addColumn("جمع وام و کارمزد", "TotalLoanAmount");
 $page_rpg->addColumn("شرح", "PartDesc");
@@ -50,9 +48,9 @@ $col = $page_rpg->addColumn("تعداد اقساط معوق", "delayedInstallmen
 
 $col = $page_rpg->addColumn("مانده کل تا انتها", "TotalRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
 $col = $page_rpg->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
-$col = $page_rpg->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	$col->IsQueryField = false;
 $col = $page_rpg->addColumn("طبقه وام", "LoanLevel"); $col->IsQueryField = false;
-
+$col = $page_rpg->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
+$col = $page_rpg->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	$col->IsQueryField = false;
 $col = $page_rpg->addColumn("مانده اصل وام تا انتها", "remain_pure","ReportMoneyRender"); $col->IsQueryField = false;
 $col = $page_rpg->addColumn("کارمزد معوقه", "remain_wage","ReportMoneyRender"); $col->IsQueryField = false;
 $col = $page_rpg->addColumn("مانده اصل و کارمزد", "remain_loan","ReportMoneyRender"); $col->IsQueryField = false;
@@ -77,7 +75,7 @@ function MakeWhere(&$where, &$whereParam){
 				strpos($key, "reportcolumn_fld") !== false || strpos($key, "reportcolumn_ord") !== false)
 			continue;
 
-		if($key == "ForfeitDays" || $key == "ComputeDate" || $key == "RemainPercent" || $key == "ItemID")
+		if($key == "ForfeitDays" || $key == "ComputeDate" || $key == "RemainPercent" || $key == "FollowLevelID")
 			continue;
 		
 		$prefix = "";
@@ -124,6 +122,7 @@ function GetData(){
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqPersonName,
 				BranchName,
 				bi.InfoDesc StatusDesc,
+				bif.InfoDesc LatestFollowStatus,
 				tazamin,
 				t1.InstallmentAmount,
 				t1.LastInstallmentDate,
@@ -140,6 +139,10 @@ function GetData(){
 			left join BSC_persons p2 on(ReqPersonID=p2.PersonID)
 			join LON_ReqParts p on(p.RequestID=r.RequestID AND p.IsHistory='NO')
 			join BSC_branches using(BranchID)
+			left join (
+				select RequestID,max(StatusID) FollowStatusID from LON_follows group by RequestID
+			)t5 on(r.RequestID=t5.RequestID)
+			left join BaseInfo bif on(bif.TypeID=98 AND bif.InfoID=t5.FollowStatusID)
 			left join (
 				select RequestID,InstallmentAmount, max(InstallmentDate) LastInstallmentDate , min(InstallmentDate) FirstInstallmentDate
 				from LON_installments
@@ -205,7 +208,7 @@ function GetData(){
 		if($remain < $row["InstallmentAmount"]*$_POST["RemainPercent"]/100)
 			continue;
 		
-		$delayedInstallmentsCount = 0;
+		/*$delayedInstallmentsCount = 0;
 		foreach($computeArr as $irow)
 		{
 			if($irow["type"] == "installment" && $irow["InstallmentID"]*1 > 0 && count($irow["pays"]) > 0 &&
@@ -215,7 +218,10 @@ function GetData(){
 					$delayedInstallmentsCount++;
 			}
 		}
-		$row["delayedInstallmentsCount"] = $delayedInstallmentsCount;
+		$row["delayedInstallmentsCount"] = $delayedInstallmentsCount;*/
+		
+		$row["delayedInstallmentsCount"] = round($remain/$row["InstallmentAmount"]);
+		
 		$row["remain_pure"] = $RemainArr["remain_pure"];
 		$row["remain_wage"] = $RemainArr["remain_wage"];
 		$row["remain_loan"] = $RemainArr["remain_pure"]*1 + $RemainArr["remain_wage"]*1;
@@ -233,11 +239,11 @@ function GetData(){
 		$row["TotalNonPenaltyRemainder"] = $remain;
 		//-----------------
 		
-		$record = LON_requests::GetRequestLevel($row["RequestID"]);
-		$row["LoanLevel"] = $record["ParamValue"];
-		if(!empty($_POST["ItemID"]))
+		$record = LON_requests::GetRequestFollowLevel($row["RequestID"], $computeArr);
+		$row["LoanLevel"] = $record["InfoDesc"];
+		if(!empty($_POST["FollowLevelID"]))
 		{
-			if($record["ItemID"] != $_POST["ItemID"])
+			if($record["InfoID"] != $_POST["FollowLevelID"])
 				continue;
 		}
 		
@@ -257,7 +263,7 @@ function ListData($IsDashboard = false){
 		return "<a href=LoanPayment.php?show=tru&RequestID=" . $value . " target=blank >" . $value . "</a>";
 	}
 
-	$col = $rpt->addColumn("کد وام", "RequestID", "LoanReportRender");
+	$col = $rpt->addColumn("شماره وام", "RequestID", "LoanReportRender");
 	$col->ExcelRender = false;
 	$rpt->addColumn("شعبه وام", "BranchName");
 	$rpt->addColumn("نوع وام", "LoanDesc");
@@ -308,6 +314,8 @@ function ListData($IsDashboard = false){
 	$col->EnableSummary();
 	
 	$col = $rpt->addColumn("طبقه وام", "LoanLevel");
+	$col = $rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus"); 
+	
 	
 	$col = $rpt->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	
 	$col->EnableSummary();
@@ -411,12 +419,12 @@ function LoanReport_DelayedInstalls()
 				proxy: {
 					type: 'jsonp',
 					url: this.address_prefix + '../../framework/person/persons.data.php?' +
-						"task=selectPersons&UserTypes=IsAgent,IsSupporter",
+						"task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
 					reader: {root: 'rows',totalProperty: 'totalCount'}
 				},
 				fields : ['PersonID','fullname']
 			}),
-			fieldLabel : "معرفی کننده",
+			fieldLabel : "منبع ",
 			pageSize : 25,
 			width : 370,
 			displayField : "fullname",
@@ -544,19 +552,19 @@ function LoanReport_DelayedInstalls()
 			store : new Ext.data.SimpleStore({
 				proxy: {
 					type: 'jsonp',
-					url: '/accounting/baseinfo/baseinfo.data.php?' +
-						"task=selectParamItems&ParamID=105",
+					url: this.address_prefix + '../request/request.data.php?' +
+						"task=selectFollowLevels",
 					reader: {root: 'rows',totalProperty: 'totalCount'}
 				},
-				fields : ['ItemID','ParamValue'],
+				fields : ['InfoID','InfoDesc'],
 				autoLoad : true					
 			}),
-			fieldLabel : "سطح مطالباتی وام",
+			fieldLabel : "سطح پیگیری وام",
 			queryMode : 'local',
 			width : 370,
-			displayField : "ParamValue",
-			valueField : "ItemID",
-			hiddenName : "ItemID"
+			displayField : "InfoDesc",
+			valueField : "InfoID",
+			hiddenName : "FollowLevelID"
 		},{
 			xtype : "numberfield",
 			maxValue : 100,

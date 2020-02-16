@@ -108,6 +108,8 @@ PartPayment.prototype = {
 	
 	RequestID : "<?= $RequestID ?>",
 	StatusID : "<?= $obj->StatusID ?>", 
+	PartID : <?= LON_ReqParts::GetValidPartObj($RequestID)->PartID ?>,
+	EventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanPayment) ?>,
 
 	get : function(elementID){
 		return findChild(this.TabID, elementID);
@@ -391,28 +393,8 @@ PartPayment.prototype.ReturnPayPartDoc = function(){
 PartPayment.prototype.ExecuteEvent = function(){
 	
 	var record = this.grid.getSelectionModel().getLastSelected();
-
-	var loanStore = new Ext.data.Store({
-		proxy:{
-			type: 'jsonp',
-			url: this.address_prefix + "request.data.php?task=SelectAllRequests&RequestID=" + record.data.RequestID,
-			reader: {root: 'rows',totalProperty: 'totalCount'}
-		},
-		fields : ["RequestID","ReqPersonID","PartID"]
-	});
-	loanStore.load({
-		callback : function(){
-			var eventID = "";
-			ReqRecord = this.getAt(0);
-			if(ReqRecord.data.ReqPersonID*1 > 0)
-				eventID = "<?= EVENT_LOANPAYMENT_agentSource ?>";
-			else
-				eventID = "<?= EVENT_LOANPAYMENT_innerSource ?>";
-			
-			framework.ExecuteEvent(eventID, new Array(
-				ReqRecord.data.RequestID,ReqRecord.data.PartID,record.data.PayID), "PartPaymentObject.AfterEvent");
-		}
-	})
+	framework.ExecuteEvent(this.EventID, new Array(
+		this.RequestID,this.PartID,record.data.PayID), "PartPaymentObject.AfterEvent");
 }
 
 PartPayment.prototype.AfterEvent = function(){

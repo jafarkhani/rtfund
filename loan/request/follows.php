@@ -7,17 +7,31 @@ require_once('../header.inc.php');
 require_once inc_dataGrid;
  
 //................  GET ACCESS  .....................
-$accessObj = FRW_access::GetAccess($_POST["MenuID"]);
+$accessObj = FRW_access::GetAccess(1145);
 //...................................................
 
-$RequestID = $_REQUEST["RequestID"];
+$RequestID = isset($_REQUEST["RequestID"]) ? $_REQUEST["RequestID"] : 0;
 
 $dg = new sadaf_datagrid("dg",$js_prefix_address . "request.data.php?task=GetFollows&RequestID=" .$RequestID,"grid_div");
 
 $dg->addColumn("", "FollowID","", true);
-$dg->addColumn("", "RequestID","", true);
 $dg->addColumn("", "StatusDesc","", true);
 $dg->addColumn("", "IsPartDiff","", true);
+
+$col = $dg->addColumn("شماره وام", "RequestID");
+$col->width = 80;
+	
+if($RequestID == 0)
+{
+	$col->renderer = "LoanFollow.LoanRender";
+	$col->editor = "this.LoanCombo";
+	
+	$col = $dg->addColumn("مشتری", "LoanFullname");
+	$col->width = 80;
+	
+	$col = $dg->addColumn("منبع", "ReqFullname");
+	$col->width = 80;
+}
 
 $col = $dg->addColumn("مرحله پیگیری", "StatusID");
 $col->editor = ColumnEditor::ComboBox(PdoDataAccess::runquery("select * from BaseInfo where TypeID=98"),"InfoID","InfoDesc");
@@ -60,13 +74,12 @@ $col->renderer = "LoanFollow.OperationRender";
 $col->width = 50;
 $col->align = "center";
 
+if($RequestID == 0)
+	$dg->title = "لیست پیگیری های معوقات تسهیلات";
 $dg->height = 336;
 $dg->emptyTextOfHiddenColumns = true;
-$dg->EnableSearch = false;
-$dg->HeaderMenu = false;
-$dg->EnablePaging = false;
-$dg->DefaultSortField = "FollowID";
-$dg->DefaultSortDir = "ASC";
+$dg->DefaultSortField = "RegDate";
+$dg->DefaultSortDir = "DESC";
 $dg->autoExpandColumn = "details";
 
 $grid = $dg->makeGrid_returnObjects();
@@ -91,6 +104,40 @@ LoanFollow.prototype = {
 
 function LoanFollow()
 {
+	this.LoanCombo = new Ext.form.ComboBox({
+		store: new Ext.data.Store({
+			proxy:{
+				type: 'jsonp',
+				url: this.address_prefix + 'request.data.php?task=SelectAllRequests',
+				reader: {root: 'rows',totalProperty: 'totalCount'}
+			},
+			fields :  ['PartAmount',"RequestID","ReqAmount","ReqDate", "RequestID", "CurrentRemain",
+						"IsEnded","StatusID","ReqFullname","LoanFullname"]
+		}),
+		displayField: 'RequestID',
+		valueField : "RequestID",
+		listConfig: {width: 'auto'},
+		matchFieldWidth : false,
+		tpl: new Ext.XTemplate(
+			'<table cellspacing="0" width="100%"><tr class="x-grid-header-ct" style="height: 23px;">',
+			'<td style="padding:7px">کد وام</td>',
+			'<td style="padding:7px">مشتری</td>',
+			'<td style="padding:7px">معرف</td> ',
+			'<td style="padding:7px">مبلغ وام</td>',
+			'<td style="padding:7px">تاریخ پرداخت</td> </tr>',
+			'<tpl for=".">',
+				'<tr class="x-boundlist-item" style="border-left:0;border-right:0">',
+				'<td style="border-left:0;border-right:0" class="search-item">{RequestID}</td>',
+				'<td style="border-left:0;border-right:0" class="search-item">{LoanFullname}</td>',
+				'<td style="border-left:0;border-right:0" class="search-item">{ReqFullname}</td>',
+				'<td style="border-left:0;border-right:0" class="search-item">',
+					'{[Ext.util.Format.Money(values.ReqAmount)]}</td>',
+				'<td style="border-left:0;border-right:0" class="search-item">{[MiladiToShamsi(values.ReqDate)]}</td> </tr>',
+			'</tpl>',
+			'</table>'
+		)
+	});
+	
 	this.grid = <?= $grid ?>;
 	this.grid.render(this.get("div_grid"));	
 	
@@ -110,6 +157,16 @@ LoanFollow.OperationRender = function(value, p, record){
 	return "<div  title='عملیات' class='setting' onclick='LoanFollowObject.OperationMenu(event);' " +
 		"style='background-repeat:no-repeat;background-position:center;" +
 		"cursor:pointer;width:100%;height:16'></div>";
+}
+
+LoanFollow.LoanRender = function(value, p, record){
+	
+	return "<a href='javascript:void(0)' onclick=LoanFollow.OpenLoan("+value+")>" + value + "<a>";
+}
+
+LoanFollow.OpenLoan = function(RequestID){
+	framework.OpenPage("../loan/request/RequestInfo.php", "اطلاعات درخواست", 
+		{RequestID : RequestID});
 }
 
 LoanFollow.LettersRender = function(value, p, record){
@@ -156,7 +213,7 @@ LoanFollow.prototype.OperationMenu = function(e){
 			text : r.data.LetterSubject,
 			iconCls: 'letter',
 			handler : Ext.bind(LoanFollowObject.RegisterLetter, LoanFollowObject, 
-				[r.data.TemplateID,record.data.FollowID])
+				[record.data.RequestID,r.data.TemplateID,record.data.FollowID])
 		});
 	}
 	if(menu.length > 0)
@@ -246,13 +303,13 @@ LoanFollow.prototype.DeleteFollow = function(){
 	});
 }
 
-LoanFollow.prototype.RegisterLetter = function(TemplateID, FollowID){
+LoanFollow.prototype.RegisterLetter = function(RequestID, TemplateID, FollowID){
 	
 	Ext.Ajax.request({
 		url: this.address_prefix + 'request.data.php',
 		params:{
 			task: "RegisterLetter",
-			RequestID : this.RequestID,
+			RequestID : RequestID,
 			TemplateID : TemplateID,
 			FollowID : FollowID			
 		},
@@ -280,5 +337,5 @@ var LoanFollowObject = new LoanFollow();
 
 </script>
 <center>
-	<div id="div_grid" style="width:100%"></div>
+	<div id="div_grid" style="<? if($RequestID==0){?>margin:10px;<?}?>width:98%"></div>
 </center>

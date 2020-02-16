@@ -12,7 +12,7 @@ function ReqPersonRender($row,$value){
 $page_rpg = new ReportGenerator("mainForm","LoanReport_installmentsObj");
 $page_rpg->addColumn("شماره وام", "RRequestID");
 $page_rpg->addColumn("نوع وام", "LoanDesc");
-$page_rpg->addColumn("معرفی کننده", "ReqFullname", "ReqPersonRender");
+$page_rpg->addColumn("منبع", "ReqFullname", "ReqPersonRender");
 $page_rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
 $page_rpg->addColumn("وضعیت", "StatusDesc");
 $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
@@ -307,7 +307,7 @@ function ListData($IsDashboard = false){
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RRequestID");
 	
-	$col = $rpg->addColumn("معرفی کننده", "ReqFullname");
+	$col = $rpg->addColumn("منبع", "ReqFullname");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RRequestID");
 	
@@ -526,7 +526,7 @@ function LoanReport_installments()
 				},
 				fields : ['PersonID','fullname']
 			}),
-			fieldLabel : "معرفی کننده",
+			fieldLabel : "منبع",
 			pageSize : 25,
 			width : 370,
 			displayField : "fullname",

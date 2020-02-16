@@ -42,7 +42,7 @@ $col->width = 80;
 $col = $dg->addColumn("مبلغ درخواست", "ReqAmount", GridColumn::ColumnType_money);
 $col->width = 100;
 
-$col = $dg->addColumn("معرفی کننده", "ReqFullname");
+$col = $dg->addColumn("منبع", "ReqFullname");
 $col->width = 100;
 
 $col = $dg->addColumn("وضعیت", "StatusDesc", "");
@@ -79,4 +79,9 @@ require_once 'ManageRequests.js.php';
 <center><br>
 	<div id="rejectedDIV"></div>
 	<div id="DivGrid"></div>	
+	ردیف های بنفش رنگ وام های تایید شده هستند
+	<br>
+	ردیف های سبز رنگ وام های خاتمه یافته می باشند
+	<br>
+	ردیف های قرمز رنگ وام های عدم تایید می باشند
 </center>

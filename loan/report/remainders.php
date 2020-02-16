@@ -146,7 +146,7 @@ function showReport(){
 
 	$col = $rpg->addColumn("شماره وام", "RequestID", "reportRender");
 	$col->ExcelRender = false;
-	$rpg->addColumn("معرفی کننده", "ReqFullname","ReqPersonRender");
+	$rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 	$rpg->addColumn("مشتری", "LoanFullname");
 	$rpg->addColumn('مبنای محاسبه', "ComputeMode", "ComputeRender");
 	$col = $rpg->addColumn("مبلغ وام", "PartAmount","ReportMoneyRender");
@@ -223,7 +223,7 @@ function LoanReport_remainders()
 				},
 				fields : ['PersonID','fullname']
 			}),
-			fieldLabel : "معرفی کننده",
+			fieldLabel : "منبع",
 			pageSize : 25,
 			width : 370,
 			displayField : "fullname",

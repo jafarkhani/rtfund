@@ -6,7 +6,7 @@
 
 require_once '../header.inc.php';
 require_once inc_dataGrid;
-
+require_once './request.class.php';
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess(MENUID_loans);
 //...................................................

@@ -33,23 +33,14 @@ require_once '../commitment/ExecuteEvent.class.php';
 
 $query = " select * from LON_requests  r
 join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-where ComputeMode='NEW' AND StatusID=" . LON_REQ_STATUS_CONFIRM;
+where ComputeMode='NEW' AND r.RequestID>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM;
 
 $reqs = PdoDataAccess::runquery_fetchMode($query);
 
 
 //........................................................
 
-$objArr = array(
-	EVENT_LOANDAILY_innerSource => null, 
-	EVENT_LOANDAILY_agentSource_committal => null,
-	EVENT_LOANDAILY_agentSource_non_committal => null,
-	
-	EVENT_LOANDAILY_innerLate => null, 
-	EVENT_LOANDAILY_agentlate => null, 
-	EVENT_LOANDAILY_innerPenalty => null, 
-	EVENT_LOANDAILY_agentPenalty => null
-);
+$objArr = array();
 
 $pdo = PdoDataAccess::getPdoObject();
 $pdo->beginTransaction();
@@ -61,27 +52,10 @@ echo "<br>****************************<BR>" . DateModules::miladi_to_shamsi($Com
 		"<br>****************************<br>";
 while($row = $reqs->fetch())
 {
-	$eventID = "";
-	$LateEvent = "";
-	$PenaltyEvent = "";
-	
-	if($row["ReqPersonID"]*1 == 0)
-	{
-		$eventID = EVENT_LOANDAILY_innerSource;
-		$LateEvent = EVENT_LOANDAILY_innerLate;
-		$PenaltyEvent = EVENT_LOANDAILY_innerPenalty;
-	}
-	else
-	{
-		if($row["FundGuarantee"] == "YES")
-			$eventID = EVENT_LOANDAILY_agentSource_committal;
-		else
-			$eventID = EVENT_LOANDAILY_agentSource_non_committal;
-		
-		$LateEvent = EVENT_LOANDAILY_agentlate;
-		$PenaltyEvent = EVENT_LOANDAILY_agentPenalty;
-	}
-	
+	$eventID = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyIncome);
+	$LateEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyLate);
+	$PenaltyEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyPenalty);
+			
 	$obj = new ExecuteEvent($eventID);
 	$obj->DocObj = isset($objArr[$eventID]) ? $objArr[$eventID] : null;
 	$obj->DocDate = $ComputeDate;
@@ -124,6 +98,7 @@ while($row = $reqs->fetch())
 		print_r(ExceptionHandler::PopAllExceptions());
 		echo "\n--------------------------------------------\n";
 	}
+
 
 }
 $pdo->commit();	
