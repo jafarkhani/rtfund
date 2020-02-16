@@ -570,6 +570,7 @@ function UnSeen(){
 	echo Response::createObjectiveResponse($result, "");
 	die();
 }
+
 function Seen(){
 
     $obj = new OFC_send($_POST["SendID"]);

@@ -91,6 +91,7 @@ if($mode == "receive")
 {
 	$dg->addButton("", "خوانده نشده", "view", "function(){MyLetterObject.UnSeen();}");
     $dg->addButton("", "خوانده شده", "tick", "function(){MyLetterObject.Seen();}");
+
 	$dg->addButton("", "امضاء گروهی", "sign", "function(){MyLetterObject.GroupSignLetter();}");
 	$dg->addButton("", "ارجاع گروهی", "sendLetter", "function(){MyLetterObject.SendLetter(true);}");
 	$dg->addButton("", "حذف گروهی", "remove", "function(){MyLetterObject.GroupDeleteSend();}");
