@@ -47,13 +47,18 @@ class PLN_plans extends PdoDataAccess
 			left join OFC_letters ol on(p.LetterID=ol.LetterID)
 			where " . $where . " group by p.PlanID " . $order, $param);
     }
-    static function IsPlanExist($LetterID){
+    static function IsPlanExist($Type,$Val){
+        $param = $Val;
+        if($Type == 'Loan')
+            $where = "p.LoanID=?";
+        if($Type == 'Letter')
+            $where = "p.LetterID=?";
 
-        $param = $LetterID;
-        $where = "p.LetterID=?";
         /*echo 'param:'.$param;
         echo '<br>';
         echo 'where:'.$where;*/
+
+
         $dt = PLN_plans::SelectAll($where, $param, dataReader::makeOrder());
         $count = $dt->rowCount();
         if ($count > 0){

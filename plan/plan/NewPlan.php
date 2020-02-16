@@ -104,6 +104,276 @@ $grid = $dg->makeGrid_returnObjects();
     };
 
     function NewPlan(){
+        /* new added */
+        if (this.FormType == 1 ){
+            var title = "ثبت نظارت طرح جدید";
+            var itemsPlan = [{
+                xtype : "combo",
+                store : new Ext.data.SimpleStore({
+                    proxy: {
+                        type: 'jsonp',
+                        url: this.address_prefix + '../../framework/person/persons.data.php?' +
+                            "task=selectPersons&UserType=IsCustomer",
+                        reader: {root: 'rows',totalProperty: 'totalCount'}
+                    },
+                    fields : ['PersonID','fullname']
+                }),
+                fieldLabel : "مشتری",
+                displayField : "fullname",
+                pageSize : 20,
+                width : 400,
+                hidden : true,
+                allowBlank: false,
+                valueField : "PersonID",
+                name : "PersonID"
+            },{
+                xtype : "combo",
+                store : new Ext.data.SimpleStore({
+                    proxy: {
+                        type: 'jsonp',
+                        url: this.address_prefix + '../../framework/person/persons.data.php?' +
+                            "task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
+                        reader: {root: 'rows',totalProperty: 'totalCount'}
+                    },
+                    fields : ['PersonID','fullname']
+                }),
+                fieldLabel : "متقاضی ارزیابی",
+                displayField : "fullname",
+                pageSize : 20,
+                width : 400,
+                allowBlank: false,
+                valueField : "PersonID",
+                name : "evaluationAskerID",
+                listeners: {
+                    change : function() {
+                        var val = this.getValue();
+                        console.log(this.getValue());
+                        console.log('Yesingggggggggg');
+                        if(val==0)
+                        {
+                            console.log('Truinggggggggg');
+                            NewPlanObject.planFS.down("[name=LetterID]").disable();
+                            NewPlanObject.planFS.down("[name=LoanID]").enable();
+                            NewPlanObject.planFS.down("[name=LetterID]").setValue("");
+                        }
+                        else
+                        {
+                            console.log('Falsingggggggg');
+                            NewPlanObject.planFS.down("[name=LoanID]").disable();
+                            NewPlanObject.planFS.down("[name=LetterID]").enable();
+                            NewPlanObject.planFS.down("[name=LoanID]").setValue("");
+                        }
+                    }
+                }
+            },{
+                xtype : "combo",
+                name : "LetterID",
+                allowBlank: false,
+                colspan : 2,
+                width : 600,
+                store: new Ext.data.Store({
+                    proxy:{
+                        type: 'jsonp',
+                        url:  this.address_prefix + '../../office/letter/letter.data.php?task=SelectLetter',
+                        reader: {root: 'rows', totalProperty: 'totalCount'}
+                    },
+                    fields :  ['LetterID','LetterTitle',{
+                        name : 'LetterDate',
+                        convert : function(v){return MiladiToShamsi(v);}
+                    },{
+                        name : "fulltitle",
+                        convert: function(v,r){
+                            return '['+r.data.LetterID + '] ' + r.data.LetterTitle + ' [ ' + r.data.LetterDate + ' ]'; }
+                    }],
+                    pageSize : 20
+                }),
+                pageSize : 20,
+                fieldLabel : "شماره نامه",
+                displayField: 'fulltitle',
+                valueField : "LetterID"
+
+            },{
+                xtype : "combo",
+                colspan : 2,
+                width : 500,
+
+                store : new Ext.data.SimpleStore({
+                    proxy: {
+                        type: 'jsonp',
+                        url: this.address_prefix + '../../loan/request/request.data.php?' +
+                            "task=SelectAllRequests",
+                        reader: {root: 'rows',totalProperty: 'totalCount'}
+                    },
+                    fields : ['RequestID','ReqDetails',
+                        {name : "fullDesc",	convert : function(value,record){
+                                return "[" + record.data.RequestID + "] " + record.data.ReqDetails
+                            } }
+                    ]
+                }),
+                displayField : "fullDesc",
+                valueField : "RequestID",
+                /*name : "Param" + record.data.ParamID,
+                fieldLabel : record.data.ParamDesc*/
+                name : "LoanID",
+                fieldLabel: 'شماره تسهیلات'
+            },{
+                xtype : "textfield",
+                fieldLabel : "عنوان طرح",
+                name : "PlanDesc",
+                allowBlank: false,
+                width : 600,
+                value : this.PlanDesc
+            },{
+                xtype : "button",
+                disabled : this.AddAccess ? false : true,
+                text : this.PlanID == 0 ? "ثبت طرح و تکمیل جداول اطلاعاتی" : "ویرایش جداول اطلاعاتی",
+                iconCls : "arrow_left",
+                handler : function(){ NewPlanObject.SaveNewPlan(); }
+            },{
+                xtype : "hidden",
+                name : "PlanID",
+                value : this.PlanID
+            },{
+                xtype : "hidden",
+                name : "FormType",
+                value : this.FormType
+            }];
+        }
+        if (this.FormType == 2 ){
+            var title = "ثبت ارزیابی طرح جدید";
+            var itemsPlan = [{
+                xtype : "combo",
+                store : new Ext.data.SimpleStore({
+                    proxy: {
+                        type: 'jsonp',
+                        url: this.address_prefix + '../../framework/person/persons.data.php?' +
+                            "task=selectPersons&UserType=IsCustomer",
+                        reader: {root: 'rows',totalProperty: 'totalCount'}
+                    },
+                    fields : ['PersonID','fullname']
+                }),
+                fieldLabel : "مشتری",
+                displayField : "fullname",
+                pageSize : 20,
+                width : 400,
+                hidden : true,
+                allowBlank: false,
+                valueField : "PersonID",
+                name : "PersonID"
+            },{
+                xtype : "textfield",
+                fieldLabel : "عنوان طرح",
+                name : "PlanDesc",
+                allowBlank: false,
+                width : 600,
+                value : this.PlanDesc
+            },{
+                xtype : "combo",
+                name : "LetterID",
+                allowBlank: false,
+                colspan : 2,
+                width : 600,
+                store: new Ext.data.Store({
+                    proxy:{
+                        type: 'jsonp',
+                        url:  this.address_prefix + '../../office/letter/letter.data.php?task=SelectLetter',
+                        reader: {root: 'rows', totalProperty: 'totalCount'}
+                    },
+                    fields :  ['LetterID','LetterTitle',{
+                        name : 'LetterDate',
+                        convert : function(v){return MiladiToShamsi(v);}
+                    },{
+                        name : "fulltitle",
+                        convert: function(v,r){
+                            return '['+r.data.LetterID + '] ' + r.data.LetterTitle + ' [ ' + r.data.LetterDate + ' ]'; }
+                    }],
+                    pageSize : 20
+                }),
+                pageSize : 20,
+                fieldLabel : "شماره نامه",
+                displayField: 'fulltitle',
+                valueField : "LetterID"
+
+            },{
+                xtype : "combo",
+                store : new Ext.data.SimpleStore({
+                    proxy: {
+                        type: 'jsonp',
+                        url: this.address_prefix +'../../framework/person/persons.data.php?task=selectPersonInfoTypes&TypeID=97',
+                        reader: {root: 'rows',totalProperty: 'totalCount'}
+                    },
+                    fields : ['TypeID','InfoID','InfoDesc'],
+                    autoLoad : true
+                }),
+                width : 400,
+                fieldLabel : "نوع ارزیابی",
+                queryMode : 'local',
+                displayField : "InfoDesc",
+                valueField : "InfoID",
+                allowBlank: false,
+                /*hidden : true,*/
+                listeners: {
+                    change : function() {
+                        var val = this.getValue();
+                        if(val==3 || val==5)
+                        {
+                            NewPlanObject.planFS.down("[name=FacilityAmount]").disable();
+                            NewPlanObject.planFS.down("[name=FacilityAmount]").setValue("");
+                        }
+                        else
+                        {
+                            NewPlanObject.planFS.down("[name=FacilityAmount]").enable();
+                        }
+                    }
+                },
+                name : "evaluationType"
+            },{
+                xtype : "currencyfield",
+                allowBlank: false,
+                /*listeners: {
+                    render: onRenderTextField
+                },*/
+
+                fieldLabel : "مبلغ درخواستی",
+                name : "FacilityAmount",
+                width : 400,
+                hideTrigger: true,
+                value : this.FacilityAmount
+            },{
+                xtype : "combo",
+                store : new Ext.data.SimpleStore({
+                    proxy: {
+                        type: 'jsonp',
+                        url: this.address_prefix + '../../framework/person/persons.data.php?' +
+                            "task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
+                        reader: {root: 'rows',totalProperty: 'totalCount'}
+                    },
+                    fields : ['PersonID','fullname']
+                }),
+                fieldLabel : "متقاضی ارزیابی",
+                displayField : "fullname",
+                pageSize : 20,
+                width : 400,
+                allowBlank: false,
+                valueField : "PersonID",
+                name : "evaluationAskerID"
+            },{
+                xtype : "button",
+                disabled : this.AddAccess ? false : true,
+                text : this.PlanID == 0 ? "ثبت طرح و تکمیل جداول اطلاعاتی" : "ویرایش جداول اطلاعاتی",
+                iconCls : "arrow_left",
+                handler : function(){ NewPlanObject.SaveNewPlan(); }
+            },{
+                xtype : "hidden",
+                name : "PlanID",
+                value : this.PlanID
+            },{
+                xtype : "hidden",
+                name : "FormType",
+                value : this.FormType
+            }];
+        }
+        /* end new added */
 
         if(this.Mode == "new" || this.Mode == "edit")
         {
@@ -112,137 +382,7 @@ $grid = $dg->makeGrid_returnObjects();
                 width : 700,
                 layout : "vbox",
                 renderTo : this.get("div_plan"),
-                items : [{
-                    xtype : "combo",
-                    store : new Ext.data.SimpleStore({
-                        proxy: {
-                            type: 'jsonp',
-                            url: this.address_prefix + '../../framework/person/persons.data.php?' +
-                                "task=selectPersons&UserType=IsCustomer",
-                            reader: {root: 'rows',totalProperty: 'totalCount'}
-                        },
-                        fields : ['PersonID','fullname']
-                    }),
-                    fieldLabel : "مشتری",
-                    displayField : "fullname",
-                    pageSize : 20,
-                    width : 400,
-                    hidden : true,
-                    allowBlank: false,
-                    valueField : "PersonID",
-                    name : "PersonID"
-                },{
-                    xtype : "textfield",
-                    fieldLabel : "عنوان طرح",
-                    name : "PlanDesc",
-                    allowBlank: false,
-                    width : 600,
-                    value : this.PlanDesc
-                },{
-                    xtype : "combo",
-                    name : "LetterID",
-                    allowBlank: false,
-                    colspan : 2,
-                    width : 600,
-                    store: new Ext.data.Store({
-                        proxy:{
-                            type: 'jsonp',
-                            url:  this.address_prefix + '../../office/letter/letter.data.php?task=SelectLetter',
-                            reader: {root: 'rows', totalProperty: 'totalCount'}
-                        },
-                        fields :  ['LetterID','LetterTitle',{
-                            name : 'LetterDate',
-                            convert : function(v){return MiladiToShamsi(v);}
-                        },{
-                            name : "fulltitle",
-                            convert: function(v,r){
-                                return '['+r.data.LetterID + '] ' + r.data.LetterTitle + ' [ ' + r.data.LetterDate + ' ]'; }
-                        }],
-                        pageSize : 20
-                    }),
-                    pageSize : 20,
-                    fieldLabel : "شماره نامه",
-                    displayField: 'fulltitle',
-                    valueField : "LetterID"
-
-                },{
-                    xtype : "combo",
-                    store : new Ext.data.SimpleStore({
-                        proxy: {
-                            type: 'jsonp',
-                            url: this.address_prefix +'../../framework/person/persons.data.php?task=selectPersonInfoTypes&TypeID=97',
-                            reader: {root: 'rows',totalProperty: 'totalCount'}
-                        },
-                        fields : ['TypeID','InfoID','InfoDesc'],
-                        autoLoad : true
-                    }),
-                    width : 400,
-                    fieldLabel : "نوع ارزیابی",
-                    queryMode : 'local',
-                    displayField : "InfoDesc",
-                    valueField : "InfoID",
-                    allowBlank: false,
-                    /*hidden : true,*/
-                    listeners: {
-                        change : function() {
-                            var val = this.getValue();
-                            if(val==3 || val==5)
-                            {
-                                NewPlanObject.planFS.down("[name=FacilityAmount]").disable();
-                                NewPlanObject.planFS.down("[name=FacilityAmount]").setValue("");
-                            }
-                            else
-                            {
-                                NewPlanObject.planFS.down("[name=FacilityAmount]").enable();
-                            }
-                        }
-                    },
-                    name : "evaluationType"
-                },{
-                    xtype : "currencyfield",
-                    allowBlank: false,
-                    /*listeners: {
-                        render: onRenderTextField
-                    },*/
-
-                    fieldLabel : "مبلغ درخواستی",
-                    name : "FacilityAmount",
-                    width : 400,
-                    hideTrigger: true,
-                    value : this.FacilityAmount
-                },{
-                    xtype : "combo",
-                    store : new Ext.data.SimpleStore({
-                        proxy: {
-                            type: 'jsonp',
-                            url: this.address_prefix + '../../framework/person/persons.data.php?' +
-                                "task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
-                            reader: {root: 'rows',totalProperty: 'totalCount'}
-                        },
-                        fields : ['PersonID','fullname']
-                    }),
-                    fieldLabel : "متقاضی ارزیابی",
-                    displayField : "fullname",
-                    pageSize : 20,
-                    width : 400,
-                    allowBlank: false,
-                    valueField : "PersonID",
-                    name : "evaluationAskerID"
-                },{
-                    xtype : "button",
-                    disabled : this.AddAccess ? false : true,
-                    text : this.PlanID == 0 ? "ثبت طرح و تکمیل جداول اطلاعاتی" : "ویرایش جداول اطلاعاتی",
-                    iconCls : "arrow_left",
-                    handler : function(){ NewPlanObject.SaveNewPlan(); }
-                },{
-                    xtype : "hidden",
-                    name : "PlanID",
-                    value : this.PlanID
-                },{
-                    xtype : "hidden",
-                    name : "FormType",
-                    value : this.FormType
-                }]
+                items : itemsPlan
             });
         }
 
