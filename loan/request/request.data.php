@@ -1032,7 +1032,7 @@ function selectRequestStatuses(){
 
 function GetBackPays(){
 	
-	$dt = LON_BackPays::SelectAll("RequestID=? " . dataReader::makeOrder() , array($_REQUEST["RequestID"]));
+	$dt = LON_BackPays::SelectAll("p.RequestID=? " . dataReader::makeOrder() , array($_REQUEST["RequestID"]));
 	print_r(ExceptionHandler::PopAllExceptions());
 	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
 	die();

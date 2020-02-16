@@ -3,7 +3,6 @@
 // developer:	Sh.Jafarkhani
 // Date:		97.10
 //---------------------------
-ini_set("display_errors", "On");
 require_once '../header.inc.php';
 require_once(inc_response);
 require_once(inc_dataReader);
@@ -24,15 +23,13 @@ switch ($task) {
 
 function selectEventRows(){
 	
-	ini_set("display_errors", "On");
-	
 	$EventID = $_REQUEST["EventID"]*1;
 	$eObj = new ExecuteEvent($EventID);
 	
 	$where = " er.IsActive='YES' AND EventID=? ";
 	$where .= " order by CostType,CostCode";
 	$list = COM_EventRows::SelectAll($where, array($EventID));
-
+echo PdoDataAccess::GetLatestQueryString();
 	//-------------- set source objects ----------------
 	$SourcesArr = array();
 	if(!empty($_REQUEST["SourceID1"]))
