@@ -10,7 +10,7 @@ require_once './baseinfo/baseinfo.class.php';
 require_once '../loan/request/request.class.php';
 require_once './ComputeItems.class.php';
 require_once './ExecuteEvent.class.php';
-	
+	ini_set("display_errors", "On");
 $task = isset($_REQUEST['task']) ? $_REQUEST['task'] : '';
 
 switch ($task) {
@@ -29,7 +29,7 @@ function selectEventRows(){
 	$where = " er.IsActive='YES' AND EventID=? ";
 	$where .= " order by CostType,CostCode";
 	$list = COM_EventRows::SelectAll($where, array($EventID));
-echo PdoDataAccess::GetLatestQueryString();
+
 	//-------------- set source objects ----------------
 	$SourcesArr = array();
 	if(!empty($_REQUEST["SourceID1"]))
@@ -63,7 +63,6 @@ echo PdoDataAccess::GetLatestQueryString();
 			
 			if(is_array($value))
 			{
-				continue;
 				if(isset($value["amount"]))
 				{
 					if($list[$i]["CostType"] == "DEBTOR")
@@ -132,6 +131,7 @@ function SetParamValues(&$list){
 
 function RegisterEventDoc(){
 	
+	
 	$EventID = (int)$_POST["EventID"];
 	$SourceIDs = isset($_POST["SourcesArr"]) ? $_POST["SourcesArr"] : array();
 	
@@ -143,8 +143,7 @@ function RegisterEventDoc(){
 	$result = $obj->RegisterEventDoc($pdo);
 	if(!$result)
 	{
-		$pdo->rollBack();
-		print_r(ExceptionHandler::PopAllExceptions());
+		//print_r(ExceptionHandler::PopAllExceptions());
 		Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 		die();
 	}
