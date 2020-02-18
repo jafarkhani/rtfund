@@ -3189,7 +3189,11 @@ class LON_guarantors extends OperationClass{
 	public $phone;
 	public $mobile;
 	public $PersonType;
-	
+    public $FormType; //new added
+    public $EconomicID; //new added
+    public $email; //new added
+    public $PostalCode; //new added
+    public $NewspaperAdsNum; //new added
 	function __construct($id = '') {
 		
 		$this->DT_BirthDate = DataMember::CreateDMA(DataMember::DT_DATE);
