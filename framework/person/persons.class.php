@@ -222,6 +222,7 @@ class BSC_persons extends PdoDataAccess{
 class BSC_OrgSigners extends PdoDataAccess{
 	
 	public $RowID;
+    public $FormType; //new added
     public $PersonID;
 	public $PostDesc;
 	public $fullname;

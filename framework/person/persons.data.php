@@ -450,7 +450,15 @@ function SelectSigners(){
 }
 
 function SaveSigner(){
-	
+    if(isset($_POST["FormType"]) && $_POST["FormType"]==2){
+        $_POST["fullname"] = trim($_POST["fullname"],'""');
+        $_POST["FatherName"] = trim($_POST["FatherName"],'""');
+        $_POST["ShNo"] = trim($_POST["ShNo"],'""');
+        $_POST["BirthDate"] = trim($_POST["BirthDate"],'""');
+        $_POST["NationalID"] = trim($_POST["NationalID"],'""');
+        $_POST["PostDesc"] = trim($_POST["PostDesc"],'""');
+        $_POST["RowID"] = trim($_POST["RowID"],'""');
+    }
 	$obj = new BSC_OrgSigners();
 	PdoDataAccess::FillObjectByArray($obj, $_POST);
 	
