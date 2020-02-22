@@ -4,7 +4,7 @@
 //	Date		: 1394.07
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
 
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "request.data.php?task=SelectReceivedRequests", "grid_div");

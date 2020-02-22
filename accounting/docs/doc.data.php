@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once 'doc.class.php';
 require_once 'import.data.php';
 require_once '../baseinfo/baseinfo.class.php';

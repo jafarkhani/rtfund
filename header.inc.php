@@ -21,14 +21,11 @@ require_once getenv("DOCUMENT_ROOT") . '/framework/session.php';
 require_once getenv("DOCUMENT_ROOT") . '/framework/management/framework.class.php';
 
 session::sec_session_start();
-
 if(!session::checkLogin())
 {
 	echo "<script>window.location='/framework/login.php';</script>";
 	die();
 } 
-
-define("SYSTEMID", 6);
 
 $address_prefix = getenv("DOCUMENT_ROOT");
 $script = preg_split('/\//', $_SERVER["SCRIPT_NAME"]);
@@ -46,6 +43,10 @@ if(isset($_REQUEST["framework"]))
 		die();
 	}
 }
+if($_SESSION["USER"]["UserName"] == "admin")
+	sys_config::$db_server["database"] = "krrtfir_oldcomputes";
 
 define("SHEKOOFAI", 1003);
+
+
 ?>

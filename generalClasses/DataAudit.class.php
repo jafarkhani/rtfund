@@ -48,7 +48,7 @@ class DataAudit
   		//------------------- fill data members --------------------
   		$this->DataAuditID = PDONULL;
   		$this->PersonID = isset($_SESSION["USER"]["PersonID"]) ? $_SESSION["USER"]["PersonID"] : "";
-  		$this->SystemID = SYSTEMID;
+  		//$this->SystemID = SYSTEMID;
 		
   		if(isset($_SERVER['HTTP_REFERER']))
 			$this->PageName = $_SERVER['HTTP_REFERER'];

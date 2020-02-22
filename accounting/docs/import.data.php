@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
  
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once getenv("DOCUMENT_ROOT") . '/framework/person/persons.class.php';
 require_once getenv("DOCUMENT_ROOT") . '/loan/loan/loan.class.php';
 require_once getenv("DOCUMENT_ROOT") . '/loan/request/compute.inc.php';

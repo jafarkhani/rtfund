@@ -4,7 +4,7 @@
 //	Date		: 1397.02
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once 'config.inc.php';
 require_once inc_dataGrid;
 

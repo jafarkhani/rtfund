@@ -5,7 +5,7 @@
 //	Date		: 92.04
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once '../DocOperations/class/Checks.class.php';
 require_once '../baseInfo/class/signs.class.php';
 require_once 'CurrencyModules.class.php';

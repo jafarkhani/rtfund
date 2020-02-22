@@ -4,7 +4,7 @@
 // create Date: 95.05
 //-------------------------
 
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataReader;
 require_once inc_response;
 require_once getenv("DOCUMENT_ROOT") . '/office/letter/letter.class.php';

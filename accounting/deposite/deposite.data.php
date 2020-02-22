@@ -4,7 +4,7 @@
 //	Date		: 95.04
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once '../docs/doc.class.php';
 require_once '../docs/import.data.php';
 require_once 'deposite.class.php';

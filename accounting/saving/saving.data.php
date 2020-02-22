@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once '../docs/doc.class.php';
 require_once '../docs/import.data.php';
 require_once '../../loan/request/request.class.php';

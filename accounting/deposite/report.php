@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
  
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once '../docs/import.data.php';
 
 $IsFlow = false;

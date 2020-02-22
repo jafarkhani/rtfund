@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	89.11
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once 'framework.class.php';
 require_once '../person/persons.class.php';
 require_once 'TreeModules.class.php';

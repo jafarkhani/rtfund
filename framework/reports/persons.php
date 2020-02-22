@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	96.05
 //-------------------------
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 
 function RealRender($row, $value){

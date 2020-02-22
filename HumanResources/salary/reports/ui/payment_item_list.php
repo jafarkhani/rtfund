@@ -128,8 +128,10 @@ if (isset($_REQUEST["show"])) {
 				 ";
 
 	$dataTable = PdoDataAccess::runquery($query);
-	/* echo PdoDataAccess::GetLatestQueryString() ;
-	  die(); */
+	if($_SESSION["USER"]['UserName'] == "admin"){
+		//echo PdoDataAccess::GetLatestQueryString() ;
+		// die(); 
+	}
 	?>
 	<style>
 		.reportGenerator {border-collapse: collapse;border: 1px solid black;font-family: B Nazanin;font-size: 8pt;

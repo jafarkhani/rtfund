@@ -2260,7 +2260,7 @@ RequestInfo.prototype.LoadSummary = function(record){
 	this.get("SUM_LastInstallmentAmount").innerHTML = Ext.util.Format.Money(record.data.LastPay);
 	this.get("SUM_FundDelay").innerHTML = Ext.util.Format.Money(record.data.FundDelay);
 	this.get("SUM_AgentDelay").innerHTML = Ext.util.Format.Money(record.data.AgentDelay);
-	this.get("SUM_TotalWage").innerHTML = Ext.util.Format.Money(record.data.TotalCustomerWage);
+	this.get("SUM_TotalCustomerWage").innerHTML = Ext.util.Format.Money(record.data.TotalCustomerWage);
 	this.get("SUM_FundWage").innerHTML = Ext.util.Format.Money(record.data.TotalFundWage);
 	this.get("SUM_AgentWage").innerHTML = Ext.util.Format.Money(record.data.TotalAgentWage);
 	this.get("SUM_Wage_1Year").innerHTML = Ext.util.Format.Money(record.data.WageYear1);
@@ -2277,7 +2277,7 @@ RequestInfo.prototype.LoadInstallments = function(){
 	if(!this.InstallmentsWin)
 	{
 		this.InstallmentsWin = new Ext.window.Window({
-			width : 770,
+			width : 1000,
 			title : "لیست اقساط",
 			height : 410,
 			modal : true,

@@ -4,7 +4,7 @@
 // Create Date:	97.09
 //-------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "../request/request.class.php";
 require_once "../request/request.data.php";
 require_once "ReportGenerator.class.php";

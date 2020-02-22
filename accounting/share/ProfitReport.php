@@ -4,7 +4,7 @@
 //	Date		: 91.02
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 
 $query = "select di.*,d.DocDate								

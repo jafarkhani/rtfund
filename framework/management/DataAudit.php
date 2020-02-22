@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 95.01
 //-----------------------------
-require_once("../header.inc.php");
+require_once("../../header.inc.php");
 require_once inc_dataGrid;
 
 $dg = new sadaf_datagrid("dg",$js_prefix_address . "framework.data.php?task=selectDataAudits","div_grid");

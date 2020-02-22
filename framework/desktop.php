@@ -4,7 +4,7 @@
 //	Date		: 1395.03
 //-----------------------------
 
-require_once ('header.inc.php');
+require_once('../header.inc.php');
 require_once 'management/framework.class.php';
 require_once 'TreeModules.class.php';
 
