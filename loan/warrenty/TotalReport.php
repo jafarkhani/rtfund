@@ -24,6 +24,8 @@ $col = $page_rpg->addColumn("تاریخ نامه معرفی", "LetterDate");
 $col->type = "date";
 $page_rpg->addColumn("وضعیت", "StepDesc");
 $page_rpg->addColumn("نسخه", "version");
+$page_rpg->addColumn("مبلغ سپرده", "WAR_SepordeAmount");//new added
+$page_rpg->addColumn("مبلغ کارمزد", "WAR_WageAmount");//new adde
 
 function MakeWhere(&$where, &$whereParam){
 
@@ -108,8 +110,27 @@ function GetData(){
 	$group = ReportGenerator::GetSelectedColumnsStr();
 	$query .= $group == "" ? " group by r.RequestID" : " group by " . $group;
 	$query .= $group == "" ? " order by r.RequestID" : " order by " . $group;
-	
-	return PdoDataAccess::runquery($query, $whereParam);
+
+    /*return PdoDataAccess::runquery($query, $whereParam);*/
+    $temp = PdoDataAccess::runquery($query, $whereParam);
+    $count=count($temp);
+
+    //---------------------- Warrenty Info --------------------------
+    for ($i=0; $i<$count; $i++ ){
+        if($temp[$i]['RequestID'] > 0)
+        {
+            require_once getenv("DOCUMENT_ROOT") . '/loan/warrenty/request.class.php';
+            $warObj = new WAR_requests($temp[$i]['RequestID']);
+            $days = DateModules::GDateMinusGDate($warObj->EndDate,$warObj->StartDate);
+            $days -= 1;
+            $TotalWage = round($days*$warObj->amount*(1-$warObj->SavePercent/100)*$warObj->wage/36500);
+
+            $temp[$i]["WAR_WageAmount"] = $TotalWage;
+            $temp[$i]["WAR_SepordeAmount"] = $warObj->amount*$warObj->SavePercent/100;
+        }
+    }
+    //------------------------------------------------------------------
+    return $temp;
 }
 
 function ListDate($IsDashboard = false){
@@ -135,6 +156,8 @@ function ListDate($IsDashboard = false){
 	$rpg->addColumn("تاریخ نامه معرفی", "LetterDate", "ReportDateRender");
 	$rpg->addColumn("وضعیت", "StepDesc");
 	$rpg->addColumn("نسخه", "version", "RefReasonRender");
+    $rpg->addColumn("مبلغ سپرده", "WAR_SepordeAmount", "ReportMoneyRender");//new added
+    $rpg->addColumn("مبلغ کارمزد", "WAR_WageAmount", "ReportMoneyRender");//new adde
 	
 	function RefReasonRender($row, $value){
 		switch($value)
