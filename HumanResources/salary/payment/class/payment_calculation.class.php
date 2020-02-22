@@ -3563,9 +3563,7 @@ return true ;
 		$param2 = $DailyMission;
 
 	
-		$salary = ( !empty($this->payment_items[1]['pay_value']) ? ( $this->payment_items[1]['pay_value'] * 30/31 ) : 0  )  +  
-		          ( !empty($this->payment_items[2]['pay_value']) ? $this->payment_items[2]['pay_value'] : 0  )  +  
-		          ( !empty($this->payment_items[9]['pay_value']) ? $this->payment_items[4]['pay_value'] : 0  )  ;
+		$salary = ( !empty($this->payment_items[1]['pay_value']) ? ( $this->payment_items[1]['pay_value'] * 30/31 ) : 0  )   ;
 
 		$param3 = $salary / 30 /*$this->__MONTH_LENGTH*/;
  
