@@ -513,7 +513,8 @@ class EventComputeItems {
 			$EventRow["EventType"] == "LoanBackPayCheque" ||
 			$EventRow["EventType"] == "LoanContract" ||
 			$EventRow["EventType"] == "LoanDaily" ||
-			$EventRow["EventType"] == "IncomeCheque" )
+			$EventRow["EventType"] == "IncomeCheque" ||
+			$EventRow["EventType"] == "LoanEnd" )
 		{
 			$ReqObj = new LON_requests($params[0]);
 			/* @var $ReqObj LON_requests */

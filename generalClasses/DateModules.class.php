@@ -211,6 +211,10 @@ class DateModules
 		
         $gdate_array1 = preg_split('/[\-\/]/',$gdate1);
 		$gdate_array2 = preg_split('/[\-\/]/',$gdate2);
+		
+		if(count($gdate_array1) < 3 || count($gdate_array2) < 3)
+			return 0;
+		
 		$dist1 = 1970 - $gdate_array1[0];
 		$dist2 = 1970 - $gdate_array2[0];
 		$diff_years = 0;

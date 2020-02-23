@@ -1748,7 +1748,8 @@ function DeleteCosts(){
 
 function GetGuarantors(){
 	
-	$temp = LON_guarantors::Get("AND RequestID=?", array($_REQUEST["RequestID"]));
+	/*$temp = LON_guarantors::Get("AND RequestID=?", array($_REQUEST["RequestID"]));*/
+    $temp = LON_guarantors::Get("AND FormType=? AND RequestID=?", array($_REQUEST["FormType"],$_REQUEST["RequestID"])); //new edited
 	$res = $temp->fetchAll();
 	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
 	die();

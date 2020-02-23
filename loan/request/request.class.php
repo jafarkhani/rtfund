@@ -2687,7 +2687,6 @@ class LON_BackPays extends PdoDataAccess{
 				bi.InfoDesc PayTypeDesc,
 				bd.DocID,
 				bd.LocalNo
-				
 			from LON_BackPays p
 			left join BaseInfo bi on(bi.TypeID=6 AND bi.InfoID=p.PayType)
 			left join ACC_IncomeCheques i using(IncomeChequeID)
@@ -2695,27 +2694,7 @@ class LON_BackPays extends PdoDataAccess{
 			
 			left join LON_BackPayDocs bd on(bd.BackPayID=p.BackPayID)
 			
-			where " . $where . " group by p.BackPayID " . $order, $param);
-			
-		/*return PdoDataAccess::runquery("
-			select p.*,
-		 		i.ChequeNo,
-				i.ChequeStatus,
-				t.InfoDesc ChequeStatusDesc,
-				bi.InfoDesc PayTypeDesc, 				
-				d.DocID,
-				d.LocalNo,
-				d.StatusID
-			from LON_BackPays p
-			left join BaseInfo bi on(bi.TypeID=6 AND bi.InfoID=p.PayType)
-			left join ACC_IncomeCheques i using(IncomeChequeID)
-			left join BaseInfo t on(t.TypeID=4 AND t.InfoID=ChequeStatus)
-			
-			left join ACC_ChequeHistory ch on(ch.IncomeChequeID = p.IncomeChequeID 
-				AND ch.StatusID=" . INCOMECHEQUE_VOSUL . ")
-			left join ACC_docs d on(ch.DocID=d.DocID)
-			
-			where " . $where . " group by BackPayID " . $order, $param);*/
+			where " . $where . " group by BackPayID " . $order, $param);
 	}
 	
 	function Add($pdo = null){
@@ -3193,7 +3172,11 @@ class LON_guarantors extends OperationClass{
 	public $phone;
 	public $mobile;
 	public $PersonType;
-	
+    public $FormType; //new added
+    public $EconomicID; //new added
+    public $email; //new added
+    public $PostalCode; //new added
+    public $NewspaperAdsNum; //new added
 	function __construct($id = '') {
 		
 		$this->DT_BirthDate = DataMember::CreateDMA(DataMember::DT_DATE);

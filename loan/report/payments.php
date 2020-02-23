@@ -105,6 +105,7 @@ function GetData(){
 	$group = ReportGenerator::GetSelectedColumnsStr();
 	$query .= $group == "" ? " group by py.PayID" : " group by " . $group;
 	$query .= $group == "" ? " order by py.PayDate" : " order by " . $group;		
+	
 	return PdoDataAccess::runquery($query, $whereParam);
 	
 }	
@@ -116,8 +117,8 @@ function ListData($IsDashboard = false){
 	$rpg->mysql_resource = GetData();
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		print_r(ExceptionHandler::PopAllExceptions());
-		echo PdoDataAccess::GetLatestQueryString();
+		//print_r(ExceptionHandler::PopAllExceptions());
+		//echo PdoDataAccess::GetLatestQueryString();die();
 	}
 	function endedRender($row,$value){
 		return ($value == "YES") ? "خاتمه" : "جاری";
