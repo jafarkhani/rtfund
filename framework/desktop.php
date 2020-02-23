@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 1395.03
 //-----------------------------
-
+ini_set("display_errors","On");
 require_once('../header.inc.php');
 require_once 'management/framework.class.php';
 require_once 'TreeModules.class.php';
@@ -290,7 +290,7 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 		this.ExpireInterval = setInterval(function(){
 
 			Ext.Ajax.request({
-				url : "header.inc.php",
+				url : "../header.inc.php",
 				method : "POST",
 
 				success : function(response)

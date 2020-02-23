@@ -1131,7 +1131,7 @@ class LON_requests extends PdoDataAccess{
 		$TotalShouldPay = $dt["TotalShouldPay"];
 		
 		//------------ sub pays --------------
-		$dt = LON_BackPays::SelectAll(" RequestID=? 
+		$dt = LON_BackPays::SelectAll(" p.RequestID=? 
 			AND if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)"
 			, array($RequestID));
 		foreach($dt as $row)
@@ -2685,25 +2685,17 @@ class LON_BackPays extends PdoDataAccess{
 				i.ChequeStatus,
 				t.TafsiliDesc ChequeStatusDesc,
 				bi.InfoDesc PayTypeDesc,
-				concat_ws('',d.DocID,t1.DocID) DocID,
-				concat_ws('',d.LocalNo,t1.LocalNo) LocalNo
+				bd.DocID,
+				bd.LocalNo
+				
 			from LON_BackPays p
 			left join BaseInfo bi on(bi.TypeID=6 AND bi.InfoID=p.PayType)
 			left join ACC_IncomeCheques i using(IncomeChequeID)
 			left join ACC_tafsilis t on(t.TafsiliType=".TAFTYPE_ChequeStatus." AND t.TafsiliID=ChequeStatus)
 			
-			left join ACC_DocItems di on(SourceID1=RequestID AND SourceID2=BackPayID AND SourceType in(8,5))
-			left join ACC_docs d on(di.DocID=d.DocID)
+			left join LON_BackPayDocs bd on(bd.BackPayID=p.BackPayID)
 			
-			left join (
-				select di2.SourceID3 ,d2.DocID,LocalNo 
-				from COM_events e
-					join ACC_docs d2 on(e.EventID=d2.EventID) 
-					join ACC_DocItems di2 on(d2.DocID=di2.DocID)
-				where ComputeFn='LoanBackPay'
-				group by di2.SourceID3
-			)t1 on(p.BackPayID=t1.SourceID3)
-			where " . $where . " group by BackPayID " . $order, $param);
+			where " . $where . " group by p.BackPayID " . $order, $param);
 			
 		/*return PdoDataAccess::runquery("
 			select p.*,
@@ -2782,7 +2774,7 @@ class LON_BackPays extends PdoDataAccess{
 	
 	static function GetRealPaid($RequestID){
 		
-		return LON_BackPays::SelectAll(" RequestID=? 
+		return LON_BackPays::SelectAll(" p.RequestID=? 
 			AND if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)
 			order by PayDate"
 			, array($RequestID));
@@ -2980,7 +2972,7 @@ class LON_payments extends OperationClass{
 	}
 	
 	static function UpdateRealPayed($SourceObjects, $eventObj, $pdo){
-		
+		return true;
 		$ReqObj = new LON_payments((int)$SourceObjects[2]);
 		$ReqObj->RealPayedDate = PDONOW;
 		$ReqObj->Edit();

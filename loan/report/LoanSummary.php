@@ -172,7 +172,7 @@ BeginReport();
 						"</td></tr>";
 				}
 				//----------------------------------------------
-				$dt = LON_BackPays::SelectAll("RequestID=? order by PayDate", array($RequestID));
+				$dt = LON_BackPays::SelectAll("p.RequestID=? order by PayDate", array($RequestID));
 				foreach($dt as $row)
 				{
 					$color = $row["PayType"] == BACKPAY_PAYTYPE_CHEQUE && $row["ChequeStatus"] != INCOMECHEQUE_VOSUL ? "gray" : "black";

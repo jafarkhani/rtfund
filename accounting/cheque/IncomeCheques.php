@@ -7,7 +7,7 @@
 require_once '../../header.inc.php';
 require_once inc_dataGrid; 
 require_once inc_dataReader;
-
+ 
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess($_POST["MenuID"]); 
 //...................................................

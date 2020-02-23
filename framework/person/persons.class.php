@@ -75,14 +75,15 @@ class BSC_persons extends PdoDataAccess{
 						left join BSC_posts po on(j.PostID=po.PostID)
 					where p.PersonID=?", array($PersonID));
 	}
-
-    static function SelectSearch($where = "", $param = array()){
-
-        return PdoDataAccess::runquery_fetchMode("select 
+	
+	static function SelectSearch($where = "", $param = array()){
+		
+		return PdoDataAccess::runquery_fetchMode("select 
 			PersonID,concat_ws(' ',fname,lname,CompanyName) name
 			from BSC_persons
 			where " . $where, $param);
-    }
+	}
+	
 	static function SelectAll($where = "", $param = array()){
 		
 		return PdoDataAccess::runquery_fetchMode("select 
@@ -222,6 +223,7 @@ class BSC_persons extends PdoDataAccess{
 class BSC_OrgSigners extends PdoDataAccess{
 	
 	public $RowID;
+	public $FormType; //new added
     public $PersonID;
 	public $PostDesc;
 	public $fullname;

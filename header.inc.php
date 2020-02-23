@@ -5,7 +5,6 @@
 //-----------------------------
 
 require_once getenv("DOCUMENT_ROOT") . '/framework/configurations.inc.php';
-
 set_include_path(get_include_path() . PATH_SEPARATOR . getenv("DOCUMENT_ROOT") . "/generalClasses");
 set_include_path(get_include_path() . PATH_SEPARATOR . getenv("DOCUMENT_ROOT") . "/generalUI/ext4");
 
@@ -27,6 +26,10 @@ if(!session::checkLogin())
 	die();
 } 
 
+if($_SESSION["USER"]["UserName"] == "admin")
+	sys_config::$db_server['database'] = "krrtfir_oldcomputes";
+
+
 $address_prefix = getenv("DOCUMENT_ROOT");
 $script = preg_split('/\//', $_SERVER["SCRIPT_NAME"]);
 $js_prefix_address = implode("/" , array_splice($script,0,	count($script)-1)) . "/";
@@ -43,8 +46,7 @@ if(isset($_REQUEST["framework"]))
 		die();
 	}
 }
-if($_SESSION["USER"]["UserName"] == "admin")
-	sys_config::$db_server["database"] = "krrtfir_oldcomputes";
+
 
 define("SHEKOOFAI", 1003);
 

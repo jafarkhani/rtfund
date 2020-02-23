@@ -186,6 +186,8 @@ class EventComputeItems {
 						case 41:
 						case 42:	
 							$earlyAmount = $row["early"];
+							if($PartObj->CustomerWage == 0)
+								return 0;
 							$FundEarly = round(($PartObj->FundWage/$PartObj->CustomerWage)*$earlyAmount);
 							$AgentEarly = $earlyAmount - $FundEarly;
 							if($ItemID == 41)

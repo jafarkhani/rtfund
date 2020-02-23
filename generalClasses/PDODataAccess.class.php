@@ -17,12 +17,10 @@ require_once 'DataMember.class.php';
 
 class PdoDataAccess extends ExceptionHandler
 {
-	private static $DB;
 	private static $ReportDB;
 	private static $statements = array();
 	private static $queryString = "";
 	private static $executionTime = "";
-	private static $defaultDB = "";
 
 	function  __construct() {
 		parent::__construct();
@@ -47,7 +45,6 @@ class PdoDataAccess extends ExceptionHandler
 		if($_host != "" && $_user != "" && $_pass != "" && $_default_db != "")
 		{
 			try{
-				self::$defaultDB = $_default_db;
 				return new PDO("mysql:host=" . $_host . ";dbname=" . $_default_db, $_user, $_pass,
 						array(PDO::MYSQL_ATTR_INIT_COMMAND =>  "SET NAMES utf8"));
 			}
@@ -61,32 +58,24 @@ class PdoDataAccess extends ExceptionHandler
 			return null;	
 		}
 		
-		if(!isset(self::$DB))
-		{
-			try{
-			    $_host = sys_config::$db_server['host'];
-			    $_user = sys_config::$db_server['user'];
-			    $_pass = sys_config::$db_server['pass'];
-			    $_default_db = sys_config::$db_server['database'];
-			    
-				self::$defaultDB = $_default_db;
-				
-				self::$DB = new PDO("mysql:host=" . $_host . ";dbname=" . $_default_db, $_user, $_pass, 
-					array(PDO::MYSQL_ATTR_INIT_COMMAND =>  "SET NAMES utf8"));
-				
-				return self::$DB;
-		    }
-		    catch (PDOException $e) 
-		    {
-				if ($ShowException)
-						echo $e->getMessage().'<br>';
-				echo " خطا در اتصال به بانک اطلاعاتی\n";
-				die();		
-			}
-			return null;	
+		try{
+			$_host = sys_config::$db_server['host'];
+			$_user = sys_config::$db_server['user'];
+			$_pass = sys_config::$db_server['pass'];
+			$_default_db = sys_config::$db_server['database'];
+			
+			return new PDO("mysql:host=" . $_host . ";dbname=" . $_default_db, $_user, $_pass, 
+				array(PDO::MYSQL_ATTR_INIT_COMMAND =>  "SET NAMES utf8"));
 		}
-		else 
-			return self::$DB;
+		catch (PDOException $e) 
+		{
+			if ($ShowException)
+					echo $e->getMessage().'<br>';
+			echo " خطا در اتصال به بانک اطلاعاتی\n";
+			die();		
+		}
+		return null;	
+
 	}
 	
 	/**
@@ -931,46 +920,6 @@ class PdoDataAccess extends ExceptionHandler
 	private static function LogQueryToDB()
 	{
 		return;
-		$PDO_Obj = self::getPdoObject();
-		$statement = self::$statements[$PDO_Obj->getAttribute(PDO::ATTR_CONNECTION_STATUS)];
-		
-		if(DEBUGQUERY === false)
-			return;
-		
-		if($statement->errorCode() == "00000" || $statement->errorCode() == "HY000")
-			return;
-		
-		$db = self::$defaultDB;
-		$pdo = new PDO("mysql:host=" . config::$db_servers['master']['host'] . ";dbname=" . 
-				config::$db_servers['master']['dataanalysis_db'], 
-				config::$db_servers['master']['dataanalysis_user'], 
-				config::$db_servers['master']['dataanalysis_pass'], 
-				array(PDO::MYSQL_ATTR_INIT_COMMAND =>  "SET NAMES utf8"));
-				
-		$query = "insert into SystemDBLog (page,query,SerializedParam,UserID,IPAddress,SysCode,ExecuteTime,QueryStatus,DBName)
-				values (:page,:query,:SerializedParam,:UserID,:IPAddress,:SysCode,:ExecuteTime,:QueryStatus,:DBName)";
-		
-		$stm = $pdo->prepare($query);
-		$whereParam = array(
-			':page' => $_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF'],
-			":query" => self::$queryString . ($statement->errorCode() == "00000" ? "" : "\n\n" . implode(",", $statement->errorInfo())),
-			":SerializedParam" => "",
-			':UserID' => isset($_SESSION['UserID']) ? $_SESSION['UserID'] : "",
-			':IPAddress' => $_SESSION['LIPAddress'],
-			':SysCode' => $_SESSION['SystemCode'],
-			':ExecuteTime' => self::$executionTime,
-			':QueryStatus' => $statement->errorCode() == "00000" ? "SUCCESS" : "FAILED",
-			':DBName' => $db);
-		$keys = array_keys($whereParam);
-		for($i=0; $i < count($keys); $i++)
-		{
-			$st = (is_int($keys[$i])) ? $keys[$i] + 1 : $keys[$i];
-			$stm->bindParam($keys[$i], $whereParam[$keys[$i]]);
-		}
-		
-		$stm->execute();
-		
-		return true;
 	}
 	
 	private static function GetObjectMembers($obj, $action)
