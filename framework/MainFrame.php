@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 1390-02
 //-----------------------------
-require_once('header.inc.php');
+require_once('../header.inc.php');
 require_once 'management/framework.class.php';
 
 $systems = FRW_access::getAccessSystems();

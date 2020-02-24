@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	94.08
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once 'request.class.php';
 require_once inc_dataGrid;
 
@@ -63,6 +63,9 @@ if(session::IsFramework())
 	
 	$col = $dg->addColumn("خالص کارمزد", "PureWage", GridColumn::ColumnType_money);
 	$col->width = 80;
+	
+	$col = $dg->addColumn("کارمزد مازاد صندوق از حساب سرمایه گذار", "PureFundWage", GridColumn::ColumnType_money);
+	$col->width = 80;
 }
 
 $col = $dg->addColumn("مانده قسط", "remain", GridColumn::ColumnType_money);
@@ -101,7 +104,6 @@ if(session::IsFramework())
 	$dg->addButton("cmp_report2", "گزارش پرداخت", "report", "function(){InstallmentObject.PayReport();}");
 }
 $dg->height = 377;
-$dg->width = 755;
 $dg->emptyTextOfHiddenColumns = true;
 $dg->EnableSearch = false;
 $dg->HeaderMenu = false;
@@ -956,5 +958,5 @@ function LoanRFID(RequestID){
 <center>
 	<div id="div_loans"></div>
 	<div id="div_paying"></div>	
-	<div id="div_grid"></div>	
+	<div id="div_grid" style="width:98%"></div>	
 </center>

@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	94.7
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once 'persons.class.php';
 require_once '../PasswordHash.php';
 require_once 'email.php';

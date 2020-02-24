@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 94.12
 //-----------------------------
-require_once("../header.inc.php");
+require_once("../../header.inc.php");
 require_once inc_dataGrid;
 
 $PersonID = session::IsPortal() ? $_SESSION["USER"]["PersonID"] : $_REQUEST["PersonID"];

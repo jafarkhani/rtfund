@@ -463,7 +463,7 @@ ManageRequest.prototype.LoadInstallments = function(){
 	if(!this.InstallmentsWin)
 	{
 		this.InstallmentsWin = new Ext.window.Window({
-			width : 770,
+			width : 1000,
 			title : "لیست اقساط",
 			height : 410,
 			modal : true,

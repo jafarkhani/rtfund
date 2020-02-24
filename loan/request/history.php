@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // create Date:	91.12
 //---------------------------
-require_once("../header.inc.php");
+require_once("../../header.inc.php");
 require_once inc_component;
 $RequestID = $_POST["RequestID"];
 

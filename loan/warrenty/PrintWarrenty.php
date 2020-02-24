@@ -4,7 +4,7 @@
 //	Date		: 95.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once 'request.class.php';
 require_once inc_CurrencyModule;
 

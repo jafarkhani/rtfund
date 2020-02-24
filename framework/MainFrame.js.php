@@ -32,7 +32,7 @@ function FrameWorkClass()
 	this.ExpireInterval = setInterval(function(){
 		
 		Ext.Ajax.request({
-			url : "header.inc.php",
+			url : "../header.inc.php",
 			method : "POST",
 
 			success : function(response)

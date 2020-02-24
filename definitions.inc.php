@@ -203,7 +203,6 @@ define("EVENTTYPE_LoanBackPayCheque", "LoanBackPayCheque");
 define("EVENTTYPE_LoanDailyIncome", "LoanDailyIncome");
 define("EVENTTYPE_LoanDailyLate", "LoanDailyLate");
 define("EVENTTYPE_LoanDailyPenalty", "LoanDailyPenalty");
-define("EVENTTYPE_LoanDailyEarly", "LoanDailyEarly");
 define("EVENTTYPE_LoanEnd", "LoanEnd");
 define("EVENTTYPE_LoanCost", "LoanCost");
 define("EVENTTYPE_LoanChange", "LoanChange");

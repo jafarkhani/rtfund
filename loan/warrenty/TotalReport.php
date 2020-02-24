@@ -4,7 +4,7 @@
 //	Date		: 95.05
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
  
 $page_rpg = new ReportGenerator("mainForm","WarrentyReport_totalObj");

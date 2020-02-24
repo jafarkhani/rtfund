@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 97.11
 //-----------------------------
-require_once("../header.inc.php");
+require_once("../../header.inc.php");
 require_once './persons.class.php';
 
 $PersonID = session::IsPortal() ? $_SESSION["USER"]["PersonID"] : $_REQUEST["PersonID"];

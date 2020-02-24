@@ -11,7 +11,7 @@ if (!empty($_POST["SystemID"])) {
 	}
 }
 
-require_once 'header.inc.php';
+require_once('../header.inc.php');
 require_once 'management/framework.class.php';
 
 $systems = FRW_access::getAccessSystems();

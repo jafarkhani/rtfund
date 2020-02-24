@@ -4,7 +4,7 @@
 // create Date: 94.06
 //-------------------------
 //ini_set("display_errors", "On");
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataReader;
 require_once inc_response;
 require_once 'request.class.php';
@@ -428,10 +428,6 @@ function GetRequestParts(){
 		$dt[$i]["TotalAgentWage"] = $result["AgentWage"];
 		$dt[$i]["TotalFundWage"] = $result["FundWage"];
 
-		$res = LON_requests::GetDelayAmounts($PartObj->RequestID, $PartObj);
-		$dt[$i]["FundDelay"] = $res["FundDelay"];
-		$dt[$i]["AgentDelay"] = $res["AgentDelay"];			
-
 		$dt[$i]["SUM_NetAmount"] = LON_requests::GetPayedAmount($PartObj->RequestID);
 		
 	}
@@ -494,7 +490,7 @@ function SavePart(){
 			join ACC_docs using(DocID)
 			join COM_events using(EventID)
 			join ACC_cycles using(CycleID)
-			where EventType=" . EVENTTYPE_LoanChange ." AND SourceID1=? AND SourceID2=?",
+			where EventType='" . EVENTTYPE_LoanChange ."' AND SourceID1=? AND SourceID2=?",
 			array($obj->RequestID, $obj->PartID));
 
 		if(count($temp) > 0 && $temp[0]["StatusID"] != ACC_STEPID_RAW)

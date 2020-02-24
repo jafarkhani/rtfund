@@ -448,23 +448,78 @@ class LON_requests extends PdoDataAccess{
 			case "NEW":
 			case "NOAVARI":
 				$dt = LON_installments::GetValidInstallments($PartObj->RequestID);
+				$FundWage = 0;
 				if(count($dt)>0)
+				{
 					foreach($dt as $row)
+					{
 						$TotalWage += $row["wage"]*1;
-				break;
+						$FundWage += $row["PureFundWage"]*1;
+					}
+				}
+				if($PartObj->FundWage <= $PartObj->CustomerWage)
+				{
+					if($PartObj->CustomerWage*1 != 0)
+						$FundWage = $TotalWage*$PartObj->FundWage/$PartObj->CustomerWage;
+					else
+						$FundWage = $TotalWage*$PartObj->FundWage;
+					
+					$AgentWage = $TotalWage - $FundWage;
+				}
+				else
+				{
+					$FundWage += $TotalWage;
+					$AgentWage = 0;
+				}
+				return array(
+					"FundWage" => $FundWage,
+					"AgentWage" => $AgentWage,
+					"CustomerWage" => $TotalWage
+				);
 				
 			case "BANK":
 				$TotalWage = round(self::ComputeWage( $PayAmount,
 					$PartObj->CustomerWage*1/100, 
 					$PartObj->InstallmentCount, 
 					$PartObj->IntervalType, $PartObj->PayInterval));	
-				break;
+				if($PartObj->FundWage <= $PartObj->CustomerWage)
+				{
+					if($PartObj->CustomerWage*1 != 0)
+						$FundWage = $TotalWage*$PartObj->FundWage/$PartObj->CustomerWage;
+					else
+						$FundWage = $TotalWage*$PartObj->FundWage;
+					$AgentWage = $TotalWage - $FundWage;
+				}
+				else
+				{
+					$FundWage = $TotalWage + round($PayAmount*($PartObj->CustomerWage-$PartObj->FundWage)/100);
+					$AgentWage = 0;
+				}		
+				return array(
+					"FundWage" => $FundWage,
+					"AgentWage" => $AgentWage,
+					"CustomerWage" => $TotalWage
+				);
 			
 			case "PERCENT":
+				
+				if($PartObj->CustomerWage < $PartObj->FundWage)
+				{
+					$CustomerWage = round($PayAmount*$PartObj->CustomerWage/100);
+					$AgentWage = 0;
+					$FundWage = round($PayAmount*$PartObj->FundWage/100);
+				}
+				else
+				{
+					$CustomerWage = round($PayAmount*$PartObj->CustomerWage/100);
+					$FundWage = round($PayAmount*$PartObj->FundWage/100);
+					$AgentWage = $CustomerWage - $FundWage;
+				}
+				
 				return array(
-					"FundWage" => round($PayAmount*$PartObj->FundWage/100),
-					"AgentWage" => round($PayAmount*min($PartObj->CustomerWage,$PartObj->CustomerWage-$PartObj->FundWage)/100),
-					"CustomerWage" => round($PayAmount*$PartObj->CustomerWage/100)
+					"FundWage" => $FundWage,
+					"AgentWage" => $AgentWage,
+					"CustomerWage" => $CustomerWage
 				);
 		}
 		
@@ -975,55 +1030,21 @@ class LON_requests extends PdoDataAccess{
 			return $amount;
 		}
 		
-		$result = self::GetDelayAmounts($RequestID, $PartObj);
-		if($PartObj->DelayReturn != "INSTALLMENT")
-			$amount += $result["FundDelay"];
-		if($PartObj->AgentDelayReturn != "INSTALLMENT")
-			$amount += $result["AgentDelay"];
-		
-		if($PartObj->FirstTotalWage*1 > 0)
-			$amount += $PartObj->FirstTotalWage*1;
-		else if($PartObj->WageReturn == "CUSTOMER" || $PartObj->AgentReturn == "CUSTOMER")
+		if($PartObj->WageReturn == "CUSTOMER" || $PartObj->AgentReturn == "CUSTOMER")
 		{
 			$result = self::GetWageAmounts($RequestID, $PartObj);
-			if($PartObj->WageReturn != "INSTALLMENT")
-				$amount += $result["FundWage"];
-			if($PartObj->AgentReturn != "INSTALLMENT")
+			if($PartObj->WageReturn == "CUSTOMER")
+			{
+				if($PartObj->FundWage <= $PartObj->CustomerWage)
+					$amount += $result["FundWage"];
+				else
+					$amount += $result["CustomerWage"];
+			}
+			if($PartObj->AgentReturn == "CUSTOMER")
 				$amount += $result["AgentWage"];
 		}
 		
 		return round($amount);		
-	}
-	
-	/**
-	 مبالغی که به باز پرداخت  مشتری باید اضافه گردد.
-	 * @param type $RequestID
-	 * @param type $PartObj
-	 * @param type $TanzilCompute
-	 * @return boolean
-	 */
-	static function TotalAddedToBackPay($RequestID, $PartObj = null, $TotalAmount = 0)
-	{
-		$PartObj = $PartObj == null ? LON_ReqParts::GetValidPartObj($RequestID) : $PartObj;
-		/*@var $PartObj LON_ReqParts */
-		
-		$zarib = $TotalAmount/$PartObj->PartAmount;
-		
-		$amount = 0;
-		
-		$result = self::GetDelayAmounts($RequestID, $PartObj);
-		if($PartObj->DelayReturn == "INSTALLMENT")
-			$amount += $result["FundDelay"];
-		if($PartObj->AgentDelayReturn == "INSTALLMENT")
-			$amount += $result["AgentDelay"];
-		
-		$result = self::GetWageAmounts($RequestID, $PartObj);
-		if($PartObj->WageReturn == "INSTALLMENT")
-			$amount += $result["FundWage"];
-		if($PartObj->AgentReturn == "INSTALLMENT")
-			$amount += $result["AgentWage"];
-		
-		return round($amount*$zarib);		
 	}
 	
 	/**
@@ -1110,7 +1131,7 @@ class LON_requests extends PdoDataAccess{
 		$TotalShouldPay = $dt["TotalShouldPay"];
 		
 		//------------ sub pays --------------
-		$dt = LON_BackPays::SelectAll(" RequestID=? 
+		$dt = LON_BackPays::SelectAll(" p.RequestID=? 
 			AND if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)"
 			, array($RequestID));
 		foreach($dt as $row)
@@ -1308,9 +1329,9 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 				$jdiff = DateModules::GDateMinusGDate($installmentDate, $row["PayDate"]);
 
 				$wagePercent = 0;
-				if($partObj->WageReturn == "INSTSALLMENT" )
+				if($partObj->WageReturn == "INSTALLMENT" )
 					$wagePercent += $partObj->FundWage;
-				if($partObj->AgentReturn == "INSTSALLMENT")
+				if($partObj->AgentReturn == "INSTALLMENT")
 					$wagePercent += $partObj->CustomerWage - $partObj->FundWage;
 				
 				$wage = round(($row["PayAmount"]/$partObj->InstallmentCount)*$jdiff*$wagePercent/36500);
@@ -1396,7 +1417,6 @@ class LON_Computes extends PdoDataAccess{
 		{
 			$LastPay = LON_payments::GetLastPayDate($partObj->RequestID);
 			$ComputeDate = DateModules::miladi_to_shamsi($LastPay);
-			$partObj->FirstTotalWage = 0;
 			$amount = LON_requests::GetPurePayedAmount($partObj->RequestID, $partObj, true);
 			if($amount === false)
 			{
@@ -1460,56 +1480,6 @@ class LON_Computes extends PdoDataAccess{
 		else
 			$x = round($amount*$paymentZarib - $totalSubs)*$zarib;
 
-		//-------- compute again if installment wage payed at first ------------
-		/*		
-		if($partObj->WageReturn == "CUSTOMER" || $partObj->AgentReturn == "CUSTOMER")
-		{
-			$Total = 0;
-			for($i=0; $i<count($installmentArray);$i++)
-			{
-				if($ComputeWage == "YES")
-					$installmentArray[$i]["InstallmentAmount"] = $x*$installmentArray[$i]["percent"];
-				else if($i == count($installmentArray)-1)
-					$installmentArray[$i]["InstallmentAmount"] = $x;
-
-				$Total += $installmentArray[$i]["InstallmentAmount"];
-			}
-			$TotalWage = $Total - $TotalPayedAmount;		
-
-			$fundZarib = $partObj->FundWage/$partObj->CustomerWage;
-			$agentZarib = ($partObj->CustomerWage-$partObj->FundWage)/$partObj->CustomerWage;
-			
-			if($partObj->WageReturn == "CUSTOMER")
-				$TotalPureAmount -= $TotalWage*$fundZarib;
-			if($partObj->AgentReturn == "CUSTOMER")
-				$TotalPureAmount -= $TotalWage*$agentZarib;
-			
-			$partObj->FirstTotalWage = $TotalWage;
-			$partObj->EditPart();
-			//---------- compute again --------------
-			$zarib = 1;
-			$sum = 0;
-			$totalZarib = 0;
-			$startDate = $ComputeDate;
-			$amount = $TotalPureAmount;
-			for($i=0; $i<count($installmentArray);$i++)
-			{
-				$days = DateModules::JDateMinusJDate($installmentArray[$i]["InstallmentDate"],$startDate);
-				$zarib = $zarib*(1 + ($partObj->CustomerWage/36500)*$days);
-
-				if($ComputeWage == "YES")
-					$totalZarib += $percent/$zarib;
-				else if($i < count($installmentArray)-1)
-					$amount -= $installmentArray[$i]["InstallmentAmount"]/$zarib;
-				$startDate = $installmentArray[$i]["InstallmentDate"];
-			}
-
-			if($ComputeWage == "YES")
-				$x = round($amount/$totalZarib);
-			else
-				$x = round($amount*$zarib);
-		}
-		*/
 		//-------  update installment Amounts ------------
 		for($i=0; $i<count($installmentArray);$i++)
 		{
@@ -1584,8 +1554,6 @@ class LON_Computes extends PdoDataAccess{
 			$installmentArray[$i]["wage"] = $installmentArray[$i]["InstallmentAmount"] - 
 					round($zarib*$installmentArray[$i]["InstallmentAmount"]);
 		}
-		
-		
 		return $installmentArray;
 	}
 	
@@ -2148,7 +2116,6 @@ class LON_Computes extends PdoDataAccess{
 
 		//.............................
 		$returnArr = array();
-		//$extra = LON_requests::TotalSubtractsOfPayAmount($RequestID, $PartObj);
 		$pays = LON_payments::Get(" AND p.RequestID=?", array($RequestID), " order by PayDate");
 		$pays = $pays->fetchAll();
 		$totalPure = 0;
@@ -2259,7 +2226,6 @@ class LON_ReqParts extends PdoDataAccess{
 	public $details;
 	public $ComputeMode;
 	public $BackPayCompute;
-	public $FirstTotalWage;
 	
 	public $_BackPayComputeDesc;
 	public $_param1;
@@ -2373,6 +2339,7 @@ class LON_installments extends PdoDataAccess{
 	public $InstallmentAmount;
 	public $wage;
 	public $PureWage;
+	public $PureFundWage;
 	public $IsDelayed;
 	public $history;
 	public $ComputeType;
@@ -2551,7 +2518,7 @@ class LON_installments extends PdoDataAccess{
 		//-----------------------------------------------
 		if($partObj->ComputeMode == "NEW")
 		{
-			$installmentArray = array();
+			$RawInstallmentArray = array();
 			$jdate = DateModules::miladi_to_shamsi($partObj->PartDate);
 			$jdate = DateModules::AddToJDate($jdate, $partObj->DelayDays, $partObj->DelayMonths);
 			$jdate = DateModules::AddToJDate($jdate, 0, $partObj->PayDuration*1);
@@ -2561,7 +2528,7 @@ class LON_installments extends PdoDataAccess{
 			if($IsLastest && count($temp) > 0)
 			{
 				for ($i = 0; $i < count($temp); $i++) {
-					$installmentArray[] = array(
+					$RawInstallmentArray[] = array(
 						"InstallmentAmount" => $temp[$i]["InstallmentAmount"],
 						"InstallmentDate" => DateModules::miladi_to_shamsi($temp[$i]["InstallmentDate"])
 					);
@@ -2572,7 +2539,7 @@ class LON_installments extends PdoDataAccess{
 			{
 				for($i=0; $i < $partObj->InstallmentCount; $i++)
 				{
-					$installmentArray[] = array(
+					$RawInstallmentArray[] = array(
 						"InstallmentAmount" => 0,
 						"InstallmentDate" => DateModules::AddToJDate($jdate, 
 						$partObj->IntervalType == "DAY" ? $partObj->PayInterval*($i+1) : 0, 
@@ -2584,7 +2551,7 @@ class LON_installments extends PdoDataAccess{
 			PdoDataAccess::runquery("delete from LON_installments "
 				. "where RequestID=? AND history='NO' AND IsDelayed='NO'", array($RequestID));
 
-			$installmentArray = LON_Computes::ComputeInstallment($partObj, $installmentArray, null, $ComputeWage);
+			$installmentArray = LON_Computes::ComputeInstallment($partObj, $RawInstallmentArray, null, $ComputeWage);
 			if(!$installmentArray)
 			{
 				if($pdo2 == null)
@@ -2592,6 +2559,16 @@ class LON_installments extends PdoDataAccess{
 				return false;
 			}
 
+			//--------- compute fundwage for fundWage>customerWage -------------
+			$installmentArray2 = null;
+			if($partObj->FundWage > $partObj->CustomerWage)
+			{
+				$partObj->CustomerWage = $partObj->FundWage - $partObj->CustomerWage;
+				echo $partObj->CustomerWage;
+				$installmentArray2 = LON_Computes::ComputeInstallment($partObj, $RawInstallmentArray, null, $ComputeWage);
+			}
+			//------------------------------------------------------------------
+			
 			for($i=0; $i < count($installmentArray); $i++)
 			{
 				$obj = new LON_installments();
@@ -2599,14 +2576,15 @@ class LON_installments extends PdoDataAccess{
 				$obj->InstallmentDate = DateModules::shamsi_to_miladi($installmentArray[$i]["InstallmentDate"]);
 				$obj->InstallmentAmount = $installmentArray[$i]["InstallmentAmount"];
 				$obj->wage = $installmentArray[$i]["wage"];
-				$obj->PureWage = $installmentArray[$i]["PureWage"];
-				if(!$obj->AddInstallment($pdo))
+				$obj->PureWage = $installmentArray[$i]["PureWage"]; 
+				$obj->PureFundWage = $installmentArray2 == null ? 0 : $installmentArray2[$i]["PureWage"];
+				if(!$obj->AddInstallment($pdo)) 
 				{
 					if($pdo2 == null)
 						$pdo->rollBack();
 					return false;
 				}
-			}		
+			}			
 		}
 		if($partObj->ComputeMode == "PERCENT")
 		{
@@ -2618,7 +2596,12 @@ class LON_installments extends PdoDataAccess{
 			$TotalAmount = $TotalPure;
 			
 			if($partObj->WageReturn == "INSTALLMENT")
-				$TotalAmount += $result["FundWage"];
+			{
+				if($partObj->FundWage <= $partObj->CustomerWage)
+					$TotalAmount += $result["FundWage"];
+				else
+					$TotalAmount += $result["CustomerWage"];
+			}
 			if($partObj->AgentReturn == "INSTALLMENT")
 				$TotalAmount += $result["AgentWage"];
 			
@@ -2968,7 +2951,7 @@ class LON_payments extends OperationClass{
 	}
 	
 	static function UpdateRealPayed($SourceObjects, $eventObj, $pdo){
-		
+		return true;
 		$ReqObj = new LON_payments((int)$SourceObjects[2]);
 		$ReqObj->RealPayedDate = PDONOW;
 		$ReqObj->Edit();

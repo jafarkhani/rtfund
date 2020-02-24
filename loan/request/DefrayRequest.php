@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	94.08
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once 'request.data.php';
  
 ?>

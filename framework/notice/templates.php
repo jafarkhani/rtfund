@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // create Date: 94.06
 //-----------------------
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
 
 $dgh = new sadaf_datagrid("dgh1",$js_prefix_address."operation.data.php?task=SelectTemplates","div_dg");

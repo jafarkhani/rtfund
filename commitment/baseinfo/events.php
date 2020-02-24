@@ -3,7 +3,7 @@
 // developer:	Sh.Jafarkhani
 // Date:		97.05
 //---------------------------
-require_once '../header.inc.php'; 
+require_once '../../header.inc.php'; 
 
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
