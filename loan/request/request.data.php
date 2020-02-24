@@ -490,7 +490,7 @@ function SavePart(){
 			join ACC_docs using(DocID)
 			join COM_events using(EventID)
 			join ACC_cycles using(CycleID)
-			where EventType=" . EVENTTYPE_LoanChange ." AND SourceID1=? AND SourceID2=?",
+			where EventType='" . EVENTTYPE_LoanChange ."' AND SourceID1=? AND SourceID2=?",
 			array($obj->RequestID, $obj->PartID));
 
 		if(count($temp) > 0 && $temp[0]["StatusID"] != ACC_STEPID_RAW)
