@@ -1329,9 +1329,9 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 				$jdiff = DateModules::GDateMinusGDate($installmentDate, $row["PayDate"]);
 
 				$wagePercent = 0;
-				if($partObj->WageReturn == "INSTSALLMENT" )
+				if($partObj->WageReturn == "INSTALLMENT" )
 					$wagePercent += $partObj->FundWage;
-				if($partObj->AgentReturn == "INSTSALLMENT")
+				if($partObj->AgentReturn == "INSTALLMENT")
 					$wagePercent += $partObj->CustomerWage - $partObj->FundWage;
 				
 				$wage = round(($row["PayAmount"]/$partObj->InstallmentCount)*$jdiff*$wagePercent/36500);
