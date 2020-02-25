@@ -53,11 +53,17 @@ class EventComputeItems {
 				
 				$result = LON_requests::GetWageAmounts($ReqObj->RequestID);
 				if($ItemID == 2)
-					return $result["CustomerWage"];
+				{
+					if($PartObj->WageReturn == "INSTALLMENT" || $PartObj->AgentReturn == "INSTALLMENT")
+						return $result["CustomerWage"];
+					else
+						return 0;
+				}
 				if($ItemID == 14)
-					return $result["AgentWage"];
+					return $PartObj->AgentReturn == "INSTALLMENT" ? $result["AgentWage"] : 0;
 				if($ItemID == 15)
-					return $result["FundWage"];
+					return $PartObj->WageReturn == "INSTALLMENT" ? $result["FundWage"] : 0;
+				
 			
 			case 20: //کارمزد ثابت صندوق
 				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, $PayObj->_PurePayedAmount);

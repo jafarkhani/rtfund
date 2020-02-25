@@ -1264,8 +1264,8 @@ class LON_requests extends PdoDataAccess{
 		{
 			$where .= " AND ( EventType2='agent' OR EventType2='noavari')";
 		}
-		else if($ReqObj->_LoanGroupID*1 == 1)
-		{
+		else if($ReqObj->_LoanGroupID*1 == 2)
+		{ 
 			$where .= " AND ( EventType2='hemayati' OR EventType2='agent')";
 		}
 		else{
@@ -2757,6 +2757,35 @@ class LON_BackPays extends PdoDataAccess{
 			AND if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)
 			order by PayDate"
 			, array($RequestID));
+	}
+	
+	static function EventTrigger_extraPay($SourceObjects, $eventObj, $pdo){
+		
+		$ReqObj = new LON_requests((int)$SourceObjects[0]);
+		$BackPayObj = new LON_BackPays((int)$SourceObjects[2]);
+		
+		$ComputeArr = EventComputeItems::$LoanComputeArray[ $ReqObj->RequestID ];
+		foreach($ComputeArr as $row)
+		{
+			if($row["type"] != "pay" || $row["BackPayID"] != $BackPayObj->BackPayID)
+				continue;
+			
+			if($row["remainPayAmount"] == 0)
+				return true;
+			
+			$backPayObj = new LON_BackPays();
+			$backPayObj->RequestID = $BackPayObj->RequestID;
+			$backPayObj->PayAmount = $row["remainPayAmount"]*1;
+			$backPayObj->PayDate = $BackPayObj->PayDate;
+			$backPayObj->PayType = BACKPAY_PAYTYPE_CORRECT;
+			$backPayObj->PayBillNo = $BackPayObj->BackPayID;
+			$backPayObj->details = "بابت اضافه پرداختی مشتری و انتقال به حساب قرض الحسنه";
+			$backPayObj->Add($pdo);	
+			
+			$BackPayObj->PayAmount = $BackPayObj->PayAmount - $row["remainPayAmount"]*1;
+			$BackPayObj->Edit($pdo);
+			return true;
+		}
 	}
 }
 
