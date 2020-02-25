@@ -98,8 +98,15 @@ function SaveDocument() {
 	if($obj->DocMode == "ELEC")
 		$obj->place = PDONULL;
 	
-	if (empty($obj->DocumentID))
-		$result = $obj->AddDocument();
+	/*if (empty($obj->DocumentID))
+		$result = $obj->AddDocument();*/
+    if (empty($obj->DocumentID)){
+        $result = $obj->AddDocument();
+        //new added
+        $exitDocumentID = $result[1][0];
+        $obj->DocumentID = $exitDocumentID;
+        //end new added
+    }
 	else
 	{
 		$oldObj = new DMS_documents($obj->DocumentID);

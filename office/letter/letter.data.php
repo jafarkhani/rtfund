@@ -384,6 +384,10 @@ function SaveLetter($dieing = true) {
 		$Letter->LetterDate = PDONOW;
 		$Letter->RegDate = PDONOW;
         $res = $Letter->AddLetter();
+        //new added
+        $exitLetterID = $res[1][0];
+        $Letter->LetterID = $exitLetterID;
+        //end new added
     }
     else
 	{
