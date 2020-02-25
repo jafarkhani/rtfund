@@ -472,7 +472,7 @@ Letter.prototype.BuildForms = function(){
 									'title="{DocumentTitle}" onclick="LetterObject.ShowPage({DocumentID},{ObjectID})">',
 								'<tpl else>',
 									'<img style="width:100px;height:100px;cursor:pointer" ',
-									'src="/office/dms/ShowFile.php?RowID={RowID}&DocumentID={DocumentID}&ObjectID={ObjectID}" ',
+									'src="/office/dms/ShowFile.php?RowID={RowID}&DocumentID={DocumentID}&ObjectID={ObjectID}&inline=true" ',
 									'title="{DocumentTitle}" onclick="LetterObject.ShowPage({DocumentID},{ObjectID})">',
 								'</tpl>',
 							'</div>',
