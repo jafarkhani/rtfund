@@ -1254,25 +1254,28 @@ class LON_requests extends PdoDataAccess{
 	
 	static function GetEventID($RequestID, $EventType, $EventType3 = ""){
 		
-		$ReqObj = new LON_requests($RequestID);
 		//----------------------------------------------------
 		$where = " AND EventType='".$EventType."'";
 		//----------------------------------------------------
-		if($ReqObj->ReqPersonID*1 == 0)
-			$where .= " AND EventType2='inner'";
-		else if($ReqObj->ReqPersonID*1 == 1003)
+		if($RequestID > 0)
 		{
-			$where .= " AND ( EventType2='agent' OR EventType2='noavari')";
-		}
-		else if($ReqObj->_LoanGroupID*1 == 2)
-		{ 
-			$where .= " AND ( EventType2='hemayati' OR EventType2='agent')";
-		}
-		else{
-			if($ReqObj->FundGuarantee == "YES")
-				$where .= " AND ( EventType2='commit' OR EventType2='agent')";
-			else
-				$where .= " AND ( EventType2='noncommit' OR EventType2='agent')";
+			$ReqObj = new LON_requests($RequestID);
+			if($ReqObj->ReqPersonID*1 == 0)
+				$where .= " AND EventType2='inner'";
+			else if($ReqObj->ReqPersonID*1 == 1003)
+			{
+				$where .= " AND ( EventType2='agent' OR EventType2='noavari')";
+			}
+			else if($ReqObj->_LoanGroupID*1 == 2)
+			{ 
+				$where .= " AND ( EventType2='hemayati' OR EventType2='agent')";
+			}
+			else{
+				if($ReqObj->FundGuarantee == "YES")
+					$where .= " AND ( EventType2='commit' OR EventType2='agent')";
+				else
+					$where .= " AND ( EventType2='noncommit' OR EventType2='agent')";
+			}
 		}
 		if($EventType3 != "")
 			$where .= " AND EventType3='".$EventType3."'";
@@ -2786,6 +2789,7 @@ class LON_BackPays extends PdoDataAccess{
 			$BackPayObj->Edit($pdo);
 			return true;
 		}
+		return true;
 	}
 }
 

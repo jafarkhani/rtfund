@@ -64,7 +64,7 @@ class ExecuteEvent {
 		if($this->TriggerFunction != "")
 			if(!call_user_func($this->TriggerFunction, $this->Sources, $this, $pdo))
 			{
-				ExceptionHandler::PushException("خطا در اجرای  Trigger");
+				ExceptionHandler::PushException("خطا در اجرای  Trigger " . $this->TriggerFunction);
 				return false;
 			}
 		//---------------------------------------------------
@@ -96,12 +96,26 @@ class ExecuteEvent {
 				return false;
 			}
 		}
+		//------- balance the doc with low prices -----------
+		$dt = PdoDataAccess::runquery("select di.*, sum(DebtorAmount) dsum, sum(CreditorAmount) csum
+			from ACC_DocItems di where DocID=?", array($this->DocObj->DocID), $pdo);
+		if($dt[0]["dsum"] != $dt[0]["csum"] && $dt[0]["dsum"]*1 - $dt[0]["csum"]*1 < 1000)
+		{
+			$diff = $dt[0]["dsum"]*1 - $dt[0]["csum"]*1;
+			$itemObj = new ACC_DocItems();
+			PdoDataAccess::FillObjectByArray($itemObj, $dt[0]);
+			unset($itemObj->ItemID);
+			$itemObj->DebtorAmount = $diff>0 ? 0 : abs($diff);
+			$itemObj->CreditorAmount = $diff<0 ? 0 : abs($diff);
+			$itemObj->details = "رفع اختلاف حاصل از رند";
+			$itemObj->Add($pdo);
+		}
 		//------------------ run trigger --------------------
 		if($this->AfterTriggerFunction != "")
 			if(!call_user_func($this->AfterTriggerFunction, $this->Sources, $this, $pdo))
 			{
 				$this->pdo->rollBack();
-				ExceptionHandler::PushException("خطا در اجرای  Trigger");	
+				ExceptionHandler::PushException("خطا در اجرای  Trigger " . $this->AfterTriggerFunction);	
 				return false;
 			}
 		//---------------------------------------------------

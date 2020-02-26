@@ -86,7 +86,7 @@ function LoanCost()
 	if(this.AddAccess)
 		this.grid.plugins[0].on("beforeedit", function(editor,e){
 
-			if(e.record.data.CostID != null)
+			if(e.record.data.CostID != null && e.record.data.LocalNo*1 > 0)
 				return false;
 		});
 	
