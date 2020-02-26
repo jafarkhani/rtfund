@@ -19,7 +19,7 @@ global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa ");
+$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 order by DocID");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
 
@@ -35,22 +35,32 @@ while($requset=$reqs->fetch())
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
 	//Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$DocObj[ $reqObj->RequestID ] = null;
-	//Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$DocObj[ $reqObj->RequestID ] = null;
-	//Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$DocObj[ $reqObj->RequestID ] = null;
-	//PaymentCheque($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$DocObj[ $reqObj->RequestID ] = null;
-	//BackPayCheques($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$DocObj[ $reqObj->RequestID ] = null;
-	//BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$DocObj[ $reqObj->RequestID ] = null;
-	DailyIncome($reqObj, $partObj, $pdo);
-	DailyWage($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	if(!$result)
+	{
+		$pdo->rollBack();
+		continue;
+	}
+	$result = Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	if(!$result)
+	{
+		$pdo->rollBack();
+		continue;
+	}
+	$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	if(!$result)
+	{
+		if($pdo->inTransaction())
+			$pdo->rollBack();
+		continue;
+	}
+	
+	//DailyIncome($reqObj, $partObj, $pdo);
+	//DailyWage($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	//$DocObj[ $reqObj->RequestID ] = null;
 	 
 	//--------------------------------------------------
+	PdoDataAccess::runquery_fetchMode(" update aa set regDoc=1 where DocID=?", array($reqObj->RequestID), $pdo);
 	$pdo->commit();
 
 	EventComputeItems::$LoanComputeArray = array();
@@ -101,10 +111,10 @@ function Contract($reqObj , $partObj, &$DocObj, $pdo){
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
 		print_r(ExceptionHandler::PopAllExceptions());
-		$pdo->rollBack();
-		return;
+		return false;
 	}
 	ob_flush();flush();
+	return true;
 }
 
 /**
@@ -136,10 +146,10 @@ function Payment($reqObj , $partObj, &$DocObj, $pdo){
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
 		print_r(ExceptionHandler::PopAllExceptions());
-		$pdo->rollBack();
-		return;
+		return false;
 	}
 	ob_flush();flush();
+	return true;
 }
 
 /**
@@ -350,16 +360,20 @@ function BackPay($reqObj , $partObj, &$DocObj, $pdo){
 		$eventobj->DocDate = $bpay["PayDate"];
 		$eventobj->Sources = array($reqObj->RequestID, $partObj->PartID, $bpay["BackPayID"]);
 		$result = $eventobj->RegisterEventDoc($pdo);
+		if(!$result)
+		{
+			print_r(ExceptionHandler::PopAllExceptions());
+			return false;
+		}
 		
 	}
 	echo "BackPay : " . ($result ? "true" : "false") . "<br>";
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
-		print_r(ExceptionHandler::PopAllExceptions());
-		$pdo->rollBack();
-		return;
+		return false;
 	}
 	ob_flush();flush();
+	return true;
 }
 
 /**

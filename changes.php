@@ -1,5 +1,5 @@
 <?php
-require_once "framework/header.inc.php";
+require_once "header.inc.php";
  
 /*require_once("framework/PasswordHash.php");
 $dt = PdoDataAccess::runquery("select * from BSC_persons 

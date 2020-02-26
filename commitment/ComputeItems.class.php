@@ -48,26 +48,38 @@ class EventComputeItems {
 				return LON_requests::GetPayedAmount($ReqObj->RequestID, $PartObj);
 				
 			case 2 : //مبلغ کل کارمزد
-			case 14 : //مبلغ کارمزد تحقق نیافته سرمایه گذار
-			case 15 : // مبلغ کارمزد تحقق نیافته صندوق
-				
 				$result = LON_requests::GetWageAmounts($ReqObj->RequestID);
-				if($ItemID == 2)
+				if($PartObj->WageReturn == "INSTALLMENT" && $PartObj->FundWage >= $PartObj->CustomerWage)
 					return $result["CustomerWage"];
-				if($ItemID == 14)
-					return $result["AgentWage"];
-				if($ItemID == 15)
-					return $result["FundWage"];
-			
+				if($PartObj->AgentReturn == "INSTALLMENT" && $PartObj->FundWage < $PartObj->CustomerWage)
+					return $result["CustomerWage"];
+				return 0;
+				
+			case 14 : //مبلغ کارمزد تحقق نیافته سرمایه گذار
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID);
+				return $PartObj->AgentReturn == "INSTALLMENT" ? $result["AgentWage"] : 0;
+				
+			case 15 : // مبلغ کارمزد تحقق نیافته صندوق
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID);
+				return $PartObj->WageReturn == "INSTALLMENT" ? $result["FundWage"] : 0;
+							
 			case 20: //کارمزد ثابت صندوق
 				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, $PayObj->_PurePayedAmount);
 				if($PartObj->WageReturn != "INSTALLMENT")
 					return $result["FundWage"];
+				return 0;
 				
 			case 21: //کارمزد ثابت سرمایه گذار
 				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, $PayObj->_PurePayedAmount);
 				if($PartObj->AgentReturn != "INSTALLMENT")
 					return $result["AgentWage"];
+				return 0;
+				
+			case 22: //مبلغ کارمزد صندوق از سپرده سرمایه گذار
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj);
+				if($PartObj->FundWage > $PartObj->CustomerWage)
+					return $result["FundWage"] - $result["CustomerWage"];
+				return 0;
 				
 			case 6 : // مبلغ تضمین
 				$dt =  array();

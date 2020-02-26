@@ -216,7 +216,7 @@ class session{
 		if($email == "")
 			return "EmptyEmail";
 		
-		$newPass = rand(111111, 999999);
+		$newPass = "r" . rand(111111, 999999);
 		
 		$hash_cost_log2 = 8;	
 		$hasher = new PasswordHash($hash_cost_log2, true);
