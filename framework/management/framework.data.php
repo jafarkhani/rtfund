@@ -191,14 +191,15 @@ function SaveAccess(){
 		$obj->EditFlag = isset($_POST["editChk_" . $obj->MenuID]) ? "YES" : "NO";
 		$obj->RemoveFlag = isset($_POST["removeChk_" . $obj->MenuID]) ? "YES" : "NO";
 		
-		if(!$obj->AddAccess())
+		/*if(!$obj->AddAccess())
 		{
-			$pdo->rollBack();	
+			$pdo->rollBack();
 			print_r(ExceptionHandler::PopAllExceptions());
 			echo Response::createObjectiveResponse(false, "");
 			die();
-		}
-		
+		}*/
+        $query = "insert into FRW_access(MenuID,PersonID,GroupID,ViewFlag,AddFlag,EditFlag,RemoveFlag) values(?,?,?,?,?,?,?)";
+        PdoDataAccess::runquery($query,array($obj->MenuID, $PersonID, $GroupID,$obj->ViewFlag,$obj->AddFlag,$obj->EditFlag,$obj->RemoveFlag), $pdo);
 	}
 	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
