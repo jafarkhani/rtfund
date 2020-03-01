@@ -139,6 +139,21 @@ $grid = $dg->makeGrid_returnObjects();
                                         console.log('Not GetCost');
                                         NewPlanObject.planFS.down("[name=RefPlanID]").disable();
                                         NewPlanObject.planFS.down("[name=RefPlanID]").setValue("0");
+                                        me = NewPlanObject;
+
+                                        me.planFS.down("[name=PersonID]").readOnly = false;
+                                        me.planFS.down("[name=evaluationAskerID]").readOnly = false;
+                                        me.planFS.down("[name=LetterID]").readOnly = false;
+                                        me.planFS.down("[name=LoanID]").readOnly = false;
+                                        me.planFS.down("[name=FinancialBroker]").readOnly = false;
+                                        me.planFS.down("[name=EvaluationBroker]").readOnly = false;
+                                        me.planFS.down("[name=technologyArea]").readOnly = false;
+                                        me.planFS.down("[name=LoanType]").readOnly = false;
+                                        me.planFS.down("[name=FacilityAmount]").readOnly = false;
+                                        me.planFS.down("[name=ApprovedAmount]").readOnly = false;
+                                        me.planFS.down("[name=RecordMeetingID]").readOnly = false;
+                                        me.planFS.down("[name=RecordMeetingDate]").readOnly = false;
+                                        me.planFS.down("[name=wage]").readOnly = false;
                                     }
                                 }
                             }
