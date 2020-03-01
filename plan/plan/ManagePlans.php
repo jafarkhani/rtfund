@@ -24,6 +24,7 @@ $dg = new sadaf_datagrid("dg", $js_prefix_address . "plan.data.php?task=SelectAl
     ($expert ? "&expert=true" : ""), "grid_div");
 
 $dg->addColumn("", "StepID", "", true);
+$dg->addColumn("", "FormType", "", true);
 
 $col = $dg->addColumn("شماره", "PlanID", "");
 $col->width = 30;
@@ -74,15 +75,21 @@ else if($portal)
     $col->align = "center";
 }
 
-$col = $dg->addColumn('سابقه', '', 'string');
+/*$col = $dg->addColumn('سابقه', '', 'string');
 $col->renderer = "ManagePlan.HistoryRender";
 $col->width = 40;
+$col->align = "center";*/
+
+$col = $dg->addColumn('عملیات', '', 'string');
+$col->renderer = "ManagePlan.OperationRender";
+$col->width = 50;
 $col->align = "center";
+
 
 $dg->emptyTextOfHiddenColumns = true;
 $dg->height = 450;
 $dg->pageSize = 15;
-$dg->width = 920;
+$dg->width = 970;
 $dg->title = "طرح های ارسالی";
 $dg->DefaultSortField = "RegDate";
 $dg->autoExpandColumn = "PlanDesc";
