@@ -1947,7 +1947,6 @@ function RegisterLetter(){
 	$LetterObj->organization = $LoanObj->_LoanPersonFullname;
 	if(!$LetterObj->AddLetter())
 	{
-		print_r(ExceptionHandler::PopAllExceptions());
 		echo Response::createObjectiveResponse(false, "خطا در ثبت  نامه");
 		die();
 	}

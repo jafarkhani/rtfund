@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // create Date: 97.12
 //---------------------------
- 
+ ini_set("display_errors", "On");
 require_once '../header.inc.php';
 require_once '../commitment/ExecuteEvent.class.php';
 require_once '../loan/request/request.class.php';
@@ -19,7 +19,8 @@ global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 order by DocID");
+$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa join LON_requests on(RequestID=DociD) "
+		. " where regDoc=0 and ReqPersonID=1003 order by DocID");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
 
@@ -35,28 +36,30 @@ while($requset=$reqs->fetch())
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
 	//Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	/*$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
 		continue;
-	}
-	$result = Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	}*/
+	
+	/*$result = Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
 		continue;
-	}
-	$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	}*/
+	
+	/*$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
-	}
+	}*/
 	
 	//DailyIncome($reqObj, $partObj, $pdo);
-	//DailyWage($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	DailyWage($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	//$DocObj[ $reqObj->RequestID ] = null;
 	 
 	//--------------------------------------------------
@@ -381,7 +384,9 @@ function BackPay($reqObj , $partObj, &$DocObj, $pdo){
  */
 function DailyIncome($reqObj , $partObj, $pdo){
 	
-	$JToDate = '1397/12/29';
+	$JFromDate = '1398/01/01';
+	$GFromDate = DateModules::shamsi_to_miladi($JFromDate, "-");
+	$JToDate = DateModules::shNow();
 	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
 	$days = PdoDataAccess::runquery_fetchMode("select * from dates where Jdate between ? AND '".$JToDate."'", 
 			DateModules::miladi_to_shamsi($partObj->PartDate), $pdo);
@@ -402,7 +407,7 @@ function DailyIncome($reqObj , $partObj, $pdo){
 	$ComputeDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
 	for($i=1; $i < count($PureArr);$i++)
 	{
-		if($ComputeDate > $GToDate)
+		if( $ComputeDate < $GFromDate || $ComputeDate > $GToDate)
 			break;
 		
 		$days = DateModules::GDateMinusGDate(min($GToDate, $PureArr[$i]["InstallmentDate"]),$ComputeDate);

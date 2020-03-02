@@ -1,17 +1,15 @@
 <?php
-
-require_once '../loan/request/request.data.php';
+require_once '../header.inc.php';
 ini_set("display_errors", "On");
+require_once '../loan/request/request.class.php';
+
 ini_set('max_execution_time', 30000000);
 ini_set('memory_limit','4000M');
 header("X-Accel-Buffering: no");
 ob_start();
 
 $dt = PdoDataAccess::runquery("
-	
-select r.RequestID from LON_requests r 
-join LON_ReqParts p on(r.RequestID=p.RequestID and IsHistory='NO')
-where ComputeMode='PERCENT'"); 
+select r.RequestID from LON_requests r join aa on(RequestID=DocID and flag=1) "); 
 flush();
 ob_flush();
 $i=0;
