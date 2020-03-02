@@ -305,6 +305,9 @@ LoanFollow.prototype.DeleteFollow = function(){
 
 LoanFollow.prototype.RegisterLetter = function(RequestID, TemplateID, FollowID){
 	
+	mask = new Ext.LoadMask(this.grid, {msg:'در حال حذف ...'});
+	mask.show();
+		
 	Ext.Ajax.request({
 		url: this.address_prefix + 'request.data.php',
 		params:{
@@ -316,16 +319,22 @@ LoanFollow.prototype.RegisterLetter = function(RequestID, TemplateID, FollowID){
 		method: 'POST',
 
 		success: function(response,option){
+			mask.hide();
 			result = Ext.decode(response.responseText);
 			if(result.success)
 			{
+				if(result.data == "0")
+				{
+					Ext.MessageBox.alert("","ایجاد نامه با شکست مواجه شده است");
+					return;
+				}
 				LoanFollow.OpenLetter(result.data);
 			}
 			else if(result.data == "")
 				Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
 			else
 				Ext.MessageBox.alert("",result.data);
-			mask.hide();
+			
 
 		},
 		failure: function(){}

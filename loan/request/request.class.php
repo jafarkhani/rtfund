@@ -2510,6 +2510,13 @@ class LON_installments extends PdoDataAccess{
 				$obj2->InstallmentAmount = round($partObj->PartAmount/$partObj->InstallmentCount) + 
 						round($totalWage/$partObj->InstallmentCount);
 
+				if($totalWage == 0 && $partObj->CustomerWage > 0)
+				{
+					$ConstantWage = $partObj->PartAmount*$partObj->CustomerWage/100;
+					$obj2->wage = round($ConstantWage/$partObj->InstallmentCount);
+					$obj2->PureWage = $obj2->wage;
+				}				
+				
 				if(!$obj2->AddInstallment($pdo))
 				{
 					if($pdo2 == null)

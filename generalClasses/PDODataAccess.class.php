@@ -17,6 +17,7 @@ require_once 'DataMember.class.php';
 
 class PdoDataAccess extends ExceptionHandler
 {
+	static $DB;
 	private static $ReportDB;
 	private static $statements = array();
 	private static $queryString = "";
@@ -58,24 +59,29 @@ class PdoDataAccess extends ExceptionHandler
 			return null;	
 		}
 		
-		try{
-			$_host = sys_config::$db_server['host'];
-			$_user = sys_config::$db_server['user'];
-			$_pass = sys_config::$db_server['pass'];
-			$_default_db = sys_config::$db_server['database'];
-			
-			return new PDO("mysql:host=" . $_host . ";dbname=" . $_default_db, $_user, $_pass, 
-				array(PDO::MYSQL_ATTR_INIT_COMMAND =>  "SET NAMES utf8"));
-		}
-		catch (PDOException $e) 
+		if(!isset(self::$DB))
 		{
-			if ($ShowException)
-					echo $e->getMessage().'<br>';
-			echo " خطا در اتصال به بانک اطلاعاتی\n";
-			die();		
-		}
-		return null;	
+			try{
+				$_host = sys_config::$db_server['host'];
+				$_user = sys_config::$db_server['user'];
+				$_pass = sys_config::$db_server['pass'];
+				$_default_db = sys_config::$db_server['database'];
 
+					self::$DB = new PDO("mysql:host=" . $_host . ";dbname=" . $_default_db, $_user, $_pass, 
+					array(PDO::MYSQL_ATTR_INIT_COMMAND =>  "SET NAMES utf8"));
+
+					return self::$DB;
+			}
+			catch (PDOException $e) 
+			{
+				if ($ShowException)
+						echo $e->getMessage().'<br>';
+				echo " خطا در اتصال به بانک اطلاعاتی\n";
+				die();		
+			}
+		}
+		else 
+			return self::$DB;
 	}
 	
 	/**
@@ -484,7 +490,6 @@ class PdoDataAccess extends ExceptionHandler
 		
 		return $PDO_Obj->lastInsertId();
 		
-		return null;
 	}
 
 	/**

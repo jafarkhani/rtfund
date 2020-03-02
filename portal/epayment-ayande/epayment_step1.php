@@ -50,5 +50,5 @@ try {
 } catch ( Exception $ex ) {
 	$err_msg =  $ex->getMessage()  ; 
 }
-
+echo $err_msg;
 ?>

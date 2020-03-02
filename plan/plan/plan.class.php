@@ -25,6 +25,16 @@ class PLN_plans extends PdoDataAccess
     public $AdderPersonID;
     public $EditDate;
     public $EditorPersonID;
+    public $technologyArea;
+    public $IsGetCost;
+    public $evaluationCost;
+    public $ApprovedAmount;
+    public $FinancialBroker;
+    public $EvaluationBroker;
+    public $RecordMeetingID;
+    public $RecordMeetingDate;
+    public $wage;
+    public $LoanType;
 
 
     function __construct($PlanID = "") {
@@ -137,6 +147,20 @@ class PLN_plans extends PdoDataAccess
         }
 
         return WFM_FlowRows::AddOuterFlow(FLOWID, $PlanID, $StepID, $ActDesc, $pdo);
+    }
+
+    static function ChangeStatuses($PlanID, $StepID, $ActDesc = "", $LogOnly = false, $pdo = null){
+
+        if(!$LogOnly)
+        {
+            $obj = new PLN_plans();
+            $obj->PlanID = $PlanID;
+            $obj->StepID = $StepID;
+            if(!$obj->EditPlan($pdo))
+                return false;
+        }
+
+        return WFM_FlowRows::AddOuterFlows(FLOWID, $PlanID, $StepID, $ActDesc, $pdo);
     }
 
 }

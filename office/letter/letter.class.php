@@ -80,18 +80,13 @@ class OFC_letters extends PdoDataAccess{
 		    return false;
 
 	    $this->LetterID = parent::InsertID($pdo);
-        //new added
-        $quering = "select max(LetterID) from OFC_letters";
-        $result = parent::runquery_fetchMode($quering);
-        $resultant = $result->fetchAll();
-        //end new added
-
-	    $daObj = new DataAudit();
+        
+		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_add;
 		$daObj->MainObjectID = $this->LetterID;
 		$daObj->TableName = "OFC_letters";
 		$daObj->execute($pdo);
-        return [true,$resultant[0]];	//new edited
+        return true;
     }
 
     function EditLetter($pdo = null){

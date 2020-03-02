@@ -501,7 +501,7 @@ function ChangeStatus(){
         }
     }
 
-    $result = PLN_plans::ChangeStatus($obj->PlanID, $StepID, $ActDesc);
+    $result = PLN_plans::ChangeStatuses($obj->PlanID, $StepID, $ActDesc);
 
     /*if($StepID == STEPID_CONFIRM)
     {
