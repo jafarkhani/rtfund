@@ -125,6 +125,7 @@ function GetData(){
 				BranchName,
 				bi.InfoDesc StatusDesc,
 				bif.InfoDesc LatestFollowStatus,
+				t5.RegDate,
 				tazamin,
 				t1.InstallmentAmount,
 				t1.LastInstallmentDate,
