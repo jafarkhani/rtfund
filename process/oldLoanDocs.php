@@ -35,19 +35,19 @@ while($requset=$reqs->fetch())
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
 	//Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	if(!$result)
+	//$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	/*if(!$result)
 	{
 		$pdo->rollBack();
 		continue;
-	}
+	}*/
 	$result = Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
 		continue;
 	}
-	$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	//$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())

@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // create Date: 94.06
 //-------------------------
-require_once('header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataReader;
 require_once inc_response;
 require_once 'dms.class.php';

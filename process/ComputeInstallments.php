@@ -1,19 +1,21 @@
 <?php
-
-require_once '../loan/request/request.data.php';
 ini_set("display_errors", "On");
-ini_set('max_execution_time', 30000000);
-ini_set('memory_limit','4000M');
+require_once '../header.inc.php';
+require_once '../loan/request/request.class.php';
+
+ini_set("display_errors", "On");
+ini_set('max_execution_time', 30000);
+ini_set('memory_limit','2000M');
 header("X-Accel-Buffering: no");
 ob_start();
+set_time_limit(0);
 
 $dt = PdoDataAccess::runquery("
 	
 select r.RequestID from LON_requests r 
 join LON_ReqParts p on(r.RequestID=p.RequestID and IsHistory='NO')
-where ComputeMode='PERCENT'"); 
-flush();
-ob_flush();
+where ComputeMode='NOAVARI' AND r.StatusID=70"); 
+
 $i=0;
 foreach($dt as $row)
 {
@@ -21,6 +23,7 @@ foreach($dt as $row)
 	LON_installments::ComputeInstallments($RequestID);
 	echo $RequestID . " : " ;
 	print_r(ExceptionHandler::PopAllExceptions());
+	ob_flush();flush();
 	continue;
 	
 	

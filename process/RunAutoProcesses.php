@@ -32,8 +32,9 @@ require_once '../loan/request/request.class.php';
 require_once '../commitment/ExecuteEvent.class.php';
 
 $query = " select * from LON_requests  r
+join LON_loans l using(LoanID)
 join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-where ComputeMode='NEW' AND r.RequestID>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM;
+where ComputeMode='NEW' AND r.RequestID>0 AND l.GroupID=1 AND StatusID=" . LON_REQ_STATUS_CONFIRM;
 
 $reqs = PdoDataAccess::runquery_fetchMode($query);
 

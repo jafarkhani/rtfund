@@ -26,8 +26,8 @@ if(!session::checkLogin())
 	die();
 } 
 
-if($_SESSION["USER"]["UserName"] == "admin")
-	sys_config::$db_server['database'] = "krrtfir_oldcomputes";
+//if($_SESSION["USER"]["UserName"] == "admin")
+//	sys_config::$db_server['database'] = "krrtfir_oldcomputes";
 
 
 $address_prefix = getenv("DOCUMENT_ROOT");

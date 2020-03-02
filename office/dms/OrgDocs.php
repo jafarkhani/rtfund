@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	98.02
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../../header.inc.php');
 require_once './dms.class.php';
 
 $DocType = $_REQUEST["DocType"];

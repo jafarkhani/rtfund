@@ -3,7 +3,7 @@
 // programmer: SH.Jafarkhani
 // create Date: 94.10
 //-----------------------------
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
 
 $AddMode = isset($_REQUEST["mode"]) && $_REQUEST["mode"] == "adding" ? true : false;
