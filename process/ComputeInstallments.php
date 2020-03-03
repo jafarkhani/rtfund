@@ -7,6 +7,7 @@ ini_set('max_execution_time', 30000000);
 ini_set('memory_limit','4000M');
 header("X-Accel-Buffering: no");
 ob_start();
+set_time_limit(0);
 
 $dt = PdoDataAccess::runquery("
 select r.RequestID from LON_requests r join aa on(RequestID=DocID and flag=1) "); 
@@ -19,6 +20,7 @@ foreach($dt as $row)
 	LON_installments::ComputeInstallments($RequestID);
 	echo $RequestID . " : " ;
 	print_r(ExceptionHandler::PopAllExceptions());
+	ob_flush();flush();
 	continue;
 	
 	

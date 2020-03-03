@@ -64,13 +64,15 @@ class EventComputeItems {
 				return $PartObj->WageReturn == "INSTALLMENT" ? $result["FundWage"] : 0;
 							
 			case 20: //کارمزد ثابت صندوق
-				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, $PayObj->_PurePayedAmount);
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, 
+						$PayObj->PayID>0 ? $PayObj->_PurePayedAmount : null);
 				if($PartObj->WageReturn != "INSTALLMENT")
 					return $result["FundWage"];
 				return 0;
 				
 			case 21: //کارمزد ثابت سرمایه گذار
-				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, $PayObj->_PurePayedAmount);
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, 
+						$PayObj->PayID>0 ? $PayObj->_PurePayedAmount : null);
 				if($PartObj->AgentReturn != "INSTALLMENT")
 					return $result["AgentWage"];
 				return 0;
@@ -80,6 +82,9 @@ class EventComputeItems {
 				if($PartObj->FundWage > $PartObj->CustomerWage)
 					return $result["FundWage"] - $result["CustomerWage"];
 				return 0;
+			
+			case 23: // کارمزد ثابت 4% صنوش
+				return $PartObj->PartAmount*4/100;
 				
 			case 6 : // مبلغ تضمین
 				$dt =  array();

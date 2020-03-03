@@ -19,8 +19,8 @@ global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa join LON_requests on(RequestID=DociD) "
-		. " where regDoc=0 and ReqPersonID=1003 order by DocID");
+$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 
+		 order by DocID");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
 
@@ -59,7 +59,7 @@ while($requset=$reqs->fetch())
 	}*/
 	
 	//DailyIncome($reqObj, $partObj, $pdo);
-	DailyWage($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	DailyWage($reqObj, $partObj, $pdo);
 	//$DocObj[ $reqObj->RequestID ] = null;
 	 
 	//--------------------------------------------------
@@ -384,18 +384,19 @@ function BackPay($reqObj , $partObj, &$DocObj, $pdo){
  */
 function DailyIncome($reqObj , $partObj, $pdo){
 	
-	$JFromDate = '1398/01/01';
-	$GFromDate = DateModules::shamsi_to_miladi($JFromDate, "-");
-	$JToDate = DateModules::shNow();
-	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
-	$days = PdoDataAccess::runquery_fetchMode("select * from dates where Jdate between ? AND '".$JToDate."'", 
-			DateModules::miladi_to_shamsi($partObj->PartDate), $pdo);
-	echo "days : " . $days->rowCount() . "<br>";
-	ob_flush();flush();
-	
 	$EventID = LON_requests::GetEventID($reqObj->RequestID, EVENTTYPE_LoanDailyIncome);
 	if($EventID == 0)
 		return true;
+	
+	/*$JFromDate = $partObj->PartDate;
+	$JToDate = "1397/12/29";*/
+	
+	$JFromDate = "1398/01/01";
+	$JToDate = DateModules::shNow();
+	
+	$GFromDate = DateModules::shamsi_to_miladi($JFromDate, "-");
+	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
+	
 	$EventObj = new ExecuteEvent($EventID);
 	$EventObj->DocDate = $GToDate;
 	$EventObj->Sources = array($reqObj->RequestID, $partObj->PartID);
@@ -420,7 +421,7 @@ function DailyIncome($reqObj , $partObj, $pdo){
 		$ComputeDate = min($GToDate, $PureArr[$i]["InstallmentDate"]);
 	}
 	$result = $EventObj->RegisterEventDoc($pdo);
-	echo "روزانه : " . ($result ? "true" : "false") . "<br>";
+	echo "روزانه : " . $days . " days " . ($result ? "true" : "false") . "<br>";
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
 		print_r(ExceptionHandler::PopAllExceptions());
@@ -433,7 +434,7 @@ function DailyIncome($reqObj , $partObj, $pdo){
 /**
  * 	رویدادهای روزانه تاخیر و جریمه
  */
-function DailyWage($reqObj , $partObj, &$DocObj, $pdo){
+function DailyWage($reqObj , $partObj, $pdo){
 	
 	$JToDate = '1397/12/29';
 	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
@@ -445,54 +446,118 @@ function DailyWage($reqObj , $partObj, &$DocObj, $pdo){
 	
 	foreach($computeArr as $row)
 	{
-		if($row["type"] == "installment" && $row["InstallmentID"]*1 > 0 && count($row["pays"])>0)
+		if($row["type"] == "installment" && $row["InstallmentID"]*1 > 0)
 		{
-			foreach($row["pays"] as $pay)
-			{
-				$totalLate += $pay["cur_late"]*1;
-				$totalPenalty += $pay["cur_pnlt"]*1;
-			}
+			$totalLate += $row["totallate"]*1;
+			$totalPenalty += $row["totalpnlt"]*1;
 		}
 	}
-	$event1 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyLate);
-	$EventObj1 = new ExecuteEvent($event1);
-	$EventObj1->ComputedItems[ 82 ] = round(($partObj->FundWage/$partObj->CustomerWage)*$totalLate);
-	$EventObj1->ComputedItems[ 83 ] = $totalLate - round(($partObj->FundWage/$partObj->CustomerWage)*$totalLate);
-	if($EventObj1->ComputedItems[ 82 ] > 0 || $EventObj1->ComputedItems[ 83 ] > 0)
+	if($totalLate>0)
 	{
-		$EventObj1->DocDate = $GToDate;
-		$EventObj1->Sources = array($reqObj->RequestID, $partObj->PartID, $GToDate);
-		$result = $EventObj1->RegisterEventDoc($pdo);
-		echo "شناسایی کارمزد تاخیر : " . ($result ? "true" : "false"). "<br>"; 
-		if(ExceptionHandler::GetExceptionCount() > 0)
+		$event1 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyLate);
+		$EventObj1 = new ExecuteEvent($event1);
+		$EventObj1->ComputedItems[ 82 ] = round(($partObj->FundWage/$partObj->CustomerWage)*$totalLate);
+		$EventObj1->ComputedItems[ 83 ] = $totalLate - round(($partObj->FundWage/$partObj->CustomerWage)*$totalLate);
+		if($EventObj1->ComputedItems[ 82 ] > 0 || $EventObj1->ComputedItems[ 83 ] > 0)
 		{
-			print_r(ExceptionHandler::PopAllExceptions());
-			$pdo->rollBack();
-			return;
+			$EventObj1->DocDate = $GToDate;
+			$EventObj1->Sources = array($reqObj->RequestID, $partObj->PartID, $GToDate);
+			$result = $EventObj1->RegisterEventDoc($pdo);
+			echo "شناسایی کارمزد تاخیر : " . ($result ? "true" : "false"). "<br>"; 
+			if(ExceptionHandler::GetExceptionCount() > 0)
+			{
+				print_r(ExceptionHandler::PopAllExceptions());
+				$pdo->rollBack();
+				return;
+			}
+			ob_flush();flush();
 		}
-		ob_flush();flush();
 	}
 	//-----------------------------------------------------
-	$event2 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyPenalty);
-	$EventObj2 = new ExecuteEvent($event2);
-	$EventObj2->ComputedItems[ 84 ] = $partObj->ForfeitPercent == 0? 0 :
-			round(($partObj->FundForfeitPercent/$partObj->ForfeitPercent)*$totalPenalty);
-	$EventObj2->ComputedItems[ 85 ] = $partObj->ForfeitPercent == 0? 0 : 
-			$totalPenalty - round(($partObj->FundForfeitPercent/$partObj->ForfeitPercent)*$totalPenalty);
-	
-	if($EventObj2->ComputedItems[ 84 ] > 0 || $EventObj2->ComputedItems[ 85 ] > 0)
+	if($totalPenalty>0)
 	{
-		$EventObj2->DocDate = $GToDate;
-		$EventObj2->Sources = array($reqObj->RequestID, $partObj->PartID, $GToDate);
-		$result = $EventObj2->RegisterEventDoc($pdo);
-		echo "شناسایی جریمه تاخیر : " . ($result ? "true" : "false") . "<br>";
-		if(ExceptionHandler::GetExceptionCount() > 0)
+		$event2 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyPenalty);
+		$EventObj2 = new ExecuteEvent($event2);
+		$EventObj2->ComputedItems[ 84 ] = $partObj->ForfeitPercent == 0? 0 :
+				round(($partObj->FundForfeitPercent/$partObj->ForfeitPercent)*$totalPenalty);
+		$EventObj2->ComputedItems[ 85 ] = $partObj->ForfeitPercent == 0? 0 : 
+				$totalPenalty - round(($partObj->FundForfeitPercent/$partObj->ForfeitPercent)*$totalPenalty);
+
+		if($EventObj2->ComputedItems[ 84 ] > 0 || $EventObj2->ComputedItems[ 85 ] > 0)
 		{
-			print_r(ExceptionHandler::PopAllExceptions());
-			$pdo->rollBack();
-			return;
+			$EventObj2->DocDate = $GToDate;
+			$EventObj2->Sources = array($reqObj->RequestID, $partObj->PartID, $GToDate);
+			$result = $EventObj2->RegisterEventDoc($pdo);
+			echo "شناسایی جریمه تاخیر : " . ($result ? "true" : "false") . "<br>";
+			if(ExceptionHandler::GetExceptionCount() > 0)
+			{
+				print_r(ExceptionHandler::PopAllExceptions());
+				$pdo->rollBack();
+				return;
+			}
+			ob_flush();flush();
 		}
-		ob_flush();flush();
+	}
+	//--------------------------------------
+	$computeArr = LON_Computes::ComputePayments($reqObj->RequestID);
+	$totalLate2 = 0;
+	$totalPenalty2 = 0;
+	foreach($computeArr as $row)
+	{
+		if($row["type"] == "installment" && $row["InstallmentID"]*1 > 0)
+		{
+			$totalLate2 += $row["totallate"]*1;
+			$totalPenalty2 += $row["totalpnlt"]*1;
+		}
+	}
+	$totalLate = $totalLate2 - $totalLate;
+	$totalPenalty = $totalPenalty2 - $totalPenalty;
+	
+	if($totalLate>0)
+	{
+		$event1 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyLate);
+		$EventObj1 = new ExecuteEvent($event1);
+		$EventObj1->ComputedItems[ 82 ] = round(($partObj->FundWage/$partObj->CustomerWage)*$totalLate);
+		$EventObj1->ComputedItems[ 83 ] = $totalLate - round(($partObj->FundWage/$partObj->CustomerWage)*$totalLate);
+		if($EventObj1->ComputedItems[ 82 ] > 0 || $EventObj1->ComputedItems[ 83 ] > 0)
+		{
+			$EventObj1->DocDate = DateModules::shNow();
+			$EventObj1->Sources = array($reqObj->RequestID, $partObj->PartID, $GToDate);
+			$result = $EventObj1->RegisterEventDoc($pdo);
+			echo "شناسایی کارمزد تاخیر : " . ($result ? "true" : "false"). "<br>"; 
+			if(ExceptionHandler::GetExceptionCount() > 0)
+			{
+				print_r(ExceptionHandler::PopAllExceptions());
+				$pdo->rollBack();
+				return;
+			}
+			ob_flush();flush();
+		}
+	}
+	//-----------------------------------------------------
+	if($totalPenalty>0)
+	{
+		$event2 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyPenalty);
+		$EventObj2 = new ExecuteEvent($event2);
+		$EventObj2->ComputedItems[ 84 ] = $partObj->ForfeitPercent == 0? 0 :
+				round(($partObj->FundForfeitPercent/$partObj->ForfeitPercent)*$totalPenalty);
+		$EventObj2->ComputedItems[ 85 ] = $partObj->ForfeitPercent == 0? 0 : 
+				$totalPenalty - round(($partObj->FundForfeitPercent/$partObj->ForfeitPercent)*$totalPenalty);
+
+		if($EventObj2->ComputedItems[ 84 ] > 0 || $EventObj2->ComputedItems[ 85 ] > 0)
+		{
+			$EventObj2->DocDate = DateModules::shNow();
+			$EventObj2->Sources = array($reqObj->RequestID, $partObj->PartID, $GToDate);
+			$result = $EventObj2->RegisterEventDoc($pdo);
+			echo "شناسایی جریمه تاخیر : " . ($result ? "true" : "false") . "<br>";
+			if(ExceptionHandler::GetExceptionCount() > 0)
+			{
+				print_r(ExceptionHandler::PopAllExceptions());
+				$pdo->rollBack();
+				return;
+			}
+			ob_flush();flush();
+		}
 	}
 }
 ?>

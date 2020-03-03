@@ -4,7 +4,7 @@
 //	Date		: 1394.07
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once 'letter.class.php';
 require_once DOCUMENT_ROOT . "/framework/baseInfo/baseInfo.class.php";
 require_once inc_dataGrid;

@@ -449,6 +449,17 @@ class LON_requests extends PdoDataAccess{
 			case "NOAVARI":
 				$dt = LON_installments::GetValidInstallments($PartObj->RequestID);
 				$FundWage = 0;
+				if($PartObj->WageReturn != "INSTALLMENT" && $PartObj->AgentReturn != "INSTALLMENT")
+				{
+					$FundWage = $PartObj->FundWage*$PartObj->PartAmount/100;
+					$AgentWage = ($PartObj->CustomerWage - $PartObj->FundWage)*$PartObj->PartAmount/100;
+					$AgentWage = $AgentWage < 0 ? 0 : $AgentWage;
+					return array(
+						"FundWage" => $FundWage,
+						"AgentWage" => $AgentWage,
+						"CustomerWage" => 0
+					);
+				}
 				if(count($dt)>0)
 				{
 					foreach($dt as $row)
@@ -1264,11 +1275,11 @@ class LON_requests extends PdoDataAccess{
 				$where .= " AND EventType2='inner'";
 			else if($ReqObj->ReqPersonID*1 == 1003)
 			{
-				$where .= " AND ( EventType2='agent' OR EventType2='noavari')";
+				$where .= " AND EventType2='noavari'";
 			}
 			else if($ReqObj->_LoanGroupID*1 == 2)
 			{ 
-				$where .= " AND ( EventType2='hemayati' OR EventType2='agent')";
+				$where .= " AND EventType2='hemayati' ";
 			}
 			else{
 				if($ReqObj->FundGuarantee == "YES")
@@ -1299,11 +1310,13 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 		if(count($payments) == 0)
 			return 0;
 		//--------------- total pay months -------------
-		$firstPay = DateModules::miladi_to_shamsi($payments[0]["PurePayDate"]);
+		//$firstPay = DateModules::miladi_to_shamsi($payments[0]["PurePayDate"]);
+		$firstPay = DateModules::miladi_to_shamsi($payments[0]["PayDate"]);
 		$paymentPeriod = $partObj->PayDuration*1;
 		if($paymentPeriod == 0)
 		{
-			$LastPay = DateModules::miladi_to_shamsi($payments[count($payments)-1]["PurePayDate"]);
+			//$LastPay = DateModules::miladi_to_shamsi($payments[count($payments)-1]["PurePayDate"]);
+			$LastPay = DateModules::miladi_to_shamsi($payments[count($payments)-1]["PayDate"]);
 			$paymentPeriod = DateModules::GetDiffInMonth($firstPay, $LastPay);
 		}
 		//----------------------------------------------
@@ -1315,7 +1328,8 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 			$wageindex = count($wages)-1;
 			for($i=0; $i < $partObj->InstallmentCount; $i++)
 			{
-				$installmentDate = DateModules::miladi_to_shamsi($payments[0]["PurePayDate"]);
+				//$installmentDate = DateModules::miladi_to_shamsi($payments[0]["PurePayDate"]);
+				$installmentDate = DateModules::miladi_to_shamsi($payments[0]["PayDate"]);
 				$monthplus = $paymentPeriod + $partObj->DelayMonths*1;
 				$dayplus = 0;
 
@@ -1342,7 +1356,6 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 				$totalWage += $wage;
 			}
 		}
-
 		return $totalWage;
 	}
 }
@@ -2463,7 +2476,7 @@ class LON_installments extends PdoDataAccess{
 			$paymentPeriod = $partObj->PayDuration*1;
 			//----------------------------------------------	
 			$totalWage = LON_NOAVARI_compute::ComputeWage($partObj);
-
+			
 			if($pdo2 == null)
 			{
 				$pdo = PdoDataAccess::getPdoObject();

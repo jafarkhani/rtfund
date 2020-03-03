@@ -330,15 +330,17 @@ function GetData($mode = "list"){
 	$query .= $group == "" || $mode == "chart" ? " group by r.RequestID" : " group by " . $group;
 	$query .= $group == "" || $mode == "chart" ? " order by r.RequestID" : " order by " . $group;	
 	
-	$dataTable = PdoDataAccess::runquery($query, $whereParam);
-	$query = PdoDataAccess::GetLatestQueryString();
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		////BeginReport();
-		//print_r(ExceptionHandler::PopAllExceptions());
-		//echo PdoDataAccess::GetLatestQueryString();
+		BeginReport();
+		print_r($whereParam);
+		echo $query;		
 		//die();
 	}
+	
+	$dataTable = PdoDataAccess::runquery($query, $whereParam);
+	$query = PdoDataAccess::GetLatestQueryString();
+	
 	
 	for($i=0; $i< count($dataTable); $i++)
 	{
@@ -800,7 +802,8 @@ function LoanReport_total()
 				data : [
 					["BANK" , "فرمول بانک مرکزی" ],
 					["NEW" , "فرمول تنزیل اقساط" ],
-					["NOAVARI", 'فرمول صندوق نوآوری']
+					["NOAVARI", 'فرمول صندوق نوآوری'],
+					["PERCENT", 'فرمول درصدی']
 				],
 				fields : ['id','value']
 			}),
