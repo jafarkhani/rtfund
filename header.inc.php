@@ -28,8 +28,8 @@ if(!session::checkLogin())
 
 if($_SESSION["USER"]["UserName"] == "admin")
 {
-	sys_config::$db_server['database'] = "krrtfir_oldcomputes";
-	PdoDataAccess::$DB = null;
+	//sys_config::$db_server['database'] = "krrtfir_oldcomputes";
+	//PdoDataAccess::$DB = null;
 }
 
 
