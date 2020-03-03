@@ -56,6 +56,9 @@ function ExecuteEvent(){
 			record = this.getAt(i);
 			for(j=1; j<=3; j++)
 			{
+				if(record.data["param" + j] != null)
+					continue;
+				
 				if(record.data["paramType" + j] == null)
 					record.data["paramType" + j] = "textfield";
 				
