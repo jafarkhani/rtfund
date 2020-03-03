@@ -170,11 +170,12 @@ class EventComputeItems {
 							return $row["pure"];
 						case 33:
 						case 34:
-							$wagePercent = $PartObj->CustomerWage;
-							if($wagePercent == 0)
+							if($PartObj->CustomerWage == 0)
 								return 0;
-							$FundWage = round(($PartObj->FundWage/$wagePercent)*$row["wage"]);
+							$FundWage = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $row["wage"] : 
+								round(($PartObj->FundWage/$PartObj->CustomerWage)*$row["wage"]);
 							$AgentWage = $row["wage"] - $FundWage;
+							
 							if($ItemID == 34)
 								return $FundWage;
 							if($ItemID == 33)
@@ -184,18 +185,21 @@ class EventComputeItems {
 							if($PartObj->LatePercent*1 == 0)
 								return 0;
 							$lateAmount = $row["late"];
-							$FundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$lateAmount);
+							$FundLate = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $lateAmount : 
+								round(($PartObj->FundWage/$PartObj->CustomerWage)*$lateAmount);
+							
 							$AgentLate = $lateAmount - $FundLate;
 							if($ItemID == 36)
 								return $FundLate;
 							if($ItemID == 35)
-								return $AgentLate;
+								return $AgentLate ;
 						case 37:
 						case 38:	
 							if($PartObj->ForfeitPercent*1 == 0)
 								return 0;
 							$forfeitAmount = $row["pnlt"];
-							$FundForfeit = round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$forfeitAmount);
+							$FundForfeit = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $forfeitAmount : 
+									round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$forfeitAmount);
 							$AgentForfeit = $forfeitAmount - $FundForfeit;
 							if($ItemID == 38)
 								return $FundForfeit;
@@ -206,7 +210,8 @@ class EventComputeItems {
 							$earlyAmount = $row["early"];
 							if($PartObj->CustomerWage == 0)
 								return 0;
-							$FundEarly = round(($PartObj->FundWage/$PartObj->CustomerWage)*$earlyAmount);
+							$FundEarly = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $earlyAmount : 
+									round(($PartObj->FundWage/$PartObj->CustomerWage)*$earlyAmount);
 							$AgentEarly = $earlyAmount - $FundEarly;
 							if($ItemID == 41)
 								return $FundEarly;
@@ -215,6 +220,7 @@ class EventComputeItems {
 							
 						case 43:	
 							return $row["remainPayAmount"];
+							
 					}
 				}
 		}		
