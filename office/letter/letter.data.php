@@ -383,7 +383,7 @@ function SaveLetter($dieing = true) {
 		$Letter->PersonID = $_SESSION["USER"]["PersonID"];
 		$Letter->LetterDate = PDONOW;
 		$Letter->RegDate = PDONOW;
-        $Letter->AddLetter();
+        $res = $Letter->AddLetter();
     }
     else
 	{
