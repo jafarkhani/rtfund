@@ -38,9 +38,6 @@ where ComputeMode='NEW' AND r.RequestID>0 AND l.GroupID=1 AND StatusID=" . LON_R
 
 $reqs = PdoDataAccess::runquery_fetchMode($query);
 
-
-//........................................................
-
 $objArr = array();
 
 $pdo = PdoDataAccess::getPdoObject();
@@ -99,12 +96,31 @@ while($row = $reqs->fetch())
 		print_r(ExceptionHandler::PopAllExceptions());
 		echo "\n--------------------------------------------\n";
 	}
-
-
 }
 $pdo->commit();	
 
-echo "--------";
+//-----------------------------------------------------
+//-------------- fund wage of agent -------------------
+$ComputeDate = PDONOW;
+$reqs = PdoDataAccess::runquery_fetchMode(" select * from LON_Installments join LON_requests using(RequestID)
+	where InstallmentDate=? AND PureFundWage>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM, array($ComputeDate));
+$obj = new ExecuteEvent(1977);
+foreach($reqs as $row)
+{
+	$obj->DocDate = $ComputeDate;
+	$obj->Sources = array($row["RequestID"], $row["PartID"]);
+	$result = $obj->RegisterEventDoc($pdo);
+	$DocID = $obj->DocObj;
+	if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+	{
+		echo "وام " .  $row["RequestID"] . " : <br>";
+		echo ExceptionHandler::GetExceptionsToString("<br>");
+		print_r(ExceptionHandler::PopAllExceptions());
+		echo "\n--------------------------------------------\n";
+	}
+}
+//-----------------------------------------------------
+
 $htmlStr = ob_get_contents();
 ob_end_clean(); 
 $htmlStr = preg_replace('/\\n/', "<br>", $htmlStr);
