@@ -150,7 +150,6 @@ class EventComputeItems {
 			case 41 :  // کارمزد تعجیل سهم صندوق
 			case 42 :  // کارمزد تعجیل سهم سرمایه گذار
 			case 43 :  // اضافه پرداختی
-			case 45 :  // مبلغ کارمزد هر قسط صندوق از محل سپرده سرمایه گذار
 				
 				if(isset(self::$LoanComputeArray[ $ReqObj->RequestID ]))
 					$ComputeArr = self::$LoanComputeArray[ $ReqObj->RequestID ];

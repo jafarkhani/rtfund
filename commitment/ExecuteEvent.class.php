@@ -7,13 +7,13 @@
 require_once DOCUMENT_ROOT . '/accounting/docs/doc.class.php';
 require_once DOCUMENT_ROOT . "/commitment/ComputeItems.class.php";
 
-class ExecuteEvent {
+class ExecuteEvent extends PdoDataAccess{
 	
 	private $pdo; 
 	public $EventID;
 	public $BranchID;
 	public $DocDate;
-	public $DocObj;
+	public $DocObj = null;
 	
 	public $EventFunction;
 	public $TriggerFunction = "";
@@ -69,7 +69,7 @@ class ExecuteEvent {
 			}
 		//---------------------------------------------------
 		
-		if(!$this->DocObj)
+		if(!$this->DocObj) 
 		{
 			$CycleID = isset($_SESSION["accounting"]) ? 
 				$_SESSION["accounting"]["CycleID"] : 

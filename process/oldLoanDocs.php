@@ -15,6 +15,9 @@ header("X-Accel-Buffering: no");
 ob_start();
 set_time_limit(0);
 
+FundIncomeOfAgent();
+die();
+
 global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
@@ -559,5 +562,37 @@ function DailyWage($reqObj , $partObj, $pdo){
 			ob_flush();flush();
 		}
 	}
+}
+
+function FundIncomeOfAgent(){
+	
+	//-------------- fund wage of agent -------------------
+	$reqs = PdoDataAccess::runquery_fetchMode(" select * from LON_installments join LON_requests using(RequestID)
+		where PureFundWage>0 AND InstallmentDate<=now() AND StatusID=" . LON_REQ_STATUS_CONFIRM . " order by InstallmentDate");
+	
+	$prevComputeDate = null;
+	$obj = new ExecuteEvent(1977);
+	foreach($reqs as $row)
+	{
+		if($prevComputeDate != $row["InstallmentDate"])
+			unset($obj->DocObj);
+		
+		$prevComputeDate = $row["InstallmentDate"];
+		
+		$obj->DocDate = $row["InstallmentDate"];
+		$obj->Sources = array($row["RequestID"], $row["PartID"]);
+		$obj->AllRowsAmount = $row["PureFundWage"];
+		$result = $obj->RegisterEventDoc();
+		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+		{
+			echo "درآمد سرمایه گذار صندوق  " .  $row["RequestID"] . " : <br>";
+			//echo ExceptionHandler::GetExceptionsToString("<br>");
+			print_r(ExceptionHandler::PopAllExceptions());
+			echo "\n--------------------------------------------\n";
+		}
+		else
+			echo "درآمد سرمایه گذار صندوق  " .  $row["RequestID"] . " : true \n";
+	}
+	
 }
 ?>

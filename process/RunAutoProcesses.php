@@ -102,14 +102,15 @@ $pdo->commit();
 //-----------------------------------------------------
 //-------------- fund wage of agent -------------------
 $ComputeDate = PDONOW;
-$reqs = PdoDataAccess::runquery_fetchMode(" select * from LON_Installments join LON_requests using(RequestID)
+$reqs = PdoDataAccess::runquery_fetchMode(" select * from LON_installments join LON_requests using(RequestID)
 	where InstallmentDate=? AND PureFundWage>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM, array($ComputeDate));
 $obj = new ExecuteEvent(1977);
 foreach($reqs as $row)
 {
 	$obj->DocDate = $ComputeDate;
 	$obj->Sources = array($row["RequestID"], $row["PartID"]);
-	$result = $obj->RegisterEventDoc($pdo);
+	$obj->AllRowsAmount = $row["PureFundWage"];
+	$result = $obj->RegisterEventDoc();
 	$DocID = $obj->DocObj;
 	if(!$result || ExceptionHandler::GetExceptionCount() > 0)
 	{
