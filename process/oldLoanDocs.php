@@ -15,8 +15,9 @@ header("X-Accel-Buffering: no");
 ob_start();
 set_time_limit(0);
 
-FundIncomeOfAgent();
-die();
+
+/*FundIncomeOfAgent();
+die();*/
 
 global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
@@ -39,12 +40,12 @@ while($requset=$reqs->fetch())
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
 	//Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	/*$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
 		continue;
-	}*/
+	}
 	
 	/*$result = Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
@@ -62,7 +63,7 @@ while($requset=$reqs->fetch())
 	}*/
 	
 	//DailyIncome($reqObj, $partObj, $pdo);
-	DailyWage($reqObj, $partObj, $pdo);
+	//DailyWage($reqObj, $partObj, $pdo);
 	//$DocObj[ $reqObj->RequestID ] = null;
 	 
 	//--------------------------------------------------
