@@ -22,6 +22,7 @@ class ExecuteEvent extends PdoDataAccess{
 	public $Sources;
 	public $tafsilis = array();
 	public $ComputedItems = array();
+	public $ExtraDescription = "";
 	
 	public $AllRowsAmount = 0;
 	
@@ -83,14 +84,8 @@ class ExecuteEvent extends PdoDataAccess{
 			$this->DocObj->BranchID = $this->BranchID;
 			$this->DocObj->DocType = DOCTYPE_EXECUTE_EVENT;
 			$this->DocObj->EventID = $this->EventID;
-			/*$this->DocObj->description = "اجرای رویداد[ " . $this->EventID . " ] " . $eventRows[0]["EventTitle"];*/
-            //new  added
-            if($this->EventID=1772 || $this->EventID=1766){
-                $this->DocObj->description = "اجرای رویداد[ " . $this->DocObj->EventID . " ] " . $eventRows[0]["EventTitle"]. " " .$_SESSION["titletest"];
-            }else{
-                $this->DocObj->description = "اجرای رویداد[ " . $this->DocObj->EventID . " ] " . $eventRows[0]["EventTitle"];
-            }
-            // end new  added
+			$this->DocObj->description = "اجرای رویداد[ " . $this->EventID . " ] " . 
+				$eventRows[0]["EventTitle"] . " " . $this->ExtraDescription;
 		}
 
 		//----------------------- add doc items -------------------
