@@ -640,7 +640,10 @@ function SaveLoanCheque(){
 			$eventobj = new ExecuteEvent($EventID);
 			$eventobj->Sources = array(0, $obj->IncomeChequeID);
 			$eventobj->AllRowsAmount = $obj->ChequeAmount;
-            $_SESSION["titletest"] = ' شماره چک '. $obj->ChequeNo .' تاریخ سررسید چک '. $obj->ChequeDate .' نام مشتری '. $ReqObj->_LoanPersonFullname .' شماره تسهیلات '. $_POST["RequestID"];/*new added
+			$eventobj->ExtraDescription = ' شماره چک '. $obj->ChequeNo .
+					' تاریخ سررسید چک '. $obj->ChequeDate .
+					' نام مشتری '. $ReqObj->_LoanPersonFullname .
+					' شماره تسهیلات '. $_POST["RequestID"];
 			$result = $eventobj->RegisterEventDoc($pdo);
 			if(!$result)
 			{
