@@ -1346,10 +1346,8 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 				$jdiff = DateModules::GDateMinusGDate($installmentDate, $row["PayDate"]);
 
 				$wagePercent = 0;
-				if($partObj->WageReturn == "INSTALLMENT" )
-					$wagePercent += $partObj->FundWage;
-				if($partObj->AgentReturn == "INSTALLMENT")
-					$wagePercent += $partObj->CustomerWage - $partObj->FundWage;
+				if($partObj->WageReturn == "INSTALLMENT" || $partObj->AgentReturn == "INSTALLMENT")
+					$wagePercent = $partObj->CustomerWage;
 				
 				$wage = round(($row["PayAmount"]/$partObj->InstallmentCount)*$jdiff*$wagePercent/36500);
 				$wages[$wageindex][] = $wage;
@@ -2510,12 +2508,12 @@ class LON_installments extends PdoDataAccess{
 				$obj2->InstallmentAmount = round($partObj->PartAmount/$partObj->InstallmentCount) + 
 						round($totalWage/$partObj->InstallmentCount);
 
-				if($totalWage == 0 && $partObj->CustomerWage > 0)
+				/*if($totalWage == 0 && $partObj->CustomerWage > 0)
 				{
 					$ConstantWage = $partObj->PartAmount*$partObj->CustomerWage/100;
 					$obj2->wage = round($ConstantWage/$partObj->InstallmentCount);
 					$obj2->PureWage = $obj2->wage;
-				}				
+				}		*/		
 				
 				if(!$obj2->AddInstallment($pdo))
 				{

@@ -278,6 +278,17 @@ LoanReport_payments.prototype.showReport = function(btn, e)
 	return;
 }
 
+LoanReport_payments.prototype.showReport2 = function(btn, e)
+{
+	this.form = this.get("mainForm")
+	this.form.target = "_blank";
+	this.form.method = "POST";
+	this.form.action =  this.address_prefix + "DebitReport.php?show=true";
+	this.form.submit();
+	this.get("excel").value = "";
+	return;
+}
+
 function LoanReport_payments()
 {
 	this.formPanel = new Ext.form.Panel({
@@ -341,6 +352,10 @@ function LoanReport_payments()
 		buttons : [{
 			text : "مشاهده گزارش",
 			handler : Ext.bind(this.showReport,this),
+			iconCls : "report"
+		},{
+			text : "گزارش پرداخت جدید",
+			handler : Ext.bind(this.showReport2,this),
 			iconCls : "report"
 		}]
 	});

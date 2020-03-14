@@ -55,6 +55,7 @@ class ReportGenerator {
 	public $rowColorRender = "";
 	public $headerContent = "";
 	public $footerContent = "";
+	public $footerExplicit = false;
 	
 	public $groupField = "";
 	public $groupLabel = false;
@@ -81,9 +82,8 @@ class ReportGenerator {
         echo '<html>
 			<head>
 				<link rel="stylesheet" type="text/css" href="/generalUI/fonts/fonts.css" />
-				<META http-equiv=Content-Type content="text/html; charset=UTF-8" >' .
-			'</head>
-			<body dir="rtl">';
+				<META http-equiv=Content-Type content="text/html; charset=UTF-8" >
+			</head><body dir="rtl">';
     	}
     
 	public function ReportGenerator($MainForm = "", $ObjectName = "") {
@@ -307,7 +307,8 @@ class ReportGenerator {
 		//..............................................
 		
 		echo "<table id='page_" . $this->pageCount . "' width='$this->width' 
-				style='font-family:".$this->fontFamily.";border-collapse: collapse'  border='$this->border'
+				style='font-family:".$this->fontFamily.";border-collapse: seperate;border-spacing: 0;' 
+				border='$this->border'
 				cellspacing='$this->cellspace' cellpadding='$this->cellpad'>";
 		echo "<caption style='background-color: #2D72AD;color: white;'>";
 		if($reportTitle)
@@ -333,7 +334,8 @@ class ReportGenerator {
 
 		}//..............................................
 		echo "</caption>";
-		echo "<thead> <tr class='breakPage' bgcolor = '$this->header_color'>";
+		echo "<thead style='position: sticky;top: 0;box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);'>".
+				"<tr class='breakPage' bgcolor = '$this->header_color'>";
 
 		// row number ---------------------------
 		if ($this->rowNumber)
@@ -486,9 +488,11 @@ class ReportGenerator {
 		}
 		if ($this->footerContent != "")
 		{
-			echo "<tr><td colspan=" . count($this->columns) . " >";
+			if(!$this->footerExplicit)
+				echo "<tr><td colspan=" . count($this->columns) . " >";
 			echo $this->footerContent;
-			echo "</td></tr>";
+			if(!$this->footerExplicit)
+				echo "</td></tr>";
 			//$this->pageRecordCounter++;
 		}
 		

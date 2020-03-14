@@ -4,13 +4,14 @@
 // programmer:	b.mahdipour
 // Date:		94.11
 //---------------------------
+ini_set('display_errors', 'On') ;
 require_once '../../../header.inc.php';
 require_once '../class/payment_calculation.class.php';
 require_once '../class/payments.class.php';
 require_once '../class/payment_cancel.class.php';
 require_once '../../../baseInfo/class/salary_item_report.class.php';
 require_once '../class/arrear_pay_calculation.class.php';
-require_once '../../../../accounting/docs/import.data.php';
+require_once '../../../../accounting/docs/doc.class.php';
 
 require_once inc_QueryHelper;
 require_once(inc_response);
@@ -206,7 +207,7 @@ function confirmation() {
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
 			}
-			if (!RegisterSalaryDoc($obj, $pdo)) {
+			if (!ImportDoc::RegisterSalaryDoc($obj, $pdo)) {
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
@@ -221,7 +222,7 @@ function confirmation() {
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
 			}
-			if (!ReturnSalaryDoc($obj, $pdo)) {
+			if (!ImportDoc::ReturnSalaryDoc($obj, $pdo)) {
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
@@ -232,7 +233,7 @@ function confirmation() {
 			
 		//------------- pay salary -------------
 		case "4":
-			if (!RegisterPaySalaryDoc($obj, $pdo)) {
+			if (!ImportDoc::RegisterPaySalaryDoc($obj, $pdo)) {
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
@@ -243,7 +244,7 @@ function confirmation() {
 		
 		//------------- return pay salary -------------
 		case "3":
-			if (!ReturnPaySalaryDoc($obj, $pdo)) {
+			if (!ImportDoc::ReturnPaySalaryDoc($obj, $pdo)) {
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
