@@ -16,8 +16,8 @@ ob_start();
 set_time_limit(0);
 
 
-/*FundIncomeOfAgent();
-die();*/
+FundIncomeOfAgent();
+die();
 
 global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
@@ -568,8 +568,10 @@ function DailyWage($reqObj , $partObj, $pdo){
 function FundIncomeOfAgent(){
 	
 	//-------------- fund wage of agent -------------------
-	$reqs = PdoDataAccess::runquery_fetchMode(" select * from LON_installments join LON_requests using(RequestID)
-		where PureFundWage>0 AND InstallmentDate<=now() AND StatusID=" . LON_REQ_STATUS_CONFIRM . " order by InstallmentDate");
+	$reqs = PdoDataAccess::runquery_fetchMode(" 
+		select * from LON_installments join LON_requests using(RequestID)
+		where PureFundWage>0 AND InstallmentDate<=now() AND StatusID=" . LON_REQ_STATUS_CONFIRM . 
+		" order by InstallmentDate");
 	
 	$prevComputeDate = null;
 	$obj = new ExecuteEvent(1977);
