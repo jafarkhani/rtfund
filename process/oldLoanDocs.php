@@ -23,7 +23,7 @@ global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 
+$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 and flag=1
 		 order by DocID");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
@@ -47,20 +47,20 @@ while($requset=$reqs->fetch())
 		continue;
 	}
 	
-	/*$result = Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	$result = Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
 		continue;
-	}*/
+	}
 	
-	/*$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
-	}*/
+	}
 	
 	//DailyIncome($reqObj, $partObj, $pdo);
 	//DailyWage($reqObj, $partObj, $pdo);
