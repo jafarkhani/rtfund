@@ -525,8 +525,18 @@ class ReportGenerator {
             		$row['number']=$index+1;
 			$this->columns[$i]->direction = "rtl";
 			
-			echo "<td  height=21px id='col_" . $this->columns[$i]->field . "_" . ($index + 1) .  "' 
-				style='text-align:justify;text-indent:-4px;padding:2px;padding-right:5px;padding-left:5px;min-width: 70px;direction:" . $this->columns[$i]->direction . ";" . $this->columns[$i]->style .
+			//.................................
+			$style = "";
+			if(is_callable($this->columns[$i]->style))
+				$style = call_user_func ($this->columns[$i]->style, $row, $this->columns[$i]);
+			else if($this->columns[$i]->style != "")
+				$style = $this->columns[$i]->style;
+			//.................................
+			
+			echo "<td height=21px id='col_" . $this->columns[$i]->field . "_" . ($index + 1) .  "' 
+				style='/*text-align:justify;*/text-indent:-4px;padding:2px;padding-right:5px;".
+					"padding-left:5px;min-width: 70px;direction:" . $this->columns[$i]->direction . ";" . 
+					$style .
 					($this->columns[$i]->hidden ? ";display:none;" : "") . 
 					(strpos($this->columns[$i]->field,"VerticalSum_") !== false ? "background-color:" . $this->summaryRow_color : "") .
 					"' border='$this->border' align='" . 
@@ -1247,7 +1257,6 @@ class ReportColumn {
 	public $SumRener;
 	public $direction;
 	public $SummaryOfRender;
-	
 	
 	public $rowspaning = false;
 	public $rowspanByFields = array();
