@@ -222,59 +222,15 @@ if(isset($_REQUEST["show"]))
 	//............................................................
 	$rpg = new ReportGenerator();
 	$rpg->mysql_resource = $returnArr;
-	
-	$rpg->footerExplicit = true;
-	$rpg->footerContent = "
-		<tr style='background-color:pink'>
-			<td colspan=8 align=center rowspan=3>جمع تا تاریخ گزارش </td>
-			<td>محاسبه شده</td>
-			<td>".  number_format($totals["compute"]["debt_pure"])."</td>
-			<td>".  number_format($totals["compute"]["debt_wage"])."</td>
-			<td>".  number_format($totals["compute"]["debt_late"])."</td>		
-			<td>".  number_format($totals["compute"]["debt_pnlt"])."</td>
-			<td>".  number_format($totals["compute"]["debt_early"])."</td>
-			<td>".  number_format($totals["compute"]["debt_total"])."</td>
-		</tr>
-		<tr style='background-color:pink'>
-			<td>پرداخت شده</td>
-			<td>".  number_format($totals["payed"]["debt_pure"])."</td>
-			<td>".  number_format($totals["payed"]["debt_wage"])."</td>
-			<td>".  number_format($totals["payed"]["debt_late"])."</td>		
-			<td>".  number_format($totals["payed"]["debt_pnlt"])."</td>
-			<td>".  number_format($totals["payed"]["debt_early"])."</td>
-			<td>".  number_format($totals["payed"]["debt_total"])."</td>
-		</tr>
-		<tr style='background-color:pink'>
-			<td>مانده</td>
-			<td>".  number_format($totals["remain"]["debt_pure"])."</td>
-			<td>".  number_format($totals["remain"]["debt_wage"])."</td>
-			<td>".  number_format($totals["remain"]["debt_late"])."</td>		
-			<td>".  number_format($totals["remain"]["debt_pnlt"])."</td>
-			<td>".  number_format($totals["remain"]["debt_early"])."</td>
-			<td>".  number_format($totals["remain"]["debt_total"])."</td>
-		</tr>
-		<tr style='background-color:lightgreen'>
-			<td colspan=8 align=center>جمع تا انتهای قرارداد </td>
-			<td>مانده</td>
-			<td>".  number_format($totals["totalremain"]["debt_pure"])."</td>
-			<td>".  number_format($totals["totalremain"]["debt_wage"])."</td>
-			<td>".  number_format($totals["totalremain"]["debt_late"])."</td>		
-			<td>".  number_format($totals["totalremain"]["debt_pnlt"])."</td>
-			<td>".  number_format($totals["totalremain"]["debt_early"])."</td>
-			<td>".  number_format($totals["totalremain"]["debt_total"])."</td>
-		</tr>
-	";
+	$rpg->rowNumber = false;
 	
 	function RowColorRender($row){
-		switch($row["type"])
-		{
-			case "pay" : return "#fcfcb6";
-			case "sum" : return "pink";
-		}
-		return "";
+		return $row["type"] == "pay" ? "#fcfcb6" : "";
 	}
 	$rpg->rowColorRender = "RowColorRender";
 	
+	$col = $rpg->addColumn("", "id", "");
+	$col->hidden = true;
 	
 	function ActionRender($row, $value){
 		if($value == "installment")
@@ -286,61 +242,130 @@ if(isset($_REQUEST["show"]))
 		return "پرداخت " . $row["details"];
 	}
 	$col = $rpg->addColumn("نوع عملیات", "type", "ActionRender");
-	$col->rowspanByFields = array("RecordDate", "type");
+	$col->rowspanByFields = array("id");
 	$col->rowspaning = true;
+	$col->align = "center";
+	
 	$col = $rpg->addColumn("تاریخ عملیات", "RecordDate","ReportDateRender");
-	$col->rowspanByFields = array("RecordDate", "type");
+	$col->rowspanByFields = array("RecordDate", "type","id");
 	$col->rowspaning = true;
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("کل مبلغ", "RecordAmount","ReportMoneyRender");
-	$col->rowspanByFields = array("RecordDate", "type");
+	$col->rowspanByFields = array("RecordDate", "type","id");
 	$col->rowspaning = true;
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("اصل مبلغ", "sep_pure","ReportMoneyRender");
 	$col->GroupHeader = "تجزیه کل مبلغ در تاریخ عملیات";
-	$col->rowspanByFields = array("RecordDate", "type");
+	$col->rowspanByFields = array("RecordDate", "type","id");
 	$col->rowspaning = true;
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("کارمزد", "sep_wage","ReportMoneyRender");
 	$col->GroupHeader = "تجزیه کل مبلغ در تاریخ عملیات";
-	$col->rowspanByFields = array("RecordDate", "type");
+	$col->rowspanByFields = array("RecordDate", "type","BackPayID");
 	$col->rowspaning = true;
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("کارمزد تاخیر", "sep_late","ReportMoneyRender");
 	$col->GroupHeader = "تجزیه کل مبلغ در تاریخ عملیات";
-	$col->rowspanByFields = array("RecordDate", "type");
+	$col->rowspanByFields = array("RecordDate", "type","BackPayID");
 	$col->rowspaning = true;
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("جریمه", "sep_pnlt","ReportMoneyRender");
 	$col->GroupHeader = "تجزیه کل مبلغ در تاریخ عملیات";
-	$col->rowspanByFields = array("RecordDate", "type");
+	$col->rowspanByFields = array("RecordDate", "type","BackPayID");
 	$col->rowspaning = true;
+	$col->align = "center";
 
-	$rpg->addColumn("نوع بدهی", "DebitType","");
+	function DebitStyleRender($row, $column){
+		if($row["DebitType"] == "مانده")
+			return "background-color:lightgreen";
+		return "";
+	}
+	$col = $rpg->addColumn("نوع بدهی", "DebitType","");
+	$col->style = "DebitStyleRender";
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("اصل", "debt_pure","ReportMoneyRender");
 	$col->rowspanByFields = array("RecordDate");
 	$col->GroupHeader = "وضعیت بدهی در تاريخ " . $ComputeDateStr;
+	$col->style = "DebitStyleRender";
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("کارمزد", "debt_wage","ReportMoneyRender");
 	$col->rowspanByFields = array("RecordDate");
 	$col->GroupHeader = "وضعیت بدهی در تاريخ " . $ComputeDateStr;
+	$col->style = "DebitStyleRender";
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("کارمزد تاخیر", "debt_late","ReportMoneyRender");
 	$col->rowspanByFields = array("RecordDate");
 	$col->GroupHeader = "وضعیت بدهی در تاريخ " . $ComputeDateStr;
+	$col->style = "DebitStyleRender";
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("جریمه", "debt_pnlt","ReportMoneyRender");
 	$col->rowspanByFields = array("RecordDate");
 	$col->GroupHeader = "وضعیت بدهی در تاريخ " . $ComputeDateStr;
+	$col->style = "DebitStyleRender";
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("تخفیف تعجیل", "debt_early","ReportMoneyRender");
 	$col->rowspanByFields = array("RecordDate");
 	$col->GroupHeader = "وضعیت بدهی در تاريخ " . $ComputeDateStr;
+	$col->style = "DebitStyleRender";
+	$col->align = "center";
 	
 	$col = $rpg->addColumn("کل", "debt_total","ReportMoneyRender");
 	$col->GroupHeader = "وضعیت بدهی در تاريخ " . $ComputeDateStr;
+	$col->style = "DebitStyleRender";
+	$col->align = "center";
 		
+	$rpg->footerExplicit = true;
+	$rpg->footerContent = "
+		<tr>
+			<td style='background-color:lightgreen' colspan=7 align=center rowspan=3>جمع تا تاریخ گزارش </td>
+			<td>محاسبه شده</td>
+			<td>".  number_format($totals["compute"]["debt_pure"])."</td>
+			<td>".  number_format($totals["compute"]["debt_wage"])."</td>
+			<td>".  number_format($totals["compute"]["debt_late"])."</td>		
+			<td>".  number_format($totals["compute"]["debt_pnlt"])."</td>
+			<td>".  number_format($totals["compute"]["debt_early"])."</td>
+			<td>".  number_format($totals["compute"]["debt_total"])."</td>
+		</tr>
+		<tr>
+			<td>پرداخت شده</td>
+			<td>".  number_format($totals["payed"]["debt_pure"])."</td>
+			<td>".  number_format($totals["payed"]["debt_wage"])."</td>
+			<td>".  number_format($totals["payed"]["debt_late"])."</td>		
+			<td>".  number_format($totals["payed"]["debt_pnlt"])."</td>
+			<td>".  number_format($totals["payed"]["debt_early"])."</td>
+			<td>".  number_format($totals["payed"]["debt_total"])."</td>
+		</tr>
+		<tr  style='background-color:lightgreen'>
+			<td>مانده</td>
+			<td>".  number_format($totals["remain"]["debt_pure"])."</td>
+			<td>".  number_format($totals["remain"]["debt_wage"])."</td>
+			<td>".  number_format($totals["remain"]["debt_late"])."</td>		
+			<td>".  number_format($totals["remain"]["debt_pnlt"])."</td>
+			<td>".  number_format($totals["remain"]["debt_early"])."</td>
+			<td>".  number_format($totals["remain"]["debt_total"])."</td>
+		</tr>
+		<tr style='background-color:pink'>
+			<td colspan=7 align=center>جمع تا انتهای قرارداد </td>
+			<td>مانده</td>
+			<td>".  number_format($totals["totalremain"]["debt_pure"])."</td>
+			<td>".  number_format($totals["totalremain"]["debt_wage"])."</td>
+			<td>".  number_format($totals["totalremain"]["debt_late"])."</td>		
+			<td>".  number_format($totals["totalremain"]["debt_pnlt"])."</td>
+			<td>".  number_format($totals["totalremain"]["debt_early"])."</td>
+			<td>".  number_format($totals["totalremain"]["debt_total"])."</td>
+		</tr>
+	";	
+	
 	BeginReport();
 	echo "<table style='border:2px groove #9BB1CD;border-collapse:collapse;width:100%'><tr>
 			<td width=60px><img src='/framework/icons/logo.jpg' style='width:60px'></td>
@@ -375,34 +400,22 @@ if(isset($_REQUEST["show"]))
 	<table style="border:2px groove #9BB1CD;border-collapse:collapse;width:100%;font-family: nazanin;
 		   font-size: 16px;line-height: 20px;">
 		<tr>
-			<td>شماره وام:</td>
-			<td><b><?= $ReqObj->RequestID ?></b></td>
-			<td>وام گیرنده :  </td>
-			<td><b><?= $ReqObj->_LoanPersonFullname  ?></b></td>
-			<td>منبع  :</td>
-			<td><b><?= $ReqObj->_ReqPersonFullname ?></b></td>
-			<td> تاریخ پرداخت وام:  </td>
-			<td><b><?= DateModules::miladi_to_shamsi($partObj->PartDate) ?></b></td>
+			<td>شماره وام : <b><?= $ReqObj->RequestID ?></b></td>
+			<td>وام گیرنده  :  <b><?= $ReqObj->_LoanPersonFullname  ?></b></td>
+			<td>منبع   : <b><?= $ReqObj->_ReqPersonFullname ?></b></td>
+			<td> تاریخ پرداخت وام :  <b><?= DateModules::miladi_to_shamsi($partObj->PartDate) ?></b></td>
 		</tr>
 		<tr>
-			<td>مبلغ وام :  </td>
-			<td><b><?= number_format($partObj->PartAmount) ?> ریال				</b></td>
-			<td>مدت تنفس :  </td>
-			<td><b><?= $partObj->DelayMonths  ?>ماه و  <?= $partObj->DelayDays ?> روز</b></td>
-			<td>فاصله اقساط: </td>
-			<td><b><?= $partObj->PayInterval . ($partObj->IntervalType == "DAY" ? "روز" : "ماه") ?>
+			<td>مبلغ وام :  <b><?= number_format($partObj->PartAmount) ?> ریال				</b></td>
+			<td>مدت تنفس :  <b><?= $partObj->DelayMonths  ?>ماه و  <?= $partObj->DelayDays ?> روز</b></td>
+			<td> فاصله اقساط: <b><?= $partObj->PayInterval . ($partObj->IntervalType == "DAY" ? "روز" : "ماه") ?>
 				</b></td>
-			<td>تعداد اقساط: </td>
-			<td><b><?= $partObj->InstallmentCount ?></b></td>
+			<td> تعداد اقساط: <b><?= $partObj->InstallmentCount ?></b></td>
 		</tr>
 		<tr>
-			<td> کارمزد وام:  </td>
-			<td><b><?= $partObj->CustomerWage ?> %</b></td>
-			<td>کارمزد تاخیر :</td>
-			<td><b><?= $partObj->LatePercent ?> %</b></td>
-			<td>درصد دیرکرد: </td>
-			<td><b><?= $partObj->ForfeitPercent ?> %</b></td>			
-			<td></td>
+			<td>  کارمزد وام :  <b><?= $partObj->CustomerWage ?> %</b></td>
+			<td>کارمزد تاخیر : <b><?= $partObj->LatePercent ?> %</b></td>
+			<td> درصد دیرکرد: <b><?= $partObj->ForfeitPercent ?> %</b></td>			
 			<td></td>
 		</tr>
 	</table>	
