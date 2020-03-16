@@ -1271,6 +1271,7 @@ class LON_requests extends PdoDataAccess{
 		if($RequestID > 0)
 		{
 			$ReqObj = new LON_requests($RequestID);
+			
 			if($ReqObj->ReqPersonID*1 == 0)
 				$where .= " AND EventType2='inner'";
 			else if($ReqObj->ReqPersonID*1 == 1003)
@@ -1292,6 +1293,9 @@ class LON_requests extends PdoDataAccess{
 			$where .= " AND EventType3='".$EventType3."'";
 		//----------------------------------------------------
 		$dt = PdoDataAccess::runquery("select * from COM_events where 1=1 " . $where);
+		
+		//if($_SESSION["USER"]["UserName"] == "admin")PdoDataAccess::GetLatestQueryString ();
+		
 		if(count($dt) == 0)
 		{
 			return 0;
