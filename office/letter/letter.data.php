@@ -34,6 +34,7 @@ function SelectLetter() {
 	}
 
     $list = OFC_letters::GetAll($where, $param);
+	
     echo dataReader::getJsonData($list, count($list), $_GET['callback']);
     die();
 }
