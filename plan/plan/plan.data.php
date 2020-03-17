@@ -605,7 +605,7 @@ function SavePlanEvents(){
 
     $obj = new PLN_PlanEvents();
     PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
-
+    $obj->PersonID = $_SESSION["USER"]["PersonID"]; //new added
     if(empty($obj->EventID))
         $result = $obj->Add();
     else
