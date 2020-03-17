@@ -83,8 +83,8 @@ class EventComputeItems {
 					return $result["FundWage"] - $result["CustomerWage"];
 				return 0;
 			
-			case 23: // کارمزد ثابت 4% صنوش
-				return $PartObj->PartAmount*4/100;
+			case 23: // کارمزد ثابت5% صنوش
+				return $PartObj->PartAmount*5/100;
 				
 			case 6 : // مبلغ تضمین
 				$dt =  array();
