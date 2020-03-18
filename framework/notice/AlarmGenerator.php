@@ -102,7 +102,8 @@ function NTC_Alarms(){
 					data : [
 						['SMS', 'SMS'],
 						['EMAIL', 'EMAIL'],
-						['LETTER', 'LETTER']
+						['LETTER', 'LETTER'],
+						['NONE', 'عدم ارسال']
 					]				
 				}),
 				displayField : "title",
