@@ -254,7 +254,31 @@ function SurveyGroup(){
 }
 
 //............................................
+//new added
+function SelectAllPlan(){
 
+    $param = array();
+    $where = "";
+    if(!empty($_REQUEST["FormType"]))
+    {
+        $where .= " AND p.FormType=:ft";
+        $param[":ft"] = $_REQUEST["FormType"];
+    }
+    if(!empty($_REQUEST["query"]))
+    {
+        $where .= " AND ( p.PlanID= :q or p.PlanDesc like :q2 )";
+        $param[":q"] = $_REQUEST["query"];
+        $param[":q2"] = "%" .  $_REQUEST["query"] . "%";
+    }
+
+    $dt = PLN_plans::SelectAll($where, $param, dataReader::makeOrder());
+    $count = $dt->rowCount();
+
+    $dt = PdoDataAccess::fetchAll($dt, $_GET["start"], $_GET["limit"]);
+    echo dataReader::getJsonData($dt, $count, $_GET["callback"]);
+    die();
+}
+//end new added
 function SelectAllPlans(){
 
     $param = array();
