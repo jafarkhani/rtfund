@@ -173,7 +173,7 @@ $grid = $dg->makeGrid_returnObjects();
                         proxy: {
                             type: 'jsonp',
                             url: this.address_prefix + 'plan.data.php?' +
-                                "task=SelectAllPlans&FormType=2",
+                                "task=SelectAllPlan&FormType=2",
                             reader: {root: 'rows',totalProperty: 'totalCount'}
                         },
                         fields : ['PlanID','PersonID','evaluationAskerID','LetterID','LoanID','PlanDesc','FacilityAmount','ApprovedAmount',

@@ -332,6 +332,7 @@ class PLN_PlanEvents extends OperationClass {
 
     public $EventID;
     public $PlanID;
+    public $PersonID;  //new added
     public $EventTitle;
     public $EventDate;
 
@@ -341,6 +342,15 @@ class PLN_PlanEvents extends OperationClass {
 
         parent::__construct($id);
     }
+    //new added
+    public static function Get($where = '', $whereParams = array()) {
+        return parent::runquery_fetchMode("
+			select e.*, concat_ws(' ',fname, lname,CompanyName) fullname
+			from PLN_PlanEvents e
+			left join BSC_persons p using(PersonID) where 1=1 " . $where, $whereParams);
+    }
+    //end new added
+
 
 }
 ?>

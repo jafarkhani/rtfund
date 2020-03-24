@@ -8,7 +8,7 @@ require_once('../header.inc.php');
 require_once inc_dataGrid;
 require_once inc_dataReader;
 require_once inc_response;
-
+$receptionPersonID = 2869; // PersonID Aghaye javad ramezani ast
 //------------------------- DATA BLOCK ----------------------------
 $task = isset($_POST ["task"]) ? $_POST ["task"] : (isset($_GET ["task"]) ? $_GET ["task"] : "");
 
@@ -148,10 +148,16 @@ function phonebook()
 		return "";
 	}	
 	this.grid.plugins[0].on("beforeedit", function(editor,e){
-			
-		if(e.record.data.PersonID != phonebookObj.PersonID)
+        if(phonebookObj.PersonID != phonebookObj.receptionPersonID)	{
+            if(e.record.data.PersonID != phonebookObj.PersonID){return false;}
+            else{return true;}
+        }else{
+            return true;
+        }
+
+		/*if(e.record.data.PersonID != phonebookObj.PersonID)
 			return false;
-		return true;			
+		return true;*/
 	});	
 	this.grid.render(this.get("div_dg"));
 }
@@ -230,11 +236,21 @@ phonebook.prototype.Remove = function(){
 
 phonebook.prototype.DeleteRender = function(v,p,r){
 
-	if(r.data.PersonID != phonebookObj.PersonID)	
+    if(phonebookObj.PersonID != phonebookObj.receptionPersonID)	{
+        if(r.data.PersonID != phonebookObj.PersonID){return "";}
+        else{return "<div style='background-repeat:no-repeat;background-position:center;cursor:pointer;"+
+            "height:16;width:20px;float:left' "+
+            " onclick=phonebookObj.Remove() class=remove></div>";}
+    }else{
+        return "<div style='background-repeat:no-repeat;background-position:center;cursor:pointer;"+
+            "height:16;width:20px;float:left' "+
+            " onclick=phonebookObj.Remove() class=remove></div>";
+    }
+	/*if(r.data.PersonID != phonebookObj.PersonID)
 		return "";
 	return "<div style='background-repeat:no-repeat;background-position:center;cursor:pointer;"+
 		"height:16;width:20px;float:left' "+
-		" onclick=phonebookObj.Remove() class=remove></div>";
+		" onclick=phonebookObj.Remove() class=remove></div>";*/
 }
 
 </script>
