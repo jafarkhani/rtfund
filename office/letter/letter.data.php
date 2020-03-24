@@ -122,6 +122,13 @@ function SelectDraftLetters() {
     die();
 }
 
+function GetLetterContext(){
+	
+	$obj = new OFC_letters((int)$_POST["LetterID"]);
+    echo $obj->context;
+    die();
+}
+
 function CustomerLetters($returnMode = false){
 	
 	$list = PdoDataAccess::runquery("
