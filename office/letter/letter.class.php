@@ -531,10 +531,10 @@ class OFC_MessageReceivers extends OperationClass{
 	
 	static function GetNewMessageReceiveCount(){
 		
-		$dt = PdoDataAccess::runquery("select SendID from OFC_MessageReceivers 
-			join OFC_messages using(MessageID)
-			where IsSeen='NO' AND IsDeleted='NO' AND
-			PersonID=" . $_SESSION["USER"]["PersonID"]);
+		$dt = PdoDataAccess::runquery("select SendID from OFC_MessageReceivers r
+            join OFC_messages using(MessageID)
+            where r.IsSeen='NO' AND r.IsDeleted='NO' AND
+            r.PersonID=" . $_SESSION["USER"]["PersonID"]);
 		return count($dt);
 	}
 	
