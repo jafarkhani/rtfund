@@ -16,8 +16,8 @@ ob_start();
 set_time_limit(0);
 
 
-FundIncomeOfAgent();
-die();
+//FundIncomeOfAgent();
+//die();
 
 global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
@@ -40,7 +40,7 @@ while($requset=$reqs->fetch())
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
 	//Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	/*$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
@@ -52,7 +52,7 @@ while($requset=$reqs->fetch())
 	{
 		$pdo->rollBack();
 		continue;
-	}
+	}*/
 	
 	$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
