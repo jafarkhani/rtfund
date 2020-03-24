@@ -419,10 +419,22 @@ if(isset($_REQUEST["show"]))
 			<td></td>
 		</tr>
 	</table>	
+<? $rpg->generateReport(); ?>
+
+
+<script>
+function showCommitmentData(el){
+	el.style.display = "none";
+	document.getElementById("CommitmentData").style.display = "block";
+}
+</script>
+<center>
+	<br>
+	<a href="javascript:void(0)" onclick="showCommitmentData(this)">مشاهده جدول محاسبات تعهدی</a>
+	<br>
+</center>
 	<?
-	
-	$rpg->generateReport();
-	echo "<br>" . $report2;	
+	echo "<div id='CommitmentData' style=display:none>" . $report2 . "</div>";	
 	die();
 }
 ?>
