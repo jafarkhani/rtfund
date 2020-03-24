@@ -39,9 +39,17 @@ class OFC_letters extends PdoDataAccess{
     }
 
     static function GetAll($where = "",$whereParam = array()){
-	    $query = "select * from OFC_letters";
+	    $query = "select * from OFC_letters l ";
 	    $query .= ($where != "") ? " where " . $where : "";
-	    return parent::runquery($query, $whereParam);
+	    $dt = parent::runquery($query, $whereParam);
+		
+		for($i=0; $i<count($dt); $i++)
+		{
+			$dt[$i]["context"] = "";
+			$dt[$i][6] = "";
+		}
+		
+		return $dt;
     }
 	
 	static function FullSelect($where = "",$whereParam = array(), $OrderBy = "", $RefInclude= false){
@@ -147,7 +155,8 @@ class OFC_letters extends PdoDataAccess{
 	
 	static function SelectDraftLetters($where = "", $param = array()){
 		
-		$query = "select * from OFC_letters
+		$query = "select LetterID,LetterTitle,LetterType,LetterDate,LetterTitle
+			from OFC_letters
 			left join OFC_send using(LetterID) 
 			where SendID  is null AND PersonID=:pid " . $where;
 		$param[':pid'] = $_SESSION["USER"]["PersonID"];
