@@ -31,13 +31,7 @@ function SaveWarrentyRequest(){
 		$obj->ReqDate = PDONOW;
 		$obj->RequestID = WAR_requests::LastID();
 		$result = $obj->Add();
-        //new added
-        $dtQuery = "select max(RequestID) from WAR_requests";
-        $res = PdoDataAccess::runquery_fetchMode($dtQuery);
-        $resultant = $res->fetchAll();
-        $obj->RequestID = $resultant[0][0];
-        //end new added
-		if($result)
+		if($result) 
 			WAR_requests::ChangeStatus($obj->RequestID, $obj->StatusID, "", true);
 		
 		$obj->RefRequestID = $obj->RequestID;
