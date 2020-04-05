@@ -349,12 +349,11 @@ Letter.prototype.BuildForms = function(){
 			})
 		},{
 			title : "متن نامه",
+			itemId : "ContextTab",
 			height : 450,
 			listeners : {
-				activate : function(){
-					if(this.isLoaded)
-						return;
-					
+				afterrender : function(){
+								
 					contextTab  = this;
 					mask = new Ext.LoadMask(this.down("htmleditor"), {msg:'در حال بارگذاری...'});
 					mask.show(); 
@@ -651,7 +650,9 @@ Letter.prototype.SaveLetter = function(SendFile){
 	params = {LetterID : this.LetterID};
 	/*if(CKEDITOR.instances.LetterEditor)
 		params.context = CKEDITOR.instances.LetterEditor.getData();*/
-	params.context = this.TabPanel.down("[name=context]").getValue();
+		
+	if(this.TabPanel.getComponent("ContextTab").rendered)
+		params.context = this.TabPanel.down("[name=context]").getValue();
 		
 	if(SendFile)
 	   form = this.TabPanel.down("[itemId=LetterPicsPanel]").getForm();

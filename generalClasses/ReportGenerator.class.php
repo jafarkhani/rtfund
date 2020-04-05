@@ -522,7 +522,7 @@ class ReportGenerator {
 		//----------------------------------------
 		for ($i = 0; $i < count($this->columns); $i++) {
 			//Now Draw Data
-            		$row['number']=$index+1;
+            $row['number']=$index+1;
 			$this->columns[$i]->direction = "rtl";
 			
 			//.................................

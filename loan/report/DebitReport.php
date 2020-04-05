@@ -61,6 +61,7 @@ if(isset($_REQUEST["show"]))
 		$DefrayAmount = number_format($DefrayAmount) . " ریال";
 	}
 	//............................................................
+		
 	$returnArr = array();
 	$totals = array(
 		"compute" => array(
@@ -118,15 +119,6 @@ if(isset($_REQUEST["show"]))
 			continue;
 		}
 		
-		$totals["totalremain"]["debt_pure"] += $ComputeArr[$i]["remain_pure"];
-		$totals["totalremain"]["debt_wage"] += $ComputeArr[$i]["remain_wage"];
-		$totals["totalremain"]["debt_late"] += $ComputeArr[$i]["remain_late"];
-		$totals["totalremain"]["debt_pnlt"] += $ComputeArr[$i]["remain_pnlt"];
-		$totals["totalremain"]["debt_early"] += 0;
-		$totals["totalremain"]["debt_total"] += $ComputeArr[$i]["remain_pure"] + 
-				$ComputeArr[$i]["remain_wage"] + 
-				$ComputeArr[$i]["remain_late"] + $ComputeArr[$i]["remain_pnlt"];
-		
 		if($ComputeArr[$i]["RecordDate"] > $GComputeDate)
 		{
 			$returnArr[] = array_merge($ComputeArr[$i], array(
@@ -143,7 +135,24 @@ if(isset($_REQUEST["show"]))
 				"debt_early" => 0,
 				"debt_total" => 0
 			));
+			
+			$totals["totalremain"]["debt_pure"] += $ComputeArr[$i]["remain_pure"];
+			$totals["totalremain"]["debt_wage"] += $ComputeArr[$i]["remain_wage"];
+			$totals["totalremain"]["debt_total"] += $ComputeArr[$i]["remain_pure"] + $ComputeArr[$i]["remain_wage"];
+			
 			continue;
+		}
+		
+		$late = 0;
+		$pnlt = 0;
+		$payedLate = 0;
+		$PayedPnlt = 0;
+		foreach($ComputeArr[$i]["pays"] as $r)
+		{
+			$late += $r["cur_late"];
+			$pnlt += $r["cur_pnlt"];
+			$payedLate += $r["pay_late"];
+			$PayedPnlt += $r["pay_pnlt"];
 		}
 		
 		$record = array_merge($ComputeArr[$i], array(
@@ -155,11 +164,11 @@ if(isset($_REQUEST["show"]))
 			"DebitType" => "محاسبه شده",
 			"debt_pure" => $ComputeArr[$i]["pure"],
 			"debt_wage" => $ComputeArr[$i]["wage"],
-			"debt_late" => $ComputeArr[$i]["totallate"],
-			"debt_pnlt" => $ComputeArr[$i]["totalpnlt"],
+			"debt_late" => $late,
+			"debt_pnlt" => $pnlt,
 			"debt_early" => $ComputeArr[$i]["early"],
 			"debt_total" => $ComputeArr[$i]["pure"] + $ComputeArr[$i]["wage"] + 
-				$ComputeArr[$i]["totallate"] + $ComputeArr[$i]["totalpnlt"] + $ComputeArr[$i]["early"]
+				$late + $pnlt + $ComputeArr[$i]["early"]
 		));
 		$returnArr[] = $record;
 		$totals["compute"]["debt_pure"] += $record["debt_pure"];
@@ -179,13 +188,13 @@ if(isset($_REQUEST["show"]))
 			"DebitType" => "پرداخت شده",
 			"debt_pure" => $ComputeArr[$i]["pure"] - $ComputeArr[$i]["remain_pure"],
 			"debt_wage" => $ComputeArr[$i]["wage"] - $ComputeArr[$i]["remain_wage"],
-			"debt_late" => $ComputeArr[$i]["totallate"] - $ComputeArr[$i]["remain_late"],
-			"debt_pnlt" => $ComputeArr[$i]["totalpnlt"] - $ComputeArr[$i]["remain_pnlt"],
+			"debt_late" => $payedLate,
+			"debt_pnlt" => $PayedPnlt,
 			"debt_early" => $ComputeArr[$i]["early"],
-			"debt_total" => $ComputeArr[$i]["pure"] + $ComputeArr[$i]["wage"] + 
-				$ComputeArr[$i]["totallate"] + $ComputeArr[$i]["totalpnlt"] + $ComputeArr[$i]["early"]
-				- ($ComputeArr[$i]["remain_pure"] + $ComputeArr[$i]["remain_wage"] + 
-				$ComputeArr[$i]["remain_late"] + $ComputeArr[$i]["remain_pnlt"])
+			"debt_total" => $ComputeArr[$i]["pure"] - $ComputeArr[$i]["remain_pure"] + 
+				$ComputeArr[$i]["wage"] - $ComputeArr[$i]["remain_wage"] +
+				$payedLate + $PayedPnlt + $ComputeArr[$i]["early"]
+				 
 		));
 		$returnArr[] = $record;
 		$totals["payed"]["debt_pure"] += $record["debt_pure"];
@@ -218,6 +227,15 @@ if(isset($_REQUEST["show"]))
 		$totals["remain"]["debt_pnlt"] += $record["debt_pnlt"];
 		$totals["remain"]["debt_early"] += $record["debt_early"];
 		$totals["remain"]["debt_total"] += $record["debt_total"];
+		
+		$totals["totalremain"]["debt_pure"] += $ComputeArr[$i]["remain_pure"];
+		$totals["totalremain"]["debt_wage"] += $ComputeArr[$i]["remain_wage"];
+		$totals["totalremain"]["debt_late"] += $ComputeArr[$i]["remain_late"];
+		$totals["totalremain"]["debt_pnlt"] += $ComputeArr[$i]["remain_pnlt"];
+		$totals["totalremain"]["debt_early"] += 0;
+		$totals["totalremain"]["debt_total"] += $ComputeArr[$i]["remain_pure"] + 
+				$ComputeArr[$i]["remain_wage"] + 
+				$ComputeArr[$i]["remain_late"] + $ComputeArr[$i]["remain_pnlt"];
 	}
 	//............................................................
 	$rpg = new ReportGenerator();

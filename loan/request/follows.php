@@ -305,7 +305,7 @@ LoanFollow.prototype.DeleteFollow = function(){
 
 LoanFollow.prototype.RegisterLetter = function(RequestID, TemplateID, FollowID){
 	
-	mask = new Ext.LoadMask(this.grid, {msg:'در حال حذف ...'});
+	mask = new Ext.LoadMask(this.grid, {msg:'در حال ایجاد نامه ...'});
 	mask.show();
 		
 	Ext.Ajax.request({
@@ -328,7 +328,9 @@ LoanFollow.prototype.RegisterLetter = function(RequestID, TemplateID, FollowID){
 					Ext.MessageBox.alert("","ایجاد نامه با شکست مواجه شده است");
 					return;
 				}
-				LoanFollow.OpenLetter(result.data);
+				LoanFollowObject.grid.getStore().load({
+					callback : function(){LoanFollow.OpenLetter(result.data);}
+				});
 			}
 			else if(result.data == "")
 				Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");

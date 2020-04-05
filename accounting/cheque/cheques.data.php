@@ -101,7 +101,7 @@ function selectIncomeCheques() {
 			where $where
 			group by i.IncomeChequeID
 
-		/*union all
+		union all
 
 			select i.*,group_concat(concat_ws(' ','[ وام ',r.RequestID,']',p.CompanyName,p.fname,p.lname) 
 					SEPARATOR '<br>') as fullname,
@@ -113,7 +113,7 @@ function selectIncomeCheques() {
 			join LON_loans l using(LoanID)
 			join BSC_branches br on(r.BranchID=br.BranchID)
 			where $where
-			group by i.IncomeChequeID*/
+			group by i.IncomeChequeID
 
 		union all
 
@@ -761,11 +761,10 @@ function selectOutcomeCheques(){
 			where EventType='".EVENTTYPE_OutcomeCheque."' AND EventType2=".INCOMECHEQUE_VOSUL."
 			group by SourceID1,SourceID2
 		)t on(t.SourceID2=c.DocChequeID)
-		where CycleID=:c ";
+		where 1=1 ";
 
-	$whereParam = array(
-		":c" => $_SESSION["accounting"]["CycleID"]
-	);
+	$whereParam = array();
+	
 	if(!empty($_POST["FromDocNo"]))
 	{
 		$query .= " AND d.LocalNo >= :fdno ";
