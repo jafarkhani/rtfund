@@ -282,19 +282,19 @@ if(isset($_REQUEST["show"]))
 	
 	$col = $rpg->addColumn("کارمزد", "sep_wage","ReportMoneyRender");
 	$col->GroupHeader = "تجزیه کل مبلغ در تاریخ عملیات";
-	$col->rowspanByFields = array("RecordDate", "type","BackPayID");
+	$col->rowspanByFields = array("RecordDate", "type","id");
 	$col->rowspaning = true;
 	$col->align = "center";
 	
 	$col = $rpg->addColumn("کارمزد تاخیر", "sep_late","ReportMoneyRender");
 	$col->GroupHeader = "تجزیه کل مبلغ در تاریخ عملیات";
-	$col->rowspanByFields = array("RecordDate", "type","BackPayID");
+	$col->rowspanByFields = array("RecordDate", "type","id");
 	$col->rowspaning = true;
 	$col->align = "center";
 	
 	$col = $rpg->addColumn("جریمه", "sep_pnlt","ReportMoneyRender");
 	$col->GroupHeader = "تجزیه کل مبلغ در تاریخ عملیات";
-	$col->rowspanByFields = array("RecordDate", "type","BackPayID");
+	$col->rowspanByFields = array("RecordDate", "type","id");
 	$col->rowspaning = true;
 	$col->align = "center";
 
@@ -344,7 +344,7 @@ if(isset($_REQUEST["show"]))
 		
 	$rpg->footerExplicit = true;
 	$rpg->footerContent = "
-		<tr>
+		<tr class=totalTR>
 			<td style='background-color:lightgreen' colspan=7 align=center rowspan=3>جمع تا تاریخ گزارش </td>
 			<td>محاسبه شده</td>
 			<td>".  number_format($totals["compute"]["debt_pure"])."</td>
@@ -354,7 +354,7 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["compute"]["debt_early"])."</td>
 			<td>".  number_format($totals["compute"]["debt_total"])."</td>
 		</tr>
-		<tr>
+		<tr class=totalTR>
 			<td>پرداخت شده</td>
 			<td>".  number_format($totals["payed"]["debt_pure"])."</td>
 			<td>".  number_format($totals["payed"]["debt_wage"])."</td>
@@ -363,7 +363,7 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["payed"]["debt_early"])."</td>
 			<td>".  number_format($totals["payed"]["debt_total"])."</td>
 		</tr>
-		<tr  style='background-color:lightgreen'>
+		<tr  class=totalTR style='background-color:lightgreen'>
 			<td>مانده</td>
 			<td>".  number_format($totals["remain"]["debt_pure"])."</td>
 			<td>".  number_format($totals["remain"]["debt_wage"])."</td>
@@ -372,7 +372,7 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["remain"]["debt_early"])."</td>
 			<td>".  number_format($totals["remain"]["debt_total"])."</td>
 		</tr>
-		<tr style='background-color:pink'>
+		<tr class=totalTR style='background-color:pink'>
 			<td colspan=7 align=center>جمع تا انتهای قرارداد </td>
 			<td>مانده</td>
 			<td>".  number_format($totals["totalremain"]["debt_pure"])."</td>
@@ -415,6 +415,9 @@ if(isset($_REQUEST["show"]))
 	//..........................................................
 	
 	?>
+<style>
+	.totalTR td{text-align: center}
+</style>
 	<table style="border:2px groove #9BB1CD;border-collapse:collapse;width:100%;font-family: nazanin;
 		   font-size: 16px;line-height: 20px;">
 		<tr>
@@ -442,17 +445,24 @@ if(isset($_REQUEST["show"]))
 
 <script>
 function showCommitmentData(el){
-	el.style.display = "none";
-	document.getElementById("CommitmentData").style.display = "block";
+	mode = document.getElementById("CommitmentData").style.display == "none" ? "block" : "none";
+	document.getElementById("CommitmentData").style.display = mode;
 }
 </script>
 <center>
 	<br>
-	<a href="javascript:void(0)" onclick="showCommitmentData(this)">مشاهده جدول محاسبات تعهدی</a>
+	<fieldset style="border: 1px solid #b5b8c8;padding: 10px;margin-bottom: 10px;display: block;">
+		<legend align="center" style="font-family: tahoma;font-size: 11px;color: #15428b;padding: 0 3px;line-height: 16px;">
+			<a style="text-decoration:blue" href="javascript:void(0)" onclick="showCommitmentData(this)">مشاهده جدول محاسبات تعهدی</a>
+		</legend>
+		<?
+		echo "<div id='CommitmentData' style=display:none>" . $report2 . "</div>";	
+		?>
+	</fieldset>
+	
 	<br>
 </center>
-	<?
-	echo "<div id='CommitmentData' style=display:none>" . $report2 . "</div>";	
+<?
 	die();
 }
 ?>
