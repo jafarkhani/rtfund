@@ -15,16 +15,27 @@ header("X-Accel-Buffering: no");
 ob_start();
 set_time_limit(0);
 
+/*
+update aa join LON_BackPays b1 on(DociD=RequestID)
+join LON_BackPays b2 on(b1.PayBillNo=b2.BackPayID)
+left join ACC_IncomeCheques c on(b2.IncomeChequeID=c.IncomeChequeID)
+set b2.PayAmount=if(b2.IncomeChequeID is not null,c.ChequeAmount, b2.PayAmount+b1.PayAmount)
+where b1.PayType=100 and (b2.PayAmount<>c.ChequeAmount or b2.IncomeChequeID is null)
+ * 
+delete b1 from aa join LON_BackPays b1 on(DociD=RequestID)
+where b1.PayType=100
+ */
 
-//FundIncomeOfAgent();
-//die();
+
+
+//FundIncomeOfAgent();die();
 
 global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 and flag=1
-		 order by DocID");
+$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 
+		 order by DocID ");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
 
@@ -39,8 +50,8 @@ while($requset=$reqs->fetch())
 	$reqObj = new LON_requests($requset["RequestID"]);
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
-	//Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	/*$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
@@ -52,7 +63,7 @@ while($requset=$reqs->fetch())
 	{
 		$pdo->rollBack();
 		continue;
-	}*/
+	}
 	
 	$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
@@ -62,9 +73,9 @@ while($requset=$reqs->fetch())
 		continue;
 	}
 	
-	//DailyIncome($reqObj, $partObj, $pdo);
-	//DailyWage($reqObj, $partObj, $pdo);
-	//$DocObj[ $reqObj->RequestID ] = null;
+	DailyIncome($reqObj, $partObj, $pdo);
+	DailyWage($reqObj, $partObj, $pdo);
+	$DocObj[ $reqObj->RequestID ] = null;
 	 
 	//--------------------------------------------------
 	PdoDataAccess::runquery_fetchMode(" update aa set regDoc=1 where DocID=?", array($reqObj->RequestID), $pdo);
@@ -395,8 +406,9 @@ function DailyIncome($reqObj , $partObj, $pdo){
 	/*$JFromDate = $partObj->PartDate;
 	$JToDate = "1397/12/29";*/
 	
-	$JFromDate = "1398/01/01";
-	$JToDate = DateModules::shNow();
+	//$JFromDate = "1398/01/01";
+	$JFromDate = $partObj->PartDate;
+	$JToDate = "1398/12/29";//DateModules::shNow();
 	
 	$GFromDate = DateModules::shamsi_to_miladi($JFromDate, "-");
 	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
@@ -410,6 +422,7 @@ function DailyIncome($reqObj , $partObj, $pdo){
 	
 	$PureArr = LON_requests::ComputePures($reqObj->RequestID);
 	$ComputeDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
+	$days = 0;
 	for($i=1; $i < count($PureArr);$i++)
 	{
 		if( $ComputeDate < $GFromDate || $ComputeDate > $GToDate)
@@ -440,7 +453,7 @@ function DailyIncome($reqObj , $partObj, $pdo){
  */
 function DailyWage($reqObj , $partObj, $pdo){
 	
-	$JToDate = '1397/12/29';
+	$JToDate = '1398/12/29';
 	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
 	
 	$result = true;
