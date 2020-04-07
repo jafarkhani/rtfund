@@ -33,7 +33,8 @@ class ExecuteEvent extends PdoDataAccess{
 		
 		$EventObj = new COM_events($EventID);
 		$this->TriggerFunction = $EventObj->TriggerFunction;
-		$this->EventFunction = "EventComputeItems::" . $EventObj->EventFunction;
+		$this->EventFunction = $EventObj->EventFunction != "" ? 
+				"EventComputeItems::" . $EventObj->EventFunction : null;
 		$this->AfterTriggerFunction = $EventObj->AfterTriggerFunction;		
 	}
 	
@@ -154,8 +155,11 @@ class ExecuteEvent extends PdoDataAccess{
 					$amount = $this->ComputedItems[ $eventRow["ComputeItemID"] ];
 				else
 				{
-					$amount = call_user_func($this->EventFunction, $eventRow["ComputeItemID"], $this->Sources);
-					$this->ComputedItems[ $eventRow["ComputeItemID"] ] = $amount;
+					if(isset($this->EventFunction))
+					{
+						$amount = call_user_func($this->EventFunction, $eventRow["ComputeItemID"], $this->Sources);
+						$this->ComputedItems[ $eventRow["ComputeItemID"] ] = $amount;
+					}
 				}
 				if(is_array($amount))
 				{
