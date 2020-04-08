@@ -33,6 +33,7 @@ class LON_requests extends PdoDataAccess{
 	public $FundRules;
 	public $DomainID;
 	public $ContractType;
+	public $EndDate;
 
 	/* New Add Fields */
 	public $LetterID;
@@ -63,6 +64,7 @@ class LON_requests extends PdoDataAccess{
 		$this->DT_MeetingDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_VisitDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_WorkgroupDiscussDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		$this->DT_EndDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		
 		if($RequestID != "")
 			PdoDataAccess::FillObject ($this, "
@@ -449,7 +451,8 @@ class LON_requests extends PdoDataAccess{
 			case "NOAVARI":
 				$dt = LON_installments::GetValidInstallments($PartObj->RequestID);
 				$FundWage = 0;
-				if($PartObj->WageReturn != "INSTALLMENT" && $PartObj->AgentReturn != "INSTALLMENT")
+				if(($PartObj->FundWage*1 == 0 || $PartObj->WageReturn != "INSTALLMENT") && 
+					($PartObj->FundWage*1 < $PartObj->CustomerWage*1 && $PartObj->AgentReturn != "INSTALLMENT"))
 				{
 					$FundWage = $PartObj->FundWage*$PartObj->PartAmount/100;
 					$AgentWage = ($PartObj->CustomerWage - $PartObj->FundWage)*$PartObj->PartAmount/100;
@@ -1350,7 +1353,8 @@ class LON_NOAVARI_compute extends PdoDataAccess{
 				$jdiff = DateModules::GDateMinusGDate($installmentDate, $row["PayDate"]);
 
 				$wagePercent = 0;
-				if($partObj->WageReturn == "INSTALLMENT" || $partObj->AgentReturn == "INSTALLMENT")
+				if(($partObj->FundWage*1 > 0 && $partObj->WageReturn == "INSTALLMENT") || 
+					($partObj->FundWage*1 < $partObj->CustomerWage && $partObj->AgentReturn == "INSTALLMENT"))
 					$wagePercent = $partObj->CustomerWage;
 				
 				$wage = round(($row["PayAmount"]/$partObj->InstallmentCount)*$jdiff*$wagePercent/36500);
