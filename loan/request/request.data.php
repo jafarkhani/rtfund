@@ -599,7 +599,7 @@ function EndRequest(){
 	$RequestID = $_POST["RequestID"];
 	$ReqObj = new LON_requests($RequestID);
 	
-	$pdo = PdoDataAccess::getPdoObject();
+	/*$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
 	
 	$dt = array();
@@ -627,19 +627,18 @@ function EndRequest(){
 		$pdo->rollback();
 		echo Response::createObjectiveResponse(false, "خطا در صدور سند");
 		die();
-	}
+	}*/
 	
 	$ReqObj->IsEnded = "YES";
-	$ReqObj->StatusID = 101;
-	if(!$ReqObj->EditRequest($pdo))
+	$ReqObj->StatusID = LON_REQ_STATUS_ENDED;
+	$ReqObj->EndDate = PDONOW;
+	if(!$ReqObj->EditRequest())
 	{
-		$pdo->rollback();
 		echo Response::createObjectiveResponse(false, "خطا در تغییر درخواست");
 		die();
 	}
 	LON_requests::ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false, $pdo);		
 	
-	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
 	die();
 }
@@ -674,9 +673,6 @@ function ReturnEndRequest(){
 	
 	$ReqObj = new LON_requests($_POST["RequestID"]);
 	
-	$pdo = PdoDataAccess::getPdoObject();
-	$pdo->beginTransaction();
-	
 	$LocalNo = ExecuteEvent::GetRegisteredDoc(EVENT_LOAN_END, array($ReqObj->RequestID));
 	if($LocalNo !== false)
 	{
@@ -687,15 +683,14 @@ function ReturnEndRequest(){
 	
 	$ReqObj->IsEnded = "NO";
 	$ReqObj->StatusID = LON_REQ_STATUS_DEFRAY;
-	if(!$ReqObj->EditRequest($pdo))
+	$ReqObj->EndDate = "";
+	if(!$ReqObj->EditRequest())
 	{
-		$pdo->rollback();
 		echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 		die();
 	}
 	LON_requests::ChangeStatus($ReqObj->RequestID, $ReqObj->StatusID);
 	
-	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
 	die();
 }
