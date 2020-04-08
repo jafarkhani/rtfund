@@ -1669,9 +1669,9 @@ RequestInfo.prototype.EndRequest = function(){
 
 RequestInfo.prototype.afterEndLoan = function(){
 	
-	me.mask.show();
+	RequestInfoObject.mask.show();
 	RequestInfoObject.LoadRequestInfo();
-	me.mask.hide();
+	RequestInfoObject.mask.hide();
 }
 	
 RequestInfo.prototype.DefrayRequest = function(){
@@ -1712,56 +1712,36 @@ RequestInfo.prototype.DefrayRequest = function(){
 
 RequestInfo.prototype.ReturnEndRequest = function(){
 	
-	me.mask.show();
-	Ext.Ajax.request({
-		methos : "post",
-		url : me.address_prefix + "request.data.php",
-		params : {
-			task : "GetEndDoc",
-			RequestID : me.RequestID
-		},
+	Ext.MessageBox.confirm("","آیا مایل به برگشت خاتمه وام می باشید؟", function(btn){
+		if(btn == "no")
+			return false;
 
-		success : function(response){
-			result = Ext.decode(response.responseText);
-			if(result.success)
-			{
-				Ext.MessageBox.confirm("",result.data, function(btn){
-				
-					if(btn == "no")
-						return;
+		me = RequestInfoObject;
+		me.mask.show();
 
-					me = RequestInfoObject;
+		Ext.Ajax.request({
+			methos : "post",
+			url : me.address_prefix + "request.data.php",
+			params : {
+				task : "ReturnEndRequest",
+				RequestID : me.RequestID
+			},
 
-					Ext.Ajax.request({
-						methos : "post",
-						url : me.address_prefix + "request.data.php",
-						params : {
-							task : "ReturnEndRequest",
-							RequestID : me.RequestID
-						},
+			success : function(response){
+				result = Ext.decode(response.responseText);
+				if(result.success)
+				{
+					Ext.MessageBox.alert("","سند مربوطه با موفقیت باطل گردید");
+					RequestInfoObject.LoadRequestInfo();					
+				}	
+				else if(result.data == "")
+					Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
+				else
+					Ext.MessageBox.alert("",result.data);
 
-						success : function(response){
-							result = Ext.decode(response.responseText);
-							if(result.success)
-							{
-								Ext.MessageBox.alert("","سند مربوطه با موفقیت باطل گردید");
-								RequestInfoObject.LoadRequestInfo();					
-							}	
-							else if(result.data == "")
-								Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
-							else
-								Ext.MessageBox.alert("",result.data);
-
-							RequestInfoObject.mask.hide();
-						}
-					});
-				});		
-			}	
-			else 
-				Ext.MessageBox.alert("",result.data);
-
-			RequestInfoObject.mask.hide();
-		}
+				RequestInfoObject.mask.hide();
+			}
+		});
 	});
 }
 
