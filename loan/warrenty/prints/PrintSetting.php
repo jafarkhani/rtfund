@@ -139,6 +139,7 @@ function WarrentyPrintSetting(){
 					["#address#" , "نشانی مشتری" ],
 					["#PhoneNo#" , "تلفن مشتری" ],
 					["#mobile#" , "تلفن همراه مشتری" ],
+                    ["#PostalCode#" , "کدپستی مشتری" ],/*new added*/
 					["#organization#" , "سازمان مربوطه" ],
 					["#LetterNo#" , "شماره نامه سازمان مربوطه" ],
 					["#LetterDate#" , "تاریخ نامه سازمان مربوطه" ],
