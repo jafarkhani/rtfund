@@ -62,6 +62,7 @@ class WAR_requests extends OperationClass
 				p.NationalID,
 				p.PhoneNo,
 				p.mobile,
+				p.PostalCode, /*new added*/
 				bf.InfoDesc TypeDesc,
 				t1.DocID,group_concat(distinct t1.LocalNo) LocalNo, 
 				BranchName,
