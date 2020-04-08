@@ -32,7 +32,7 @@ $page_rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 $page_rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
 $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
 $col->type = "date";	
-$col = $page_rpg->addColumn("تاریخ خاتمه", "EndReqDate");
+$col = $page_rpg->addColumn("تاریخ خاتمه", "EndDate");
 $col->type = "date";	
 $page_rpg->addColumn("سند خاتمه", "EndDocNo");
 $page_rpg->addColumn("مبلغ درخواست", "ReqAmount");
@@ -155,8 +155,8 @@ function MakeWhere(&$where, &$pay_where, &$whereParam){
 			case "toReqDate":
 			case "fromPartDate":
 			case "toPartDate":
-			case "fromEndReqDate":
-			case "toEndReqDate":
+			case "fromEndDate":
+			case "toEndDate":
 				$value = DateModules::shamsi_to_miladi($value, "-");
 				break;
 			case "fromReqAmount":
@@ -210,9 +210,6 @@ function GetData($mode = "list"){
 				p2.address,
 				p2.email,
 				p2.WebSite,
-				
-				doc.EndReqDate,
-				doc.EndDocNo,
 
 				bi.InfoDesc StatusDesc,
 				sb.SubDesc,
@@ -242,13 +239,6 @@ function GetData($mode = "list"){
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
 			left join DMS_packages dp on(p2.PersonID=dp.PersonID AND r.BranchID=dp.BranchID)
 			left join BSC_ActDomain ad on(p2.DomainID=ad.DomainID)
-			
-			left join (
-				select SourceID2 RequestID,LocalNo EndDocNo,DocDate EndReqDate
-				from ACC_DocItems join ACC_docs using(DocID)
-				where DocType=".DOCTYPE_END_REQUEST."
-				group by SourceID2
-			) doc on(r.RequestID=doc.RequestID)
 
 			left join (
 				select RequestID,sum(PayAmount) SumPayments 
@@ -332,16 +322,15 @@ function GetData($mode = "list"){
 	$query .= $group == "" || $mode == "chart" ? " group by r.RequestID" : " group by " . $group;
 	$query .= $group == "" || $mode == "chart" ? " order by r.RequestID" : " order by " . $group;	
 	
-	if($_SESSION["USER"]["UserName"] == "admin")
-	{
-		BeginReport();
-		print_r($whereParam);
-		echo $query;		
-		die();
-	}
-	
 	$dataTable = PdoDataAccess::runquery($query, $whereParam);
 	$query = PdoDataAccess::GetLatestQueryString();
+	
+	if($_SESSION["USER"]["UserName"] == "bayesteh")
+	{
+		/*BeginReport();
+		echo PdoDataAccess::GetLatestQueryString();
+		print_r(ExceptionHandler::PopAllExceptions());*/
+	}
 	
 	for($i=0; $i< count($dataTable); $i++)
 	{
@@ -406,7 +395,7 @@ function ListData($IsDashboard = false){
 	$col->EnableSummary();
 	$rpg->addColumn("وام بالاعوض", "IsFree", "IsFreeRender");
 	$rpg->addColumn("تضامین بر اساس", "FundRules", "FundRulesRender");
-	$rpg->addColumn("تاریخ خاتمه", "EndReqDate", "ReportDateRender");
+	$rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
 	$rpg->addColumn("سند خاتمه", "EndDocNo");
 	
 	$rpg->addColumn("مشتری", "LoanFullname");
@@ -862,11 +851,11 @@ function LoanReport_total()
 				"<input name=FundRules type=radio value='' checked > هردو " 
 		},{
 			xtype : "shdatefield",
-			name : "fromEndReqDate",
+			name : "fromEndDate",
 			fieldLabel : "تاریخ خاتمه از"
 		},{
 			xtype : "shdatefield",
-			name : "toEndReqDate",
+			name : "toEndDate",
 			fieldLabel : "تا تاریخ"
 		},{
 			xtype : "shdatefield",
