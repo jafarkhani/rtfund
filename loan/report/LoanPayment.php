@@ -87,7 +87,10 @@ if(isset($_REQUEST["show"]))
 	$rpg->addColumn("کارمزد تاخیر", "totallate","ReportMoneyRender");
 	$rpg->addColumn("جریمه", "totalpnlt","ReportMoneyRender");
 	
-	$rpg->addColumn("تخفیف تعجیل", "early","ReportMoneyRender");
+	function EarlyRender($row, $value){
+		return $row['type'] == "installment" ? 0 : $value;
+	}
+	$rpg->addColumn("تخفیف تعجیل", "early","EarlyRender");
 	
 	function RemainsRender($row, $value){
 		if($row["type"] == "pay")
