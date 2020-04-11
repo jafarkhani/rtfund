@@ -98,6 +98,7 @@ if(isset($_REQUEST["show"]))
 			"debt_total" => 0
 		)
 	);
+	//print_r($ComputeArr);
 	for($i=0; $i<count($ComputeArr); $i++)
 	{
 		if($ComputeArr[$i]["type"] == "pay")
@@ -113,7 +114,7 @@ if(isset($_REQUEST["show"]))
 				"debt_wage" => "",
 				"debt_late" => "",
 				"debt_pnlt" => "",
-				"debt_early" => "",
+				"debt_early" => $ComputeArr[$i]["early"],
 				"debt_total" => ""
 			));
 			continue;
@@ -147,12 +148,17 @@ if(isset($_REQUEST["show"]))
 		$pnlt = 0;
 		$payedLate = 0;
 		$PayedPnlt = 0;
+		$prevRecord = null;
 		foreach($ComputeArr[$i]["pays"] as $r)
 		{
-			$late += $r["cur_late"];
-			$pnlt += $r["cur_pnlt"];
+			if($prevRecord === null || $prevRecord["PnltDays"] != $r["PnltDays"])
+			{
+				$late += $r["cur_late"];
+				$pnlt += $r["cur_pnlt"];
+			}
 			$payedLate += $r["pay_late"];
 			$PayedPnlt += $r["pay_pnlt"];
+			$prevRecord = $r;
 		}
 		
 		$record = array_merge($ComputeArr[$i], array(
@@ -163,19 +169,19 @@ if(isset($_REQUEST["show"]))
 			
 			"DebitType" => "محاسبه شده",
 			"debt_pure" => $ComputeArr[$i]["pure"],
-			"debt_wage" => $ComputeArr[$i]["wage"],
+			"debt_wage" => $ComputeArr[$i]["wage"] - $ComputeArr[$i]["early"],
 			"debt_late" => $late,
 			"debt_pnlt" => $pnlt,
-			"debt_early" => $ComputeArr[$i]["early"],
+			"debt_early" => 0,
 			"debt_total" => $ComputeArr[$i]["pure"] + $ComputeArr[$i]["wage"] + 
-				$late + $pnlt + $ComputeArr[$i]["early"]
+				$late + $pnlt - $ComputeArr[$i]["early"]
 		));
 		$returnArr[] = $record;
 		$totals["compute"]["debt_pure"] += $record["debt_pure"];
 		$totals["compute"]["debt_wage"] += $record["debt_wage"];
 		$totals["compute"]["debt_late"] += $record["debt_late"];
 		$totals["compute"]["debt_pnlt"] += $record["debt_pnlt"];
-		$totals["compute"]["debt_early"] += $record["debt_early"];
+		//$totals["compute"]["debt_early"] += $record["debt_early"];
 		$totals["compute"]["debt_total"] += $record["debt_total"];
 		
 		
@@ -187,13 +193,13 @@ if(isset($_REQUEST["show"]))
 			
 			"DebitType" => "پرداخت شده",
 			"debt_pure" => $ComputeArr[$i]["pure"] - $ComputeArr[$i]["remain_pure"],
-			"debt_wage" => $ComputeArr[$i]["wage"] - $ComputeArr[$i]["remain_wage"],
+			"debt_wage" => $ComputeArr[$i]["wage"] - $ComputeArr[$i]["remain_wage"] - $ComputeArr[$i]["early"],
 			"debt_late" => $payedLate,
 			"debt_pnlt" => $PayedPnlt,
-			"debt_early" => $ComputeArr[$i]["early"],
+			"debt_early" => 0,
 			"debt_total" => $ComputeArr[$i]["pure"] - $ComputeArr[$i]["remain_pure"] + 
 				$ComputeArr[$i]["wage"] - $ComputeArr[$i]["remain_wage"] +
-				$payedLate + $PayedPnlt + $ComputeArr[$i]["early"]
+				$payedLate + $PayedPnlt - $ComputeArr[$i]["early"]
 				 
 		));
 		$returnArr[] = $record;
@@ -201,7 +207,7 @@ if(isset($_REQUEST["show"]))
 		$totals["payed"]["debt_wage"] += $record["debt_wage"];
 		$totals["payed"]["debt_late"] += $record["debt_late"];
 		$totals["payed"]["debt_pnlt"] += $record["debt_pnlt"];
-		$totals["payed"]["debt_early"] += $record["debt_early"];
+		//$totals["payed"]["debt_early"] += $record["debt_early"];
 		$totals["payed"]["debt_total"] += $record["debt_total"];
 		
 		
@@ -225,14 +231,14 @@ if(isset($_REQUEST["show"]))
 		$totals["remain"]["debt_wage"] += $record["debt_wage"];
 		$totals["remain"]["debt_late"] += $record["debt_late"];
 		$totals["remain"]["debt_pnlt"] += $record["debt_pnlt"];
-		$totals["remain"]["debt_early"] += $record["debt_early"];
+		//$totals["remain"]["debt_early"] += $record["debt_early"];
 		$totals["remain"]["debt_total"] += $record["debt_total"];
 		
 		$totals["totalremain"]["debt_pure"] += $ComputeArr[$i]["remain_pure"];
 		$totals["totalremain"]["debt_wage"] += $ComputeArr[$i]["remain_wage"];
 		$totals["totalremain"]["debt_late"] += $ComputeArr[$i]["remain_late"];
 		$totals["totalremain"]["debt_pnlt"] += $ComputeArr[$i]["remain_pnlt"];
-		$totals["totalremain"]["debt_early"] += 0;
+		//$totals["totalremain"]["debt_early"] += 0;
 		$totals["totalremain"]["debt_total"] += $ComputeArr[$i]["remain_pure"] + 
 				$ComputeArr[$i]["remain_wage"] + 
 				$ComputeArr[$i]["remain_late"] + $ComputeArr[$i]["remain_pnlt"];
@@ -351,7 +357,7 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["compute"]["debt_wage"])."</td>
 			<td>".  number_format($totals["compute"]["debt_late"])."</td>		
 			<td>".  number_format($totals["compute"]["debt_pnlt"])."</td>
-			<td>".  number_format($totals["compute"]["debt_early"])."</td>
+			<td>".  number_format(/*$totals["compute"]["debt_early"]*/0)."</td>
 			<td>".  number_format($totals["compute"]["debt_total"])."</td>
 		</tr>
 		<tr class=totalTR>
@@ -360,7 +366,7 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["payed"]["debt_wage"])."</td>
 			<td>".  number_format($totals["payed"]["debt_late"])."</td>		
 			<td>".  number_format($totals["payed"]["debt_pnlt"])."</td>
-			<td>".  number_format($totals["payed"]["debt_early"])."</td>
+			<td>".  number_format(/*$totals["payed"]["debt_early"]*/0)."</td>
 			<td>".  number_format($totals["payed"]["debt_total"])."</td>
 		</tr>
 		<tr  class=totalTR style='background-color:lightgreen'>
@@ -369,7 +375,7 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["remain"]["debt_wage"])."</td>
 			<td>".  number_format($totals["remain"]["debt_late"])."</td>		
 			<td>".  number_format($totals["remain"]["debt_pnlt"])."</td>
-			<td>".  number_format($totals["remain"]["debt_early"])."</td>
+			<td>".  number_format(/*$totals["remain"]["debt_early"]*/0)."</td>
 			<td>".  number_format($totals["remain"]["debt_total"])."</td>
 		</tr>
 		<tr class=totalTR style='background-color:pink'>
@@ -379,7 +385,7 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["totalremain"]["debt_wage"])."</td>
 			<td>".  number_format($totals["totalremain"]["debt_late"])."</td>		
 			<td>".  number_format($totals["totalremain"]["debt_pnlt"])."</td>
-			<td>".  number_format($totals["totalremain"]["debt_early"])."</td>
+			<td>".  number_format(/*$totals["totalremain"]["debt_early"]*/0)."</td>
 			<td>".  number_format($totals["totalremain"]["debt_total"])."</td>
 		</tr>
 	";	
