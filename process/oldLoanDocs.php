@@ -34,7 +34,7 @@ global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 and flag=1
+$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0
 		 order by DocID ");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
@@ -50,13 +50,13 @@ while($requset=$reqs->fetch())
 	$reqObj = new LON_requests($requset["RequestID"]);
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
-	Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	/*Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
 		continue;
-	}
+	}*/
 	/*
 	$result = Payment($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
@@ -72,11 +72,11 @@ while($requset=$reqs->fetch())
 			$pdo->rollBack();
 		continue;
 	}
-	
+	*/
 	DailyIncome($reqObj, $partObj, $pdo);
 	DailyWage($reqObj, $partObj, $pdo);
 	$DocObj[ $reqObj->RequestID ] = null;
-	 */
+	 
 	//--------------------------------------------------
 	PdoDataAccess::runquery_fetchMode(" update aa set regDoc=1 where DocID=?", array($reqObj->RequestID), $pdo);
 	$pdo->commit();
@@ -403,12 +403,12 @@ function DailyIncome($reqObj , $partObj, $pdo){
 	if($EventID == 0)
 		return true;
 	
-	/*$JFromDate = $partObj->PartDate;
-	$JToDate = "1397/12/29";*/
+	$JFromDate = $partObj->PartDate;
+	$JToDate = "1397/12/29";
 	
 	//$JFromDate = "1398/01/01";
-	$JFromDate = $partObj->PartDate;
-	$JToDate = "1398/12/29";//DateModules::shNow();
+	//$JFromDate = $partObj->PartDate;
+	//$JToDate = "1398/12/29";//DateModules::shNow();
 	
 	$GFromDate = DateModules::shamsi_to_miladi($JFromDate, "-");
 	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
@@ -453,7 +453,8 @@ function DailyIncome($reqObj , $partObj, $pdo){
  */
 function DailyWage($reqObj , $partObj, $pdo){
 	
-	$JToDate = '1398/12/29';
+	//$JToDate = '1398/12/29';
+	$JToDate = "1397/12/29";
 	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
 	
 	$result = true;
