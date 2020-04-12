@@ -457,7 +457,7 @@ function ChangeChequeStatus(){
 	//---------------------------------------------------------------
 	if($Status != INCOMECHEQUE_VOSUL)
 	{
-		$EventID = LON_requests::GetEventID($ReqObj->RequestID, EVENTTYPE_IncomeCheque, $Status);
+		$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque, $Status);
 		if($EventID != 0)
 		{
 			$eventobj = new ExecuteEvent($EventID);
@@ -536,21 +536,23 @@ function ReturnLatestOperation($returnMode = false){
 	$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
 	
-	$dt = PdoDataAccess::runquery("select h.* from ACC_ChequeHistory h where IncomeChequeID=? AND details not like '%برگشت%' order by RowID desc",	
+	$dt = PdoDataAccess::runquery("select h.* from ACC_ChequeHistory h 
+			join ACC_IncomeCheques c using(IncomeChequeID)
+			where IncomeChequeID=? AND details not like '%برگشت%' AND h.StatusID <> c.ChequeStatus
+			order by RowID desc",	
 			array($OuterObj->IncomeChequeID), $pdo);
 	$DocID = $dt[0]["DocID"]*1;	
 	
-	if(count($dt) < 2)
+	if(count($dt) == 0)
 	{
 		$pdo->rollBack();
 		echo Response::createObjectiveResponse(false, "عملیات قبلی برای برگشت وجود ندارد");
 		die();
 	}
+	$OuterObj->ChequeStatus = $dt[0]["StatusID"];
 	
 	if($DocID > 0)
 	{
-		$OuterObj->ChequeStatus = $dt[1]["StatusID"];
-		
 		PdoDataAccess::runquery("delete from ACC_DocItems where DocID=?", array($DocID), $pdo);
 		PdoDataAccess::runquery("delete from ACC_docs where DocID=? ",	array($DocID), $pdo);
 	}
