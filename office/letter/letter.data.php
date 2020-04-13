@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // create Date:	94.10
 //---------------------------
-require_once '../../header.inc.php';
+require_once '../header.inc.php';
 ini_set("display_errors", "On");
 require_once(inc_response);
 require_once inc_dataReader;
