@@ -259,7 +259,7 @@ function SaveIncomeCheque(){
 	//--------------- execute event ----------------
 	$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
 	$eventobj = new ExecuteEvent($EventID);
-	$eventobj->Sources = array(0, $obj->IncomeChequeID);
+	$eventobj->Sources = array(0,0,0, $obj->IncomeChequeID);
 	$eventobj->AllRowsAmount = $obj->ChequeAmount;
 	$result = $eventobj->RegisterEventDoc($pdo);
 	if(!$result)
@@ -461,9 +461,8 @@ function ChangeChequeStatus(){
 		if($EventID != 0)
 		{
 			$eventobj = new ExecuteEvent($EventID);
-			$eventobj->Sources = array(0,0,0,$PayObj->IncomeChequeID);
-			$eventobj->AllRowsAmount = $PayObj->PayAmount;
-			$eventobj->DocObj = $DocObj;
+			$eventobj->Sources = array(0,0,0,$obj->IncomeChequeID);
+			$eventobj->AllRowsAmount = $obj->ChequeAmount;
 			$result = $eventobj->RegisterEventDoc($pdo);
 			if(!$result)
 			{
