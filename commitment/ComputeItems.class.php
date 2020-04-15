@@ -9,7 +9,7 @@ require_once DOCUMENT_ROOT . '/accounting/cheque/cheque.class.php';
 require_once DOCUMENT_ROOT . '/accounting/docs/doc.class.php';
 require_once DOCUMENT_ROOT . '/loan/warrenty/request.class.php';
 
-			
+
 class EventComputeItems {
 	
 	static $LoanComputeArray = array();
