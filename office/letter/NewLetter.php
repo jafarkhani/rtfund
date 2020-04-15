@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 94.10
 //-----------------------------
-require_once '../../header.inc.php';
+require_once '../header.inc.php';
 require_once inc_dataGrid;
 
 $LetterID = !empty($_POST["LetterID"]) ? $_POST["LetterID"] : "";

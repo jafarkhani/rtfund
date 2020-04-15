@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 94.10
 //-----------------------------
-require_once '../../header.inc.php';
+require_once '../header.inc.php';
 require_once 'letter.class.php';
 
 $LetterID = !empty($_REQUEST["LetterID"]) ? $_REQUEST["LetterID"] : "";

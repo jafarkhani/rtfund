@@ -3,7 +3,7 @@
 //	Date		: 1395.06
 //-----------------------------
  
-require_once '../../header.inc.php';
+require_once '../header.inc.php';
 require_once inc_dataGrid;
 
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "letter.data.php?task=GetDailyTips", "grid_div");

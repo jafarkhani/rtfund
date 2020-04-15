@@ -68,7 +68,7 @@ class ExecuteEvent extends PdoDataAccess{
 			{
 				ExceptionHandler::PushException("خطا در اجرای  Trigger " . $this->TriggerFunction);
 				return false;
-			}
+			} 
 		//---------------------------------------------------
 		
 		if(!$this->DocObj) 

@@ -18,7 +18,7 @@ $query = "select h.*,
 					select SourceID4,EventType3, LocalNo
 					from ACC_docs join COM_events using(EventID)
 					join ACC_DocItems using(DocID)
-					where EventType='".EVENTTYPE_IncomeCheque."'
+					where EventType in('".EVENTTYPE_IncomeCheque."','".EVENTTYPE_LoanBackPayCheque."')
 					group by SourceID4,EventType3
 				)t on(t.SourceID4=h.IncomeChequeID AND h.StatusID=t.EventType3)				
 				where h.IncomeChequeID=?

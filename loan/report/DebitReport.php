@@ -457,15 +457,17 @@ function showCommitmentData(el){
 </script>
 <center>
 	<br>
-	<fieldset style="border: 1px solid #b5b8c8;padding: 10px;margin-bottom: 10px;display: block;">
-		<legend align="center" style="font-family: tahoma;font-size: 11px;color: #15428b;padding: 0 3px;line-height: 16px;">
-			<a style="text-decoration:blue" href="javascript:void(0)" onclick="showCommitmentData(this)">مشاهده جدول محاسبات تعهدی</a>
-		</legend>
-		<?
-		echo "<div id='CommitmentData' style=display:none>" . $report2 . "</div>";	
-		?>
-	</fieldset>
-	
+	<? if(session::IsFramework()) { ?>
+		<fieldset style="border: 1px solid #b5b8c8;padding: 10px;margin-bottom: 10px;display: block;">
+			<legend align="center" style="font-family: tahoma;font-size: 11px;color: #15428b;padding: 0 3px;line-height: 16px;">
+				<a style="text-decoration:blue" href="javascript:void(0)" onclick="showCommitmentData(this)">مشاهده جدول محاسبات تعهدی</a>
+			</legend>
+			<?
+
+				echo "<div id='CommitmentData' style=display:none>" . $report2 . "</div>";	
+			?>
+		</fieldset>
+	<? } ?>
 	<br>
 </center>
 <?
@@ -487,7 +489,7 @@ LoanReport_payments.prototype.showReport = function(btn, e)
 	this.form = this.get("mainForm")
 	this.form.target = "_blank";
 	this.form.method = "POST";
-	this.form.action =  this.address_prefix + "LoanPayment.php?show=true";
+	this.form.action =  this.address_prefix + "DebitReport.php?show=true";
 	this.form.submit();
 	this.get("excel").value = "";
 	return;

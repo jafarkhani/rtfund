@@ -253,22 +253,23 @@ function SaveIncomeCheque(){
 				$obj->BranchID = $ReqObj->BranchID;
 				$obj->Edit($pdo);
 			}
+			
+			//--------------- execute event ----------------
+			$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
+			$eventobj = new ExecuteEvent($EventID);
+			$eventobj->Sources = array($RequestID,0,$bobj->BackPayID, $obj->IncomeChequeID);
+			$eventobj->AllRowsAmount = $obj->ChequeAmount;
+			$eventobj->ExtraDescription = "چک شماره " . $obj->ChequeNo . " تاریخ " . 
+					DateModules::miladi_to_shamsi($obj->ChequeDate);
+			$result = $eventobj->RegisterEventDoc($pdo);
+			if(!$result)
+			{
+				Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+				die();
+			}
 		}
 	}
 	
-	//--------------- execute event ----------------
-	$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
-	$eventobj = new ExecuteEvent($EventID);
-	$eventobj->Sources = array(0,0,0, $obj->IncomeChequeID);
-	$eventobj->AllRowsAmount = $obj->ChequeAmount;
-	$eventobj->ExtraDescription = "چک شماره " . $obj->ChequeNo . " تاریخ " . 
-			DateModules::miladi_to_shamsi($obj->ChequeDate);
-	$result = $eventobj->RegisterEventDoc($pdo);
-	if(!$result)
-	{
-		Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
-		die();
-	}
 	//.......................................................
 	ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, $obj->ChequeStatus, $pdo);
 	/*
@@ -551,6 +552,21 @@ function ReturnLatestOperation($returnMode = false){
 	
 	$OuterObj = new ACC_IncomeCheques($_POST["IncomeChequeID"]);
 	
+	//--------------------- check doc existance ----------------
+	$dt = PdoDataAccess::runquery("select DocID,LocalNo
+		from ACC_docs join COM_events using(EventID)
+		join ACC_DocItems using(DocID)
+		where EventType='".EVENTTYPE_IncomeCheque."' 
+			AND SourceID4=? AND EventType3=?", array($OuterObj->IncomeChequeID, $OuterObj->ChequeStatus));
+	if(count($dt) > 0)
+	{
+		echo Response::createObjectiveResponse(false, "سند شماره" . $dt[0]["LocalNo"] . 
+			" مربوط به وضعیت جاری چک می باشد. برای برگشت عملیات ابتدا سند مربوطه را حذف نمایید");
+		die();
+	}
+	//---------------------------------------------------------
+	
+	
 	$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
 	
@@ -568,23 +584,9 @@ function ReturnLatestOperation($returnMode = false){
 		die();
 	}
 	$OuterObj->ChequeStatus = $dt[0]["StatusID"];
-	
-	if($DocID > 0)
-	{
-		PdoDataAccess::runquery("delete from ACC_DocItems where DocID=?", array($DocID), $pdo);
-		PdoDataAccess::runquery("delete from ACC_docs where DocID=? ",	array($DocID), $pdo);
-	}
-		
 	$OuterObj->Edit($pdo);
 	//..................................................
 	ACC_IncomeCheques::AddToHistory($OuterObj->IncomeChequeID, $OuterObj->ChequeStatus,0, $pdo, "برگشت عملیات");
-	//..................................................
-	/*$dt = $OuterObj->GetBackPays($pdo);
-	foreach($dt as $row)
-	{
-		$PayObj = new LON_BackPays($row["BackPayID"]);
-		ReturnCustomerPayDoc($PayObj, $pdo);
-	}*/
 	//..................................................
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
@@ -633,7 +635,25 @@ function SaveLoanCheque(){
 			$bobj->RequestID = $_POST["RequestID"];
 			$bobj->PayAmount = $obj->ChequeAmount;
 			$bobj->PayType = BACKPAY_PAYTYPE_CHEQUE;
-			$bobj->Add($pdo);			
+			$bobj->Add($pdo);		
+			
+			//--------------- execute event ----------------
+			$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
+			if($EventID != 0)
+			{
+				$eventobj = new ExecuteEvent($EventID);
+				$eventobj->Sources = array($bobj->RequestID,0,$bobj->BackPayID, $obj->IncomeChequeID);
+				$eventobj->AllRowsAmount = $obj->ChequeAmount;
+				$eventobj->ExtraDescription = " - چک شماره " . $obj->ChequeNo . " تاریخ " . 
+				DateModules::miladi_to_shamsi($obj->ChequeDate);
+				$result = $eventobj->RegisterEventDoc($pdo);
+				if(!$result)
+				{
+					$pdo->rollBack();
+					Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+					die();
+				}
+			}
 		}
 		else
 		{
@@ -653,34 +673,10 @@ function SaveLoanCheque(){
 			}
 		}
 		
-		//--------------- execute event ----------------
-		$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
-		if($EventID != 0)
-		{
-			$eventobj = new ExecuteEvent($EventID);
-			$eventobj->Sources = array(0, $obj->IncomeChequeID);
-			$eventobj->AllRowsAmount = $obj->ChequeAmount;
-			$eventobj->ExtraDescription = ' شماره چک '. $obj->ChequeNo .
-					' تاریخ سررسید چک '. $obj->ChequeDate .
-					' نام مشتری '. $ReqObj->_LoanPersonFullname .
-					' شماره تسهیلات '. $_POST["RequestID"];
-			$result = $eventobj->RegisterEventDoc($pdo);
-			if(!$result)
-			{
-				$pdo->rollBack();
-				Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
-				die();
-			}
-		}
 		//--------------------------------------------
 		ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, $obj->ChequeStatus, 
 				$eventobj->DocObj->DocID, $pdo);
-		//--------------------------------------------
-		/*$DocID = RegisterOuterCheque($DocID,$obj,$pdo);
-		if(!$DocID){
-			echo Response::createObjectiveResponse(false,ExceptionHandler::GetExceptionsToString());
-			die();
-		}*/
+		
 	}
 	
 	$pdo->commit();
