@@ -261,6 +261,8 @@ function SaveIncomeCheque(){
 	$eventobj = new ExecuteEvent($EventID);
 	$eventobj->Sources = array(0,0,0, $obj->IncomeChequeID);
 	$eventobj->AllRowsAmount = $obj->ChequeAmount;
+	$eventobj->ExtraDescription = "چک شماره " . $obj->ChequeNo . " تاریخ " . 
+			DateModules::miladi_to_shamsi($obj->ChequeDate);
 	$result = $eventobj->RegisterEventDoc($pdo);
 	if(!$result)
 	{
@@ -443,6 +445,8 @@ function ChangeChequeStatus(){
 				$eventobj = new ExecuteEvent($EventID);
 				$eventobj->Sources = array($ReqObj->RequestID, $partObj->PartID, $PayObj->BackPayID,$PayObj->IncomeChequeID);
 				$eventobj->DocObj = $DocObj;
+				$eventobj->ExtraDescription = "چک شماره " . $obj->ChequeNo . " تاریخ " . 
+					DateModules::miladi_to_shamsi($obj->ChequeDate);
 				$result = $eventobj->RegisterEventDoc($pdo);
 				if(!$result)
 				{
@@ -461,8 +465,23 @@ function ChangeChequeStatus(){
 		if($EventID != 0)
 		{
 			$eventobj = new ExecuteEvent($EventID);
-			$eventobj->Sources = array(0,0,0,$obj->IncomeChequeID);
 			$eventobj->AllRowsAmount = $obj->ChequeAmount;
+			
+			if(count($dt) > 0)
+			{
+				$PayObj = new LON_BackPays($dt[0]["BackPayID"]);
+				$ReqObj = new LON_requests($PayObj->RequestID);
+				$partObj = LON_ReqParts::GetValidPartObj($ReqObj->RequestID);
+				$eventobj->Sources = array($ReqObj->RequestID, $partObj->PartID, 
+					$PayObj->BackPayID,$PayObj->IncomeChequeID);
+			}
+			else
+			{
+				$eventobj->Sources = array(0,0,0,$PayObj->IncomeChequeID);
+			}	
+			
+			$eventobj->ExtraDescription = "چک شماره " . $obj->ChequeNo . " تاریخ " . 
+				DateModules::miladi_to_shamsi($obj->ChequeDate);
 			$result = $eventobj->RegisterEventDoc($pdo);
 			if(!$result)
 			{
