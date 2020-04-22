@@ -90,13 +90,17 @@ function showReport(){
 			join LON_ReqParts p on(r.RequestID=p.RequestID AND p.IsHistory='NO')
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
-		where $where
+		where 1=1 $where
 		group by r.RequestID ,p.PartID
 		order by r.RequestID", $whereParam);
 	
-	//if($_SESSION["USER"]["UserName"] == "admin")
-	//	echo PdoDataAccess::GetLatestQueryString();
-	ini_set("display_errors", "On");
+	if($_SESSION["USER"]["UserName"] == "admin")
+	{
+		//ini_set("display_errors", "On");
+		//echo PdoDataAccess::GetLatestQueryString();
+		//print_r(ExceptionHandler::PopAllExceptions());
+	}
+	
 	$returnArr = array();
 	foreach($dt as $row)
 	{
