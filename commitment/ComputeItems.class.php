@@ -609,7 +609,7 @@ class EventComputeItems {
 						break;
 
 					case ACC_COST_PARAM_CHEQUE_date:
-						if($EventRow["EventType"] != "LoanBackPayCheque" && $EventRow["EventType"] != "LoanBackPay")
+						if($EventRow["EventType"] != "LoanBackPayCheque")
 							break;
 						$IncChequObj = new ACC_IncomeCheques($params[3]);
 						$obj->{ "param" . $i } = DateModules::miladi_to_shamsi($IncChequObj->ChequeDate);

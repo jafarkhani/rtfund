@@ -70,7 +70,15 @@ class ExecuteEvent extends PdoDataAccess{
 				return false;
 			} 
 		//---------------------------------------------------
-		
+		switch($eventRows[0]["EventType"])
+		{
+			case EVENTTYPE_LoanContract:
+			case EVENTTYPE_LoanPayment:
+			case EVENTTYPE_LoanBackPay:
+			case EVENTTYPE_LoanEnd:
+				$this->ExtraDescription = " شماره وام " . $this->Sources[0] . $this->ExtraDescription;
+		}
+		//---------------------------------------------------
 		if(!$this->DocObj) 
 		{
 			$CycleID = isset($_SESSION["accounting"]) ? 

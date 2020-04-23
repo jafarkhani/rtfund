@@ -260,7 +260,7 @@ function SaveIncomeCheque(){
 			$eventobj->Sources = array($RequestID,0,$bobj->BackPayID, $obj->IncomeChequeID);
 			$eventobj->AllRowsAmount = $obj->ChequeAmount;
 			$eventobj->ExtraDescription = "چک شماره " . $obj->ChequeNo . " تاریخ " . 
-					DateModules::miladi_to_shamsi($obj->ChequeDate);
+					DateModules::miladi_to_shamsi($obj->ChequeDate) . ' شماره وام ' . $RequestID;
 			$result = $eventobj->RegisterEventDoc($pdo);
 			if(!$result)
 			{
@@ -447,7 +447,7 @@ function ChangeChequeStatus(){
 				$eventobj->Sources = array($ReqObj->RequestID, $partObj->PartID, $PayObj->BackPayID,$PayObj->IncomeChequeID);
 				$eventobj->DocObj = $DocObj;
 				$eventobj->ExtraDescription = "چک شماره " . $obj->ChequeNo . " تاریخ " . 
-					DateModules::miladi_to_shamsi($obj->ChequeDate);
+					DateModules::miladi_to_shamsi($obj->ChequeDate) . ' شماره وام ' . $ReqObj->RequestID;
 				$result = $eventobj->RegisterEventDoc($pdo);
 				if(!$result)
 				{
@@ -482,7 +482,7 @@ function ChangeChequeStatus(){
 			}	
 			
 			$eventobj->ExtraDescription = "چک شماره " . $obj->ChequeNo . " تاریخ " . 
-				DateModules::miladi_to_shamsi($obj->ChequeDate);
+				DateModules::miladi_to_shamsi($obj->ChequeDate) . ' شماره وام ' . $ReqObj->RequestID;
 			$result = $eventobj->RegisterEventDoc($pdo);
 			if(!$result)
 			{
@@ -645,7 +645,7 @@ function SaveLoanCheque(){
 				$eventobj->Sources = array($bobj->RequestID,0,$bobj->BackPayID, $obj->IncomeChequeID);
 				$eventobj->AllRowsAmount = $obj->ChequeAmount;
 				$eventobj->ExtraDescription = " - چک شماره " . $obj->ChequeNo . " تاریخ " . 
-				DateModules::miladi_to_shamsi($obj->ChequeDate);
+				DateModules::miladi_to_shamsi($obj->ChequeDate) . ' شماره وام ' . $bobj->RequestID;
 				$result = $eventobj->RegisterEventDoc($pdo);
 				if(!$result)
 				{

@@ -45,6 +45,7 @@ $dg->addColumn("", "RequestID","", true);
 $dg->addColumn("", "BankDesc", "", true);
 $dg->addColumn("", "ChequeBranch", "", true);
 $dg->addColumn("", "history", "", true);
+$dg->addColumn("", "ComputeType", "", true);
 
 $col = $dg->addColumn("سررسید", "InstallmentDate", GridColumn::ColumnType_date);
 //$col->editor = ColumnEditor::SHDateField();
@@ -165,6 +166,17 @@ function Installment()
 		
 	if(this.framework)
 	{
+		this.grid.addDocked({
+			xtype: 'toolbar',
+			dock: 'bottom',
+			items: [{ 
+				xtype: 'container', 
+				autoWidth : true,
+				flex : 1,
+				html : "ردیف های زرد اقساط ثبت سابقه می باشند"+
+					"<br>ردیف های سبز رنگ اقساطی هستند که به صورت دستی ایجاد شده اند"
+			}
+		]});
 		if(this.grid.plugins[0])
 			this.grid.plugins[0].on("beforeedit", function(editor,e){
 				
@@ -177,9 +189,9 @@ function Installment()
 		this.grid.getView().getRowClass = function(record, index)
 		{
 			if(record.data.history == "YES")
-				return "greenRow";
-			if(record.data.IsDelayed == "YES")
 				return "yellowRow";
+			if(record.data.ComputeType == "USER")
+				return "greenRow";
 
 			return "";
 		}
