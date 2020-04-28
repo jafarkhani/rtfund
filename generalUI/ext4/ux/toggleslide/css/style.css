@@ -12,6 +12,7 @@
 	-moz-user-select: none;
 	-khtml-user-select: none;
         direction: ltr;
+        
 }
 
 .x-toggle-slide-disabled {
@@ -28,6 +29,7 @@
 	height: 23px;
 	cursor: pointer;
 	overflow: hidden;
+        margin : 0;
 }
 
 .x-toggle-slide-container div.holder {
@@ -66,17 +68,18 @@ label.x-toggle-slide-label-on {
 	background: #5EA2DA;
 	color: #F7FAFD;
 	text-shadow: 0px 0px 2px #364A5D;
+        text-align: left;
 }
 
 label.x-toggle-slide-label-on span {
-	padding-right: 8px;
+	padding-left: 8px;
 }
 
 label.x-toggle-slide-label-off {
 	background: #D5D6D6;
 	color: #929496;
 	text-shadow: 1px 0px 1px #fff;
-	text-align: right;
+        text-align: right;
 }
 
 label.x-toggle-slide-label-off span {

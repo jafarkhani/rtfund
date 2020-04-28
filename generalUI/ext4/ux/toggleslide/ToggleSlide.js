@@ -285,7 +285,7 @@ Ext.define('Ext.ux.toggleslide.ToggleSlide', {
      * @private
      */
     moveHandle: function(on, callback)
-    {return true;
+    {
         var me = this,
             runner = new Ext.util.TaskRunner(),
             to = on ? me.rightside : 0;
@@ -302,13 +302,13 @@ Ext.define('Ext.ux.toggleslide.ToggleSlide', {
                 beforeanimate: {
                     fn: function(ani)
                     {
-                        me.task = runner.newTask({
+                       /* me.task = runner.newTask({
                             run: function () {
                                 me.onDrag();
                             },
                             interval: 10
                         });
-                        me.task.start();
+                        me.task.start();*/
                     },
                     scope: this
                 },
@@ -316,7 +316,7 @@ Ext.define('Ext.ux.toggleslide.ToggleSlide', {
                     fn: function(ani)
                     {
                         me.onDrag();
-                        me.task.destroy();
+                        //me.task.destroy();
                     },
                     scope: this
                 } 
@@ -483,5 +483,14 @@ Ext.define('Ext.ux.toggleslide.ToggleSlide', {
     {
         var me = this;
         return me.booleanMode ? me.state : (me.state ? me.onText : me.offText);
+    },
+    
+    setValue: function(p)
+    {
+        var me = this;
+        if(me.state === p)
+            return;
+        
+        me.toggle();
     }
 });

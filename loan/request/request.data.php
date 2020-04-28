@@ -166,6 +166,7 @@ function SaveLoanRequest(){
 	}
 	else
 	{
+		$preObj = new LON_requests($obj->RequestID);
 		$result = $obj->EditRequest();
 		if($result)
 			LON_requests::ChangeStatus($obj->RequestID,$obj->StatusID, "", true);
@@ -174,6 +175,10 @@ function SaveLoanRequest(){
 			echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 			die();
 		}
+		
+		if($preObj->IsLock != $obj->IsLock)
+			LON_requests::ChangeStatus($obj->RequestID,$preObj->StatusID, 
+			($obj->IsLock == "YES" ? "قفل کردن وام" : "باز کردن قفل وام"), true);
 	}
 
 	//print_r(ExceptionHandler::PopAllExceptions());

@@ -9,18 +9,15 @@ header("X-Accel-Buffering: no");
 ob_start();
 set_time_limit(0);
 
-$dt = PdoDataAccess::runquery(" select * from aa join LON_requests on(DociD=RequestID) "
-		. " where reqPersonID<>1003 and regDoc=1 "); 
+$dt = PdoDataAccess::runquery(" SELECT * FROM krrtfir_oldcomputes.`aa` "
+		. "join LON_requests on(aa.DocID=requestID) where flag2 =1 and StatusID=70 "); 
 flush();
 ob_flush();
 $i=0;
 foreach($dt as $row)
 {
 	$RequestID = $row["DocID"];
-	if($row["flag"] == "1")
-		LON_installments::ComputeInstallments($RequestID, null,true);
-	else
-		LON_installments::ComputeInstallments($RequestID);
+	LON_installments::ComputeInstallments($RequestID, null,true);
 	echo $RequestID . " : " ;
 	print_r(ExceptionHandler::PopAllExceptions());
 	ob_flush();flush();
