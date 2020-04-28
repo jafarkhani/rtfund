@@ -328,9 +328,9 @@ class EventComputeItems {
 					return 0;
 				$fundPenalty = round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$penalty);
 				return $penalty - $fundPenalty;
-			case 86 : 
+			/*case 86 : 
 				$early = $todayArr["total_early"] - $yesterdayArr["total_early"];
-				return $early;
+				return $early;*/
 		}
 
 	}

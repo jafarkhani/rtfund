@@ -94,9 +94,10 @@ if(isset($_REQUEST["show"]))
 	$rpg->addColumn("جریمه", "totalpnlt","ReportMoneyRender");
 	
 	function EarlyRender($row, $value){
-		return $row['type'] == "installment" ? 0 : $value;
+		return $value;
+		//return $row['type'] == "installment" ? 0 : $value;
 	}
-	$rpg->addColumn("تخفیف تعجیل", "early","EarlyRender");
+	$rpg->addColumn("تخفیف تعجیل", "totalearly","EarlyRender");
 	
 	function RemainsRender($row, $value){
 		if($row["type"] == "pay")
@@ -111,11 +112,13 @@ if(isset($_REQUEST["show"]))
 	$col->EnableSummary();
 	$col = $rpg->addColumn("مانده جریمه", "remain_pnlt","RemainsRender");
 	$col->EnableSummary();
+	$col = $rpg->addColumn("مانده تعجیل", "remain_early","RemainsRender");
+	$col->EnableSummary();
 	
 	function totalRemainRender($row){
 		if($row["type"] == "installment")
 			return number_format($row["remain_pure"]*1 + $row["remain_wage"]*1 + 
-					$row["remain_late"]*1 + $row["remain_pnlt"]*1);
+					$row["remain_late"]*1 + $row["remain_pnlt"]*1 );
 		else
 			return number_format($row["remainPayAmount"]);
 	}
