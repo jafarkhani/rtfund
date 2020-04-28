@@ -13,6 +13,12 @@ ini_set("display_errors", "On");
 
 if(isset($_REQUEST["show"]))
 {
+	if(isset($_REQUEST["rtfund2"]))
+	{
+		sys_config::$db_server['database'] = "krrtfir_rtfund2";
+		PdoDataAccess::$DB = null;
+	}
+	
 	$RequestID = $_REQUEST["RequestID"];
 	$ReqObj = new LON_requests($RequestID);
 	$partObj = LON_ReqParts::GetValidPartObj($RequestID);
@@ -292,6 +298,17 @@ LoanReport_payments.prototype.showReport2 = function(btn, e)
 	return;
 }
 
+LoanReport_payments.prototype.showReport3 = function(btn, e)
+{
+	this.form = this.get("mainForm") 
+	this.form.target = "_blank";
+	this.form.method = "POST";
+	this.form.action =  this.address_prefix + "LoanPayment.php?show=true&rtfund2=true";
+	this.form.submit();
+	this.get("excel").value = "";
+	return;
+}
+
 function LoanReport_payments()
 {
 	this.formPanel = new Ext.form.Panel({
@@ -359,6 +376,10 @@ function LoanReport_payments()
 		},{
 			text : "گزارش پرداخت جدید",
 			handler : Ext.bind(this.showReport2,this),
+			iconCls : "report"
+		},{
+			text : "گزارش پرداخت  قبل از بروز رسانی مراحل پرداخت",
+			handler : Ext.bind(this.showReport3,this),
 			iconCls : "report"
 		}]
 	});
