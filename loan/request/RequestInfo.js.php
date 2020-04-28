@@ -89,7 +89,7 @@ RequestInfo.prototype.LoadRequestInfo = function(){
 					"LoanFullname","ReqDate","ReqAmount","ReqDetails","BorrowerDesc","BorrowerID",
 					"BorrowerMobile","guarantees","AgentGuarantee","FundGuarantee","StatusID","DocumentDesc","IsFree",
 					"imp_GirandehCode","imp_VamCode","IsEnded","SubAgentID","PlanTitle","RuleNo","FundRules",
-					"DomainID","DomainDesc",
+					"DomainID","DomainDesc","IsLock",
             		"LetterID","SourceID","ExpertPersonID","DocRequestDate","DocReceiveDate",
 					"MeetingDate","VisitDate","WorkgroupDiscussDate","ContractType"],
 		autoLoad : true,
@@ -120,7 +120,8 @@ RequestInfo.prototype.LoadRequestInfo = function(){
 					me.grid.down("[itemId=addPart]").hide();
 				}
 				//..........................................................
-
+				me.companyPanel.down("[name=IsLock]").setValue(record.data.IsLock == "YES");
+				
 				// set Miladi date to shamsi date
 				me.companyPanel.down("[name=DocRequestDate]").setValue(MiladiToShamsi(record.data.DocRequestDate));
 				me.companyPanel.down("[name=DocReceiveDate]").setValue(MiladiToShamsi(record.data.DocReceiveDate));
@@ -725,6 +726,16 @@ RequestInfo.prototype.BuildForms = function(){
 				fieldLabel : "شماره وام قدیم"
 			}],
 			cls : "blueText"
+		},{
+			xtype:'toggleslidefield',
+			fieldLabel : "تغییرات در شرایط و اقساط وام قفل می باشد",
+			state: false,
+			colspan : 2,
+			width : 700,
+			name: 'IsLock',
+			onText: 'فعال', 
+			offText: 'غیرفعال',
+			labelWidth: 200
 		},{
 			xtype : "fieldset",
 			title : "تضمین",

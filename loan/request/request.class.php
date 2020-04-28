@@ -33,6 +33,7 @@ class LON_requests extends PdoDataAccess{
 	public $FundRules;
 	public $DomainID;
 	public $ContractType;
+	public $IsLock;
 	public $EndDate;
 
 	/* New Add Fields */
@@ -1603,12 +1604,13 @@ class LON_Computes extends PdoDataAccess{
 				InstallmentDate RecordDate,InstallmentAmount RecordAmount,0 PayType, '' details, wage
 				from LON_installments where RequestID=:r AND history='NO' AND IsDelayed='NO'
 			union All
-				select p.BackPayID id,'pay' type, substr(p.PayDate,1,10) RecordDate, p.PayAmount+ifnull(p2.PayAmount,0) RecordAmount, 
+				select p.BackPayID id,'pay' type, substr(p.PayDate,1,10) RecordDate, 
+					p.PayAmount/*+ifnull(p2.PayAmount,0)*/ RecordAmount, 
 					p.PayType,'' details,0
 				from LON_BackPays p
 				left join ACC_IncomeCheques i using(IncomeChequeID)
 				left join BaseInfo bi on(bi.TypeID=6 AND bi.InfoID=p.PayType)
-				left join LON_BackPays p2 on(p2.PayType=" . BACKPAY_PAYTYPE_CORRECT . " AND p2.PayBillNo=p.BackPayID)
+				/*left join LON_BackPays p2 on(p2.PayType=" . BACKPAY_PAYTYPE_CORRECT . " AND p2.PayBillNo=p.BackPayID)*/
 				where p.RequestID=:r 
 					AND p.PayType<>" . BACKPAY_PAYTYPE_CORRECT . " 
 					AND if(p.PayType=".BACKPAY_PAYTYPE_CHEQUE.",i.ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)
@@ -2467,6 +2469,13 @@ class LON_installments extends PdoDataAccess{
 		//-----------------------------------------------
 		$obj2 = new LON_requests($RequestID);
 		$partObj = LON_ReqParts::GetValidPartObj($RequestID);
+		
+		if($obj2->IsLock == "YES" && !$IsLastest)
+		{
+			ExceptionHandler::PushException("وام موربوطه قفل بوده و قادر به محاسبه اقساط نمی باشید.");
+			return false;
+		}
+		
 
 		if($partObj->ComputeMode == "NOAVARI")
 		{

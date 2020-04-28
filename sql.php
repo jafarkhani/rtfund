@@ -1,4 +1,15 @@
 <?php
+
+/*
+select p.RequestID,p.PayID,g2j(p.payDate),p.PayAmount,
+                p.PayAmount - ifnull(p.OldFundDelayAmount,0) - ifnull(p.OldAgentDelayAmount,0)
+                        - ifnull(p.OldFundWage,0) - ifnull(p.OldAgentWage,0)as PurePayAmount1,
+                        
+                        p2.PayAmount - ifnull(p2.OldFundDelayAmount,0) - ifnull(p2.OldAgentDelayAmount,0)
+                        - ifnull(p2.OldFundWage,0) - ifnull(p2.OldAgentWage,0)as PurePayAmount2
+                
+            from krrtfir_rtfund.LON_payments p join krrtfir_oldcomputes.LON_payments p2 on(p.PayID=p2.PayID)
+            join krrtfir_oldcomputes.aa on(aa.DociD=p.RequestID)   */
 /*
  * چک های وصول نشده در یک تاریخ خاص
 select ifnull(b.BackPayID,LoanRequestID) RequestID, ChequeNo,g2j(ChequeDate), InfoDesc 

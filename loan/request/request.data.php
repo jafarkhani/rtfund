@@ -105,6 +105,9 @@ function SaveLoanRequest(){
 	$obj->AgentGuarantee = isset($_POST["AgentGuarantee"]) ? "YES" : "NO";	
 	$obj->FundGuarantee = isset($_POST["FundGuarantee"]) ? "YES" : "NO";	
 	
+	if(isset($_POST["IsLock"]))
+		$obj->IsLock = $_POST["IsLock"] == "true" ? "YES" : "NO";
+	
 	$obj->guarantees = array();
 	$arr = array_keys($_POST);
 	foreach($arr as $index)

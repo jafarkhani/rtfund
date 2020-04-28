@@ -156,6 +156,8 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 
 		<link rel="stylesheet" type="text/css" href="/generalUI/icons/icons.css" />
 		<link rel="stylesheet" type="text/css" href="/generalUI/fonts/fonts.css" />
+                <link rel="stylesheet" type="text/css" href="/generalUI/ext4/ux/toggleslide/css/style.css" />
+                
 		<script type="text/javascript" src="/generalUI/ext4/resources/ext-all.js"></script>
 
 		<link rel="stylesheet" type="text/css" href="/generalUI/ext4/resources/css/ext-rtl.css?v=1" />
@@ -808,14 +810,18 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 	}
 	//..........................................................................
 	Ext.Loader.setConfig({
-		enabled: true,
-		paths: {
-			'Ext.calendar': '/generalUI/ext4/ux/calendar/src'
-		}
+            enabled: true,
+            paths: {
+                'Ext.calendar': '/generalUI/ext4/ux/calendar/src',
+                'Ext.ux.toggleslide': '/generalUI/ext4/ux/toggleslide',
+		'Ext.ux.form.field': '/generalUI/ext4/ux/form/field'
+            }
 	});
 
 	Ext.require([
-		'Ext.calendar.CalendarPanel'
+		'Ext.calendar.CalendarPanel',
+                'Ext.ux.form.field.ToggleSlide', 
+                'Ext.ux.toggleslide.Thumb'
 	]);
 	//..........................................................................
 	var required = '<span style="color:red;font-weight:bold" data-qtip="فیلد اجباری">*</span>';
