@@ -255,7 +255,7 @@ function SaveIncomeCheque(){
 			}
 			
 			//--------------- execute event ----------------
-			$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
+			$EventID = LON_requests::GetEventID($RequestID, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
 			$eventobj = new ExecuteEvent($EventID);
 			$eventobj->Sources = array($RequestID,0,$bobj->BackPayID, $obj->IncomeChequeID);
 			$eventobj->AllRowsAmount = $obj->ChequeAmount;
@@ -272,35 +272,7 @@ function SaveIncomeCheque(){
 	
 	//.......................................................
 	ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, $obj->ChequeStatus, $pdo);
-	/*
-	//--------------- get DocID ------------------
-	$DocID = "";
-	if(!empty($_POST["LocalNo"]))
-	{
-		$dt = PdoDataAccess::runquery("select DocID,StatusID from ACC_docs where LocalNo=? AND CycleID=?",
-			array($_POST["LocalNo"], $_SESSION["accounting"]["CycleID"]));
-		if(count($dt) == 0)
-		{
-			$pdo->rollback();
-			echo Response::createObjectiveResponse(false, "شماره سند یافت نشد");
-			die();
-		}	
-		if($dt[0]["StatusID"] != ACC_STEPID_RAW)
-		{
-			$pdo->rollback();
-			echo Response::createObjectiveResponse(false, "سند مربوطه تایید شده و امکان اضافه به آن ممکن نیست");
-			die();
-		}
-		$DocID = $dt[0][0];
-	}
-	//--------------------------------------------
-	if(!RegisterOuterCheque($DocID,$obj,$pdo))
-	{
-		//print_r(ExceptionHandler::PopAllExceptions());
-		echo Response::createObjectiveResponse(false,ExceptionHandler::GetExceptionsToString());
-		die();
-	}*/
-	
+		
 	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
 	die();
@@ -719,19 +691,10 @@ function editCheque(){
 	if($obj->ChequeDate != $_POST["newDate"])
 		$comment .= "تاریخ قبلی : " . DateModules::miladi_to_shamsi($obj->ChequeDate) . "<br>";
 	$comment .= "دلیل تغییر : " . $_POST["reason"];
+	$DiffAmount = $_POST["newAmount"]*1 - $obj->ChequeAmount*1;
 	
 	ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, INCOMECHEQUE_EDIT, 0, $pdo,  $comment);
 	
-	if($obj->ChequeAmount != $_POST["newAmount"])
-	{
-		if(!EditIncomeCheque($obj, $_POST["newAmount"], $pdo))
-		{
-			$pdo->rollBack();
-			print_r(ExceptionHandler::PopAllExceptions());
-			echo Response::createObjectiveResponse(false, "");
-			die();
-		}
-	}
 	$obj->ChequeAmount = $_POST["newAmount"];
 	$obj->ChequeDate = $_POST["newDate"];
 	$obj->Edit($pdo);
@@ -743,6 +706,26 @@ function editCheque(){
 		$bobj->PayAmount = $_POST["newAmount"];
 		$bobj->PayDate = $_POST["newDate"];
 		$bobj->Edit($pdo);
+		
+		//--------------- execute event ----------------
+		$RequestID = $bobj->RequestID;
+		echo $DiffAmount;
+		if($DiffAmount <> 0)
+		{
+			$EventID = LON_requests::GetEventID($RequestID, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
+			$eventobj = new ExecuteEvent($EventID);
+			$eventobj->Sources = array($RequestID,0,$bobj->BackPayID, $obj->IncomeChequeID);
+			$eventobj->AllRowsAmount = $DiffAmount;
+			$eventobj->ExtraDescription = "تغییر مبلغ چک شماره " . $obj->ChequeNo . " تاریخ " . 
+					DateModules::miladi_to_shamsi($obj->ChequeDate) . ' شماره وام ' . $RequestID;
+			$result = $eventobj->RegisterEventDoc($pdo);
+			if(!$result)
+			{
+				Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+				die();
+			}
+		}
+		//-------------------------------------------------
 	}
 	
 	if(ExceptionHandler::GetExceptionCount() > 0)

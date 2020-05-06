@@ -183,7 +183,9 @@ class EventComputeItems {
 						case 36:
 							if($PartObj->LatePercent*1 == 0)
 								return 0;
-							$lateAmount = $row["late"];
+							$lateAmount = $row["totallate"]*1;
+							if($lateAmount < 0)
+								return 0;
 							$FundLate = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $lateAmount : 
 								round(($PartObj->FundWage/$PartObj->CustomerWage)*$lateAmount);
 							
@@ -206,7 +208,11 @@ class EventComputeItems {
 								return $AgentForfeit;
 						case 41:
 						case 42:	
-							$earlyAmount = $row["early"];
+							$lateAmount = $row["totallate"]*1;
+							if($lateAmount > 0)
+								return 0;
+							
+							$earlyAmount = $lateAmount*(-1);
 							if($PartObj->CustomerWage == 0)
 								return 0;
 							$FundEarly = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $earlyAmount : 

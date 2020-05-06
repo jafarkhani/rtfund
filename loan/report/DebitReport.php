@@ -225,7 +225,7 @@ if(isset($_REQUEST["show"]))
 			"debt_wage" => $ComputeArr[$i]["remain_wage"],
 			"debt_late" => $ComputeArr[$i]["remain_late"],
 			"debt_pnlt" => $ComputeArr[$i]["remain_pnlt"],
-			"debt_early" => 0,
+			"debt_early" => $ComputeArr[$i]["remain_early"],
 			"debt_total" => $ComputeArr[$i]["remain_pure"] + $ComputeArr[$i]["remain_wage"] + 
 				$ComputeArr[$i]["remain_late"] + $ComputeArr[$i]["remain_pnlt"] -  
 				$ComputeArr[$i]["remain_early"]

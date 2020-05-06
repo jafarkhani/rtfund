@@ -9,8 +9,7 @@ header("X-Accel-Buffering: no");
 ob_start();
 set_time_limit(0);
 
-$dt = PdoDataAccess::runquery(" SELECT * FROM krrtfir_oldcomputes.`aa` "
-		. "join LON_requests on(aa.DocID=requestID) where flag2 =1 and StatusID=70 "); 
+$dt = PdoDataAccess::runquery(" SELECT * FROM aa join LON_requests on(DocID=RequestID) where statusid=70 and flag =2051 "); 
 flush();
 ob_flush();
 $i=0;

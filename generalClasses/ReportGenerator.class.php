@@ -1293,9 +1293,9 @@ function ReportMoneyRender($row, $value){
 			return $value;
 		else
 		{
-			if($value*1 < 0)
+			if((int)$value < 0)
 				return "<font color=red>" . number_format($value) . "</font>";
-			return number_format($value*1);
+			return number_format((int)$value);
 		}
 	}
 	

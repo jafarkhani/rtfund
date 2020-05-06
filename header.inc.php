@@ -28,7 +28,7 @@ if(!session::checkLogin())
 
 if($_SESSION["USER"]["UserName"] == "admin")
 {
-	sys_config::$db_server['database'] = "krrtfir_oldcomputes";
+	sys_config::$db_server['database'] = "sajakrrt_oldcomputes";
 	PdoDataAccess::$DB = null;
 }
 

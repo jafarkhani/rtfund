@@ -34,7 +34,8 @@ function Event() {
 		hidden: true,
 		width: 500,
 		defaults : {
-			width : 480
+			width : 480,
+			labelWidth : 200
 		},
 		items: [{
 				xtype: "hidden",
@@ -66,6 +67,21 @@ function Event() {
 				name: "EventType3",
 				itemId: "EventType3",
 				fieldLabel: "EventType3"
+			},{
+				xtype: "textfield",
+				name: "EventFunction",
+				itemId: "EventFunction",
+				fieldLabel: "EventFunction"
+			},{
+				xtype: "textfield",
+				name: "TriggerFunction",
+				itemId: "TriggerFunction",
+				fieldLabel: "TriggerFunction"
+			},{
+				xtype: "textfield",
+				name: "AfterTriggerFunction",
+				itemId: "AfterTriggerFunction",
+				fieldLabel: "AfterTriggerFunction"
 			}, {
 				xtype: "hidden",
 				itemId: "ParentID",
@@ -282,6 +298,10 @@ Event.prototype.BeforeSaveEvent = function (mode, obj){
 		this.infoPanel.getComponent("ordering").setValue(record.raw.ordering);
 		this.infoPanel.getComponent("EventType").setValue(record.raw.EventType);
 		this.infoPanel.getComponent("EventType2").setValue(record.raw.EventType2);
+		this.infoPanel.getComponent("EventType3").setValue(record.raw.EventType3);
+		this.infoPanel.getComponent("EventFunction").setValue(record.raw.EventFunction);
+		this.infoPanel.getComponent("TriggerFunction").setValue(record.raw.TriggerFunction);
+		this.infoPanel.getComponent("AfterTriggerFunction").setValue(record.raw.AfterTriggerFunction);
 	} else {
 		this.infoPanel.getComponent("ParentID").setValue(record.data.id == "source" ? 0 : record.data.id);
 	}
