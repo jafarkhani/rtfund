@@ -275,11 +275,10 @@ function SelectArchiveLetters(){
 		echo dataReader::getJsonData(array(), 0, $_GET["callback"]);
 		die();
 	}
-	$query = "select l.*,a.FolderID,if(count(DocumentID) > 0,'YES','NO') hasAttach
+	$query = "select l.*,a.FolderID,l.hasAttach
 
 			from OFC_ArchiveItems a
 				join OFC_letters l using(LetterID)
-				left join DMS_documents on(ObjectType='letterAttach' AND ObjectID=l.LetterID)				
 			where FolderID=:fid";
 	
 	$param = array(":fid" => $FolderID);
