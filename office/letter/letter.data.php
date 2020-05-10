@@ -188,7 +188,8 @@ function SelectReceivedLetters(){
 	}
 	
 	$dt = OFC_letters::SelectReceivedLetters($where, $param);
-	//echo PdoDataAccess::GetLatestQueryString();
+	//if($_SESSION["USER"]["UserName"] == "0943277744")
+	//	echo "/*". PdoDataAccess::GetLatestQueryString() . "*/";
 	//print_r(ExceptionHandler::PopAllExceptions());
 	$cnt = $dt->rowCount();
 	$dt = PdoDataAccess::fetchAll($dt, $_GET["start"], $_GET["limit"]);
