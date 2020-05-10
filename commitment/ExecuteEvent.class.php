@@ -70,8 +70,31 @@ class ExecuteEvent extends PdoDataAccess{
 				return false;
 			} 
 		//---------------------------------------------------
+
+        // new added for set description for warrenty event
+        $warPerson = '';
+        if(isset($eventRows[0]["EventType"]) && $eventRows[0]["EventType"]=='RegisterWarrenty'){
+            require_once DOCUMENT_ROOT . "/loan/warrenty/request.class.php";
+            $RequestID=$this->Sources[0];
+            $warrenty = new WAR_requests($RequestID);
+            $warPersonID = $warrenty->PersonID;
+            $dt1 = PdoDataAccess::runquery("select RequestID,concat_ws(' ',fname,lname,CompanyName) fullname
+		    from WAR_requests r 
+					left join BSC_persons using(PersonID)
+				where RequestID=?", array($RequestID));
+            $warPerson = $dt1[0]['fullname'];
+        }
+        // end new added for set description for warrenty event
+
+
 		switch($eventRows[0]["EventType"])
 		{
+            // new added for set description for warrenty event
+            case 'RegisterWarrenty':
+                $this->ExtraDescription = " شماره ضمانتنامه " . $this->Sources[0] . " " . $warPerson;
+                break;
+            // end new added for set description for warrenty event
+
 			case EVENTTYPE_LoanContract:
 			case EVENTTYPE_LoanPayment:
 			case EVENTTYPE_LoanBackPay:
