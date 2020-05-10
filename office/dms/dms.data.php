@@ -8,6 +8,9 @@ require_once inc_dataReader;
 require_once inc_response;
 require_once 'dms.class.php';
 require_once '../../framework/baseInfo/baseInfo.class.php';
+require_once '../../office/letter/letter.class.php';
+
+ini_set("display_errors", "On");
 
 $task = $_REQUEST["task"];
 if(!empty($task)) 
@@ -98,15 +101,8 @@ function SaveDocument() {
 	if($obj->DocMode == "ELEC")
 		$obj->place = PDONULL;
 	
-	/*if (empty($obj->DocumentID))
-		$result = $obj->AddDocument();*/
-    if (empty($obj->DocumentID)){
-        $result = $obj->AddDocument();
-        //new added
-        $exitDocumentID = $result[1][0];
-        $obj->DocumentID = $exitDocumentID;
-        //end new added
-    }
+	if (empty($obj->DocumentID))
+		$result = $obj->AddDocument();
 	else
 	{
 		$oldObj = new DMS_documents($obj->DocumentID);
@@ -119,6 +115,16 @@ function SaveDocument() {
 		
 		$result = $obj->EditDocument();
 	}
+	
+	//--------------- letterAttach -----------------
+	if($obj->ObjectType == "letterAttach")
+	{
+		$letterObj = new OFC_letters($obj->ObjectID);
+		$letterObj->hasAttach = "YES";
+		$letterObj->EditLetter();
+	}
+	//---------------------------------------------
+	
 	if(!$result)
 	{
 		//print_r(ExceptionHandler::PopAllExceptions());
@@ -181,12 +187,24 @@ function DeleteDocument() {
 		echo Response::createObjectiveResponse(false, "");
 		die();
 	}
-	PdoDataAccess::runquery("delete from DMS_DocParamValues where DocumentID=?", array($DocumentID));	
+	
 	$result = DMS_documents::DeleteDocument($DocumentID);
 	
-	$dt = PdoDataAccess::runquery("select RowID from DMS_DocFiles where DocumentID=?", array($DocumentID));
-	foreach($dt as $row)
-		DMS_DocFiles::DeletePage($row["RowID"]);
+	//--------------- letterAttach -----------------
+	if($obj->ObjectType == "letterAttach")
+	{
+		$dt = PdoDataAccess::runquery("select * from DMS_documents "
+			. "where ObjectType=? AND ObjectID=? and DocumentID<>?", array(
+				"letterAttach",$obj->ObjectID, $obj->DocumentID
+			));
+		if(count($dt) == 0)
+		{
+			$letterObj = new OFC_letters($obj->ObjectID);
+			$letterObj->hasAttach = "NO";
+			$letterObj->EditLetter();
+		}
+	}
+	//---------------------------------------------
 	
 	echo Response::createObjectiveResponse($result, "");
 	die();
