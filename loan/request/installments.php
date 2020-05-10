@@ -53,20 +53,30 @@ $col->width = 80;
 
 $col = $dg->addColumn("مبلغ قسط", "InstallmentAmount", GridColumn::ColumnType_money);
 //$col->editor = ColumnEditor::CurrencyField();
+$col->summaryType = GridColumn::SummeryType_sum;
+$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 
 if(session::IsFramework())
 {
 	$col = $dg->addColumn("کارمزد", "wage", GridColumn::ColumnType_money);
 	$col->width = 80;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
+	
 	$col = $dg->addColumn("اصل", "", GridColumn::ColumnType_money);
 	$col->renderer = "function(v,p,r){return r.data.InstallmentAmount - r.data.wage;}";
 	$col->width = 80;
 	
+	
 	$col = $dg->addColumn("خالص کارمزد", "PureWage", GridColumn::ColumnType_money);
 	$col->width = 80;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 	
 	$col = $dg->addColumn("کارمزد مازاد صندوق از حساب سرمایه گذار", "PureFundWage", GridColumn::ColumnType_money);
 	$col->width = 80;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 }
 
 $col = $dg->addColumn("مانده قسط", "remain", GridColumn::ColumnType_money);
@@ -104,6 +114,8 @@ if(session::IsFramework())
 {
 	$dg->addButton("cmp_report2", "گزارش پرداخت", "report", "function(){InstallmentObject.PayReport();}");
 }
+
+$dg->EnableSummaryRow = true;
 $dg->height = 377;
 $dg->emptyTextOfHiddenColumns = true;
 $dg->EnableSearch = false;

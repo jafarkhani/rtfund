@@ -115,8 +115,8 @@ if(isset($_REQUEST["show"]))
 				"debt_late" => "",
 				"debt_pnlt" => "",
 				"debt_early" => "",
-				"debt_total" => ""
-			));
+				"debt_total" => $ComputeArr[$i]["pure"] + $ComputeArr[$i]["wage"] + 
+					$ComputeArr[$i]["totallate"] + $ComputeArr[$i]["totalpnlt"] - $ComputeArr[$i]["RecordAmount"]));
 			continue;
 		}
 		
@@ -177,7 +177,7 @@ if(isset($_REQUEST["show"]))
 			"debt_pnlt" => $ComputeArr[$i]["totalpnlt"],
 			"debt_early" => $ComputeArr[$i]["totalearly"],
 			"debt_total" => $ComputeArr[$i]["pure"] + $ComputeArr[$i]["wage"] + 
-				$ComputeArr[$i]["totallate"] + $ComputeArr[$i]["totalpnlt"] - $ComputeArr[$i]["totalearly"]
+				$ComputeArr[$i]["totallate"] + $ComputeArr[$i]["totalpnlt"]
 		));
 		$returnArr[] = $record;
 		$totals["compute"]["debt_pure"] += $record["debt_pure"];
@@ -225,10 +225,10 @@ if(isset($_REQUEST["show"]))
 			"debt_wage" => $ComputeArr[$i]["remain_wage"],
 			"debt_late" => $ComputeArr[$i]["remain_late"],
 			"debt_pnlt" => $ComputeArr[$i]["remain_pnlt"],
-			"debt_early" => $ComputeArr[$i]["remain_early"],
-			"debt_total" => $ComputeArr[$i]["remain_pure"] + $ComputeArr[$i]["remain_wage"] + 
-				$ComputeArr[$i]["remain_late"] + $ComputeArr[$i]["remain_pnlt"] -  
-				$ComputeArr[$i]["remain_early"]
+			"debt_early" => 0,
+			"debt_total" => $ComputeArr[$i]["totallate"] + $ComputeArr[$i]["totalpnlt"]
+				+ $ComputeArr[$i]["remain_pure"] + $ComputeArr[$i]["remain_wage"] -
+				$payedLate - $PayedPnlt 
 		));	
 		$returnArr[] = $record;
 		$totals["remain"]["debt_pure"] += $record["debt_pure"];

@@ -14,8 +14,8 @@
 				
 class ReportGenerator {
 
-	public $TempFolderAddress = "/tmp/temp.xls";
-	//public $TempFolderAddress = "/home/framewor/public_html/temp/temp.xls";
+	//public $TempFolderAddress = "/tmp/temp.xls";
+	public $TempFolderAddress = "/home/sajakrrt/temp.xls";
 	
 	public $fontFamily = "nazanin";
 	public $fontSize = "16px";
@@ -213,7 +213,7 @@ class ReportGenerator {
 
 	function ExcelGeneration() {
 		
-		ini_set("display_errors", "On");
+		//ini_set("display_errors", "On");
 		$worksheet = "";
 		require_once 'excel.php';
 		require_once "php_writeexcel-0.3.0/class.writeexcel_workbook.inc.php";

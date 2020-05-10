@@ -325,11 +325,11 @@ function GetData($mode = "list"){
 	$dataTable = PdoDataAccess::runquery($query, $whereParam);
 	$query = PdoDataAccess::GetLatestQueryString();
 	
-	if($_SESSION["USER"]["UserName"] == "bayesteh")
+	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		/*BeginReport();
+		BeginReport();
 		echo PdoDataAccess::GetLatestQueryString();
-		print_r(ExceptionHandler::PopAllExceptions());*/
+		print_r(ExceptionHandler::PopAllExceptions());
 	}
 	
 	for($i=0; $i< count($dataTable); $i++)

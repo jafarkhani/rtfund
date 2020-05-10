@@ -45,3 +45,57 @@ insert into aa select DocID,@i:=@i+1 from (select a.* from ACC_docs a,
 join LON_ReqParts p on(IsHistory='NO' AND b.RequestID=p.RequestID) set DocDate=if(PartDate>'2019-03-21',PartDate,'2019-03-21') where EventID=1766
  * 
  *  */
+
+
+/*
+select aa.*, p.RequestID,p.WageReturn,p.AgentReturn,p.PartAmount, statusID ,totalPay
+                        
+                        from aa
+                        join (select requestID,sum(PayAmount - ifnull(OldFundDelayAmount,0) 
+                        - ifnull(OldAgentDelayAmount,0)
+                        - ifnull(OldFundWage,0)
+                        - ifnull(OldAgentWage,0)) totalPay from LON_payments pa group by pa.requestID)t on(t.RequestID=DocID)
+                        join LON_ReqParts p on(p.IsHistory='NO' and p.RequestID=DocID)
+                        join LON_requests r on(DocID=r.RequestID)
+                        where DocID=708
+                        */
+
+/*
+CREATE   VIEW LON_PayDocs AS
+
+select di.SourceID3 AS PayID,d.DocID AS DocID,d.LocalNo AS LocalNo,d.StatusID AS StatusID
+from (ACC_DocItems di join ACC_docs d on((di.DocID = d.DocID)))
+where (di.SourceType = 4)
+group by di.SourceID3
+
+union all
+
+select di2.SourceID3 AS SourceID3,d2.DocID AS DocID,d2.LocalNo AS LocalNo,d2.StatusID AS StatusID
+from ((COM_events e join ACC_docs d2 on((e.EventID = d2.EventID)))
+join ACC_DocItems di2 on((d2.DocID = di2.DocID)))
+where (e.EventFunction = 'PayLoan')
+
+group by di2.SourceID3; */
+
+/*
+CREATE VIEW  LON_BackPayDocs AS
+
+select 1 AS typeID,di.SourceID1 AS RequestID,di.SourceID2 AS BackPayID,d.DocID AS DocID,d.LocalNo AS LocalNo,
+d.StatusID AS StatusID
+from (ACC_DocItems di join ACC_docs d on((di.DocID = d.DocID)))
+where ((di.SourceType = 5) and (di.SourceID2 > 0))
+group by di.SourceID1,di.SourceID2,d.DocID
+
+union all
+
+select 2 AS TypeID,di.SourceID1 AS RequestID,di.SourceID3 AS BackPayID,d.DocID AS DocID,d.LocalNo AS LocalNo,
+d.StatusID AS StatusID
+from ((ACC_DocItems di join ACC_docs d on((di.DocID = d.DocID)))
+join COM_events e on((d.EventID = e.EventID)))
+where ((e.EventFunction = 'LoanBackPay') and (di.SourceID3 > 0))
+group by di.SourceID1,di.SourceID3,d.DocID; */
+
+/*select requestID, sum(wage) w, sum(PureWage) pw from LON_installments join LON_requests using(RequestID)
+where StatusID=70 and ReqPersonID<>1003
+group by RequestID
+having w<>pw*/

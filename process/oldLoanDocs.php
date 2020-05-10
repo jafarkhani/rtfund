@@ -9,23 +9,11 @@ require_once '../commitment/ExecuteEvent.class.php';
 require_once '../loan/request/request.class.php';
 
 ini_set("display_errors", "On");
-ini_set('max_execution_time', 30000);
+ini_set('max_execution_time', 300000);
 ini_set('memory_limit','2000M');
-header("X-Accel-Buffering: no");
+//header("X-Accel-Buffering: no");
 ob_start();
 set_time_limit(0);
-
-/*
-update aa join LON_BackPays b1 on(DociD=RequestID)
-join LON_BackPays b2 on(b1.PayBillNo=b2.BackPayID)
-left join ACC_IncomeCheques c on(b2.IncomeChequeID=c.IncomeChequeID)
-set b2.PayAmount=if(b2.IncomeChequeID is not null,c.ChequeAmount, b2.PayAmount+b1.PayAmount)
-where b1.PayType=100 and (b2.PayAmount<>c.ChequeAmount or b2.IncomeChequeID is null)
- * 
-delete b1 from aa join LON_BackPays b1 on(DociD=RequestID)
-where b1.PayType=100
- */
-
 
 
 //FundIncomeOfAgent();die();
@@ -51,7 +39,7 @@ while($requset=$reqs->fetch())
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
 	//Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
-	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	/*$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
@@ -64,22 +52,22 @@ while($requset=$reqs->fetch())
 		$pdo->rollBack();
 		continue;
 	}
-	
-	$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	*/
+	/*$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
-	}
-	
+	}*/
+	/*
 	$result = DailyIncome($reqObj, $partObj, $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
-	}
+	}*/
 	$result = DailyWage($reqObj, $partObj, $pdo);
 	if(!$result)
 	{
@@ -369,6 +357,19 @@ function BackPayCheques($reqObj , $partObj, &$DocObj, $pdo){
  * رویدادهای بازپرداخت
  */
 function BackPay($reqObj , $partObj, &$DocObj, $pdo){
+	
+	PdoDataAccess::runquery(" 
+		update LON_BackPays b1
+		join LON_BackPays b2 on(b1.PayBillNo=b2.BackPayID)
+		left join ACC_IncomeCheques c on(b2.IncomeChequeID=c.IncomeChequeID)
+		set b2.PayAmount=if(b2.IncomeChequeID is not null,c.ChequeAmount, b2.PayAmount+b1.PayAmount)
+		where b1.PayType=100 and (b2.PayAmount<>c.ChequeAmount or b2.IncomeChequeID is null)
+			AND b1.RequestID=?", array($reqObj->RequestID));
+
+		PdoDataAccess::runquery("delete from LON_BackPays where PayType=100 and RequestID=?", 
+			array($reqObj->RequestID));
+	
+	
 	global $GToDate;
 	$result = true;
 	$backpays = PdoDataAccess::runquery(
@@ -484,7 +485,7 @@ function DailyWage($reqObj , $partObj, $pdo){
 	}
 	if($totalLate>0)
 	{
-		$event1 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyLate);
+		$event1 = LON_requests::GetEventID($reqObj->RequestID, EVENTTYPE_LoanDailyLate);
 		if($event1*1 > 0)
 		{
 			$EventObj1 = new ExecuteEvent($event1);
@@ -509,7 +510,7 @@ function DailyWage($reqObj , $partObj, $pdo){
 	//-----------------------------------------------------
 	if($totalPenalty>0)
 	{
-		$event2 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyPenalty);
+		$event2 = LON_requests::GetEventID($reqObj->RequestID, EVENTTYPE_LoanDailyPenalty);
 		if($event2 > 0)
 		{
 			$EventObj2 = new ExecuteEvent($event2);
@@ -535,7 +536,9 @@ function DailyWage($reqObj , $partObj, $pdo){
 		}
 	}
 	//--------------------------------------
-	$computeArr = LON_Computes::ComputePayments($reqObj->RequestID);
+	$JToDate = "1398/12/29";
+	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");
+	$computeArr = LON_Computes::ComputePayments($reqObj->RequestID, $GToDate);
 	$totalLate2 = 0;
 	$totalPenalty2 = 0;
 	foreach($computeArr as $row)
@@ -551,7 +554,7 @@ function DailyWage($reqObj , $partObj, $pdo){
 	
 	if($totalLate>0)
 	{
-		$event1 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyLate);
+		$event1 = LON_requests::GetEventID($reqObj->RequestID, EVENTTYPE_LoanDailyLate);
 		if($event1 > 0)
 		{
 			$EventObj1 = new ExecuteEvent($event1);
@@ -576,7 +579,7 @@ function DailyWage($reqObj , $partObj, $pdo){
 	//-----------------------------------------------------
 	if($totalPenalty>0)
 	{
-		$event2 = LON_requests::GetEventID($reqObj->ReqPersonID, EVENTTYPE_LoanDailyPenalty);
+		$event2 = LON_requests::GetEventID($reqObj->RequestID, EVENTTYPE_LoanDailyPenalty);
 		if($event2 > 0)
 		{
 			$EventObj2 = new ExecuteEvent($event2);

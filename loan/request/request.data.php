@@ -1314,7 +1314,7 @@ function GetEndedRequests(){
 //-------------------------------------------------
 
 function GetPartPayments(){
-	
+	ini_set("display_errors", "On");
 	$dt = LON_payments::Get(" AND p.RequestID=? ", array($_REQUEST["RequestID"]),dataReader::makeOrder());
 	print_r(ExceptionHandler::PopAllExceptions());
 	echo dataReader::getJsonData($dt->fetchAll(), $dt->rowCount(), $_GET["callback"]);

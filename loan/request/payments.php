@@ -61,6 +61,8 @@ $col->align = "center";
 $col = $dg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", GridColumn::ColumnType_money);
 $col->width = 120;
 $col->align = "center";
+$col->summaryType = GridColumn::SummeryType_sum;
+$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 
 if(session::IsFramework())
 {
