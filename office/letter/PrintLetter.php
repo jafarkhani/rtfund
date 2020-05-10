@@ -166,7 +166,7 @@ if($LetterObj->OuterCopies != "")
 						<!--<td style="width:80px;line-height: 31px; vertical-align:top; padding-top:32px">-->
 							<br><b><?= DateModules::miladi_to_shamsi($LetterObj->LetterDate) ?><br>
 							 <span dir=ltr><?= $letterYear . "-" . $LetterObj->LetterID ?></span>
-							 <br><?= OFC_letters::HasAttach($LetterObj->LetterID) ? "دارد" : "ندارد" ?></b>
+							 <br><?= $LetterObj->hasAttach == "YES" ? "دارد" : "ندارد" ?></b>
 						</td>
 					</tr>
 					</thead>
@@ -193,7 +193,7 @@ if($LetterObj->OuterCopies != "")
 						<td style="width: 85px;line-height: 21px;vertical-align: top;padding-top: 28px;">
 							<b><?= DateModules::miladi_to_shamsi($LetterObj->LetterDate) ?><br>
 							 <span dir=ltr><?= $letterYear . "-" . $LetterObj->LetterID ?></span>
-							 <br><?= OFC_letters::HasAttach($LetterObj->LetterID) ? "دارد" : "ندارد" ?></b>
+							 <br><?= $LetterObj->hasAttach == "YES" ? "دارد" : "ندارد" ?></b>
 						</td>
 					</tr> 
 					</thead>
