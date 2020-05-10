@@ -58,7 +58,7 @@ class OFC_letters extends PdoDataAccess{
 	    $query = "select l.LetterID,l.LetterType,l.LetterDate,l.LetterTitle,
 				concat(p1.fname,' ',p1.lname) RegName,
 				concat(p4.fname,' ',p4.lname) signer,
-				if(t.cnt > 0,'YES','NO') hasAttach" . 
+				l.hasAttach" . 
 				($RefInclude ? ",s.SendID,s.SendDate,s.SendComment,	
 				concat(p2.fname,' ',p2.lname) sender,
 				concat(p3.fname,' ',p3.lname) receiver" : "") . " 
@@ -66,9 +66,6 @@ class OFC_letters extends PdoDataAccess{
 			from OFC_letters l 
 			join BSC_persons p1 on(l.PersonID=p1.PersonID)
 			left join BSC_persons p4 on(l.SignerPersonID=p4.PersonID)
-			left  join (select ObjectID,count(DocumentID) cnt 
-					from DMS_documents where ObjectType='letterAttach' group by ObjectID )t
-			on(t.ObjectID = l.LetterID)
 			left join OFC_LetterCustomers lc on(l.LetterID=lc.LetterID)";
 			
 		if($RefInclude)
@@ -172,13 +169,12 @@ class OFC_letters extends PdoDataAccess{
 		
 		$query = "select s.*,l.*, InfoDesc SendTypeDesc,
 				concat_ws(' ',fname, lname,CompanyName) ToPersonName,
-				if(count(DocumentID) > 0,'YES','NO') hasAttach,
+				l.hasAttach,
 				substr(s.SendDate,1,10) _SendDate
 			from OFC_send s
 				left join BaseInfo b on(b.TypeID=12 AND s.SendType=InfoID)
 				join OFC_letters l using(LetterID)
 				join BSC_persons p on(s.ToPersonID=p.PersonID)
-				left join DMS_documents on(ObjectType='letterAttach' AND ObjectID=s.LetterID)
 			where FromPersonID=:fpid " . $where . "
 			group by SendID
 		";
@@ -313,7 +309,7 @@ class OFC_letters extends PdoDataAccess{
 	
 	static function HasAttach($LetterID){
 		
-		$dt = PdoDataAccess::runquery( "select LetterID				
+		$dt = PdoDataAccess::runquery( "select hasAttach				
 			from OFC_letters l 
 				join DMS_documents on(ObjectType='letterAttach' AND ObjectID=l.LetterID)
 			where l.LetterID=?", array($LetterID));
