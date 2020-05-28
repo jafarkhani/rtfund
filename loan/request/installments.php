@@ -66,6 +66,8 @@ if(session::IsFramework())
 	$col = $dg->addColumn("اصل", "", GridColumn::ColumnType_money);
 	$col->renderer = "function(v,p,r){return r.data.InstallmentAmount - r.data.wage;}";
 	$col->width = 80;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "Installment.PureRemainSummaryRender";
 	
 	
 	$col = $dg->addColumn("خالص کارمزد", "PureWage", GridColumn::ColumnType_money);
@@ -328,6 +330,12 @@ function Installment()
 			}
 		});
 	}
+}
+
+Installment.PureRemainSummaryRender = function(v,summaryData){
+	e1 = InstallmentObject.grid.columns.findObject('dataIndex','wage').id;
+	e2 = InstallmentObject.grid.columns.findObject('dataIndex','InstallmentAmount').id;
+	return Ext.util.Format.Money(summaryData[e2] - summaryData[e1] );
 }
 
 Installment.prototype.SelectLoan = function(record){
