@@ -15,15 +15,40 @@ ini_set('memory_limit','2000M');
 ob_start();
 set_time_limit(0);
 
+//FundIncomeOfAgent();
 
-//FundIncomeOfAgent();die();
+echo "---------------------";
+PdoDataAccess::runquery("
+	
+	insert into ACC_DocItems(DocID,CostID,TafsiliType,TafsiliID,TafsiliType2,TafsiliID2,
+			TafsiliType3,TafsiliID3,
+			DebtorAmount,CreditorAmount,locked,
+			param1,param2,param3,
+			SourceID1,SourceID2,SourceID3,SourceID4)
+		select 67130,CostID,TafsiliType,TafsiliID,TafsiliType2,TafsiliID2,
+			TafsiliType3,TafsiliID3,
+			
+			if( sum(DebtorAmount-CreditorAmount)>0, sum(DebtorAmount-CreditorAmount), 0 ),
+            if( sum(CreditorAmount-DebtorAmount)>0, sum(CreditorAmount-DebtorAmount), 0 ),
+			1,
+			param1,param2,param3,
+			SourceID1,SourceID2,SourceID3,SourceID4
+		from ACC_DocItems i oin ACC_docs using(DocID)
+		where DocDate < '2019-03-21'
+		group by CostID,TafsiliID,TafsiliID2,TafsiliID3,param1,param2,param3
+		having sum(CreditorAmount-DebtorAmount)<>0"); 
+echo PdoDataAccess::AffectedRows();
+die();
+
+
 
 global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa where regDoc=0 "
-		. " order by DocID ");
+$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa 
+		where regDoc=0 
+		order by DocID ");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
 
@@ -38,7 +63,6 @@ while($requset=$reqs->fetch())
 	$reqObj = new LON_requests($requset["RequestID"]);
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
-	//Allocate($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	/*$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
@@ -52,22 +76,21 @@ while($requset=$reqs->fetch())
 		$pdo->rollBack();
 		continue;
 	}
-	*/
-	/*$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	
+	$result = BackPay($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
 	}*/
-	/*
 	$result = DailyIncome($reqObj, $partObj, $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
-	}*/
+	}
 	$result = DailyWage($reqObj, $partObj, $pdo);
 	if(!$result)
 	{
@@ -558,6 +581,7 @@ function DailyWage($reqObj , $partObj, $pdo){
 		if($event1 > 0)
 		{
 			$EventObj1 = new ExecuteEvent($event1);
+			$EventObj1->DocDate = $GToDate;
 			$EventObj1->ComputedItems[ 82 ] = round(($partObj->FundWage/$partObj->CustomerWage)*$totalLate);
 			$EventObj1->ComputedItems[ 83 ] = $totalLate - round(($partObj->FundWage/$partObj->CustomerWage)*$totalLate);
 			if($EventObj1->ComputedItems[ 82 ] > 0 || $EventObj1->ComputedItems[ 83 ] > 0)
@@ -583,6 +607,7 @@ function DailyWage($reqObj , $partObj, $pdo){
 		if($event2 > 0)
 		{
 			$EventObj2 = new ExecuteEvent($event2);
+			$EventObj2->DocDate = $GToDate;
 			$EventObj2->ComputedItems[ 84 ] = $partObj->ForfeitPercent == 0? 0 :
 					round(($partObj->FundForfeitPercent/$partObj->ForfeitPercent)*$totalPenalty);
 			$EventObj2->ComputedItems[ 85 ] = $partObj->ForfeitPercent == 0? 0 : 
