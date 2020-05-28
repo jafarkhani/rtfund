@@ -1291,10 +1291,7 @@ class LON_requests extends PdoDataAccess{
 				$where .= " AND EventType2='hemayati' ";
 			}
 			else{
-				if($ReqObj->FundGuarantee == "YES")
-					$where .= " AND ( EventType2='commit' OR EventType2='agent')";
-				else
-					$where .= " AND ( EventType2='noncommit' OR EventType2='agent')";
+				$where .= " AND EventType2='agent'";
 			}
 		}
 		if($EventType3 != "")
@@ -1302,8 +1299,10 @@ class LON_requests extends PdoDataAccess{
 		//----------------------------------------------------
 		$dt = PdoDataAccess::runquery("select * from COM_events where 1=1 " . $where);
 		
-		if($_SESSION["USER"]["UserName"] == "admin")PdoDataAccess::GetLatestQueryString ();
-		
+		/*
+		if($_SESSION["USER"]["UserName"] == "admin")
+			echo PdoDataAccess::GetLatestQueryString ();
+		*/
 		if(count($dt) == 0)
 		{
 			return 0;
@@ -1559,7 +1558,7 @@ class LON_Computes extends PdoDataAccess{
 			$ComputeDate  = $installmentArray[$i]["InstallmentDate"];
 			$totalWage += $installmentArray[$i]["PureWage"];
 		}
-		//------------------------------------------------	
+		//----------------- rounding up to 1000 --------------------	
 		$total = 0;
 		$difference = 0;
 		for($i=0; $i<count($installmentArray);$i++)
@@ -2584,12 +2583,12 @@ class LON_installments extends PdoDataAccess{
 				$obj2->InstallmentAmount = round($partObj->PartAmount/$partObj->InstallmentCount) + 
 						round($totalWage/$partObj->InstallmentCount);
 
-				/*if($totalWage == 0 && $partObj->CustomerWage > 0)
+				if($totalWage == 0 && $partObj->CustomerWage > 0)
 				{
 					$ConstantWage = $partObj->PartAmount*$partObj->CustomerWage/100;
 					$obj2->wage = round($ConstantWage/$partObj->InstallmentCount);
 					$obj2->PureWage = $obj2->wage;
-				}		*/		
+				}				
 				
 				if(!$obj2->AddInstallment($pdo))
 				{
