@@ -125,7 +125,7 @@ function GetData(&$rpg){
 				from ACC_DocItems di join ACC_docs using(DocID)
 				where DocType=1 " .
 				(!empty($_POST["CycleID"]) ? " AND CycleID=:c" : "") . 
-				(!empty($_POST["BranchID"]) ? " AND BranchID=:b" : "") . "	
+				(!empty($_POST["BranchID"]) ? " AND BranchID=:b" : "") . "	 
 				group by di.CostID,di.TafsiliID,di.TafsiliID2,di.TafsiliID3,di.param1,di.param2,di.param3
 			)tdt on(d.CycleID=tdt.CycleID AND di.CostID=tdt.CostID 
 					AND di.TafsiliID=tdt.TafsiliID 
@@ -435,7 +435,7 @@ function GetData(&$rpg){
 			from ( " .
 			$query . "
 			where 1=1 " . $where . " 
-			group by di.CostID,di.TafsiliID,di.TafsiliID2)tbl			
+			group by di.CostID,di.TafsiliID,di.TafsiliID2,di.TafsiliID3,di.param1,di.param2,di.param3)tbl			
 	";
 	$query .= $group != "" ? " group by " . $group : "";
 	

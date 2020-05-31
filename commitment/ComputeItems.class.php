@@ -542,6 +542,9 @@ class EventComputeItems {
 			$EventRow["EventType"] == "LoanBackPayCheque" ||
 			$EventRow["EventType"] == "LoanContract" ||
 			$EventRow["EventType"] == "LoanDaily" ||
+			$EventRow["EventType"] == "LoanDailyIncome" ||
+			$EventRow["EventType"] == "LoanDailyLate" ||	
+			$EventRow["EventType"] == "LoanDailyPenalty" ||	
 			$EventRow["EventType"] == "IncomeCheque" ||
 			$EventRow["EventType"] == "LoanEnd" )
 		{

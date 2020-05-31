@@ -1,5 +1,28 @@
 <?php
+/*
+insert into aaa(c1,ddate) select r.RequestID,ActDate from LON_requests r join LON_ReqFlow using(RequestID,StatusID) where r.StatusID=95 and ActDate>='2019-03-21'
+insert into aaa(c1,ddate) select r.RequestID,EndDate from LON_requests r where r.IsEnded='YES' and EndDate>='2019-03-21'
+insert into aaa(c1) select r.RequestID from LON_requests r where r.StatusID=70
+ * 
+select * from aaa join sajakrrt_rtfund.LON_ReqParts p1 on(p1.IsHistory='NO' AND c1=p1.RequestID) 
+ join sajakrrt_oldcomputes.LON_ReqParts p2 on(p2.IsHistory='NO' AND c1=p2.RequestID)
+ where p1.partID<>p2.PartID
+ * 
 
+select * from aaa join sajakrrt_rtfund.LON_ReqParts p1 on(p1.IsHistory='NO' AND c1=p1.RequestID) 
+ join sajakrrt_oldcomputes.LON_ReqParts p2 on(p2.IsHistory='NO' AND c1=p2.RequestID)
+ where p1.partID=p2.PartID and p1.partAmount<>p2.partAmount
+ * 
+CustomerWage
+FundWage
+AgentReturn
+ComputeMode
+DelayDays
+DelayMonths 
+ * 
+ * select distinct RequestID from LON_installments join aaa on(c1=RequestID) join LON_requests using(RequestID) 
+where ComputeType='USER' and ReqPersonID=1003
+ */
 /*
 select p.RequestID,p.PayID,g2j(p.payDate),p.PayAmount,
                 p.PayAmount - ifnull(p.OldFundDelayAmount,0) - ifnull(p.OldAgentDelayAmount,0)
@@ -48,19 +71,6 @@ join LON_ReqParts p on(IsHistory='NO' AND b.RequestID=p.RequestID) set DocDate=i
 
 
 /*
-select aa.*, p.RequestID,p.WageReturn,p.AgentReturn,p.PartAmount, statusID ,totalPay
-                        
-                        from aa
-                        join (select requestID,sum(PayAmount - ifnull(OldFundDelayAmount,0) 
-                        - ifnull(OldAgentDelayAmount,0)
-                        - ifnull(OldFundWage,0)
-                        - ifnull(OldAgentWage,0)) totalPay from LON_payments pa group by pa.requestID)t on(t.RequestID=DocID)
-                        join LON_ReqParts p on(p.IsHistory='NO' and p.RequestID=DocID)
-                        join LON_requests r on(DocID=r.RequestID)
-                        where DocID=708
-                        */
-
-/*
 CREATE   VIEW LON_PayDocs AS
 
 select di.SourceID3 AS PayID,d.DocID AS DocID,d.LocalNo AS LocalNo,d.StatusID AS StatusID
@@ -99,3 +109,35 @@ group by di.SourceID1,di.SourceID3,d.DocID; */
 where StatusID=70 and ReqPersonID<>1003
 group by RequestID
 having w<>pw*/
+
+/*
+CREATE  VIEW  ParamItems AS 
+
+select 1 AS paramID,BankID AS ItemID,BankDesc AS ParamValue 
+from ACC_banks 
+
+union all 
+
+select 2 AS paramID,BranchID AS ItemID,BranchName AS ParamValue 
+from BSC_branches 
+
+union all 
+
+select 3 AS paramID,RequestID AS ItemID,RequestID AS ParamValue 
+from LON_requests 
+
+union all 
+
+select 101 AS paramID,TafsiliID AS ItemID,TafsiliDesc AS ParamValue 
+from ACC_tafsilis where (TafsiliType = 150) 
+
+union all 
+
+select 104 AS paramID,LoanID AS ItemID,LoanDesc AS ParamValue 
+from LON_loans 
+
+union all 
+
+select ParamID AS paramID,ItemID AS ItemID,ParamValue AS ParamValue 
+from ACC_CostCodeParamItems
+ */

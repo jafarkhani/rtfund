@@ -18,9 +18,13 @@ function TotalRemainRender(&$row, $value, $x, $prevRow){
 
 $page_rpg = new ReportGenerator("mainForm","AccReport_flowObj");
 $page_rpg->addColumn("شماره سند", "LocalNo");
+$page_rpg->addColumn("کد حساب", "CostCode");
 $page_rpg->addColumn("شرح حساب", "CostDesc");
 $page_rpg->addColumn("تفصیلی", "TafsiliDesc");
 $page_rpg->addColumn("تفصیلی2", "TafsiliDesc2");
+$page_rpg->addColumn("آیتم1", "ParamValue1");
+$page_rpg->addColumn("آیتم2", "ParamValue2");
+$page_rpg->addColumn("آیتم3", "ParamValue3");
 $col = $page_rpg->addColumn("تاریخ سند", "DocDate");
 $col->type = "date";
 $page_rpg->addColumn("شرح", "detail");	
@@ -194,13 +198,16 @@ function GetData(){
 	
 	$query = "select d.*,di.DebtorAmount,CreditorAmount,
 		concat_ws(' - ',di.details,d.description) detail,
-		concat_ws(' - ' , b1.BlockCode,b2.BlockCode,b3.BlockCode,b4.BlockCode) CostCode,
+		cc.CostCode,
 		concat_ws(' - ' , b1.BlockDesc,b2.BlockDesc,b3.BlockDesc,b4.BlockDesc) CostDesc,
 		b1.essence,
 		b.InfoDesc TafsiliTypeDesc,
 		t.TafsiliDesc TafsiliDesc,
 		t2.TafsiliDesc TafsiliDesc2,
-		bi2.InfoDesc TafsiliTypeDesc2".
+		bi2.InfoDesc TafsiliTypeDesc2,
+		if(p1.ParamType='combo',pi1.ParamValue,di.param1) ParamValue1,
+		if(p2.ParamType='combo',pi2.ParamValue,di.param2) ParamValue2,
+		if(p3.ParamType='combo',pi3.ParamValue,di.param3) ParamValue3".
 		($userFields != "" ? "," . $userFields : "")."
 		
 		from ACC_DocItems di join ACC_docs d using(DocID)
@@ -213,6 +220,14 @@ function GetData(){
 			left join ACC_tafsilis t using(TafsiliID)
 			left join BaseInfo bi2 on(bi2.TypeID=2 AND di.TafsiliType2=bi2.InfoID)
 			left join ACC_tafsilis t2 on(di.TafsiliID2=t2.TafsiliID)
+			
+			left join ACC_CostCodeParams p1 on(p1.ParamID=cc.param1)
+			left join ACC_CostCodeParams p2 on(p2.ParamID=cc.param2)
+			left join ACC_CostCodeParams p3 on(p3.ParamID=cc.param3)
+			left join ParamItems pi1 on(pi1.ParamID=cc.param1 AND p1.ParamType='combo' AND di.param1=pi1.ItemID)
+			left join ParamItems pi2 on(pi2.ParamID=cc.param2 AND p2.ParamType='combo' AND di.param2=pi2.ItemID)
+			left join ParamItems pi3 on(pi3.ParamID=cc.param3 AND p3.ParamType='combo' AND di.param3=pi3.ItemID)
+			
 		where 1=1 ";
 	
 	$where = "";
@@ -285,10 +300,13 @@ function ListData($IsDashboard = false){
 	
 	$col = $rpg->addColumn("شماره سند", "LocalNo", "PrintDocRender");
 	$col->ExcelRender = false;
-	//$rpg->addColumn("کد حساب", "CostCode");
+	$rpg->addColumn("کد حساب", "CostCode");
 	$rpg->addColumn("شرح حساب", "CostDesc");
 	$rpg->addColumn("تفصیلی", "TafsiliDesc");
 	$rpg->addColumn("تفصیلی2", "TafsiliDesc2");
+	$rpg->addColumn("آیتم1", "ParamValue1");
+	$rpg->addColumn("آیتم2", "ParamValue2");
+	$rpg->addColumn("آیتم3", "ParamValue3");
 	$rpg->addColumn("تاریخ سند", "DocDate","ReportDateRender");
 	$rpg->addColumn("شرح", "detail");	
 	

@@ -11,6 +11,27 @@ require_once '../request/request.data.php';
 
 ini_set("display_errors", "On");
 
+if(isset($_REQUEST["v"]))
+{
+	switch($_REQUEST["v"])
+	{
+		case "admin":
+			sys_config::$db_server['database'] = "sajakrrt_oldcomputes";
+			PdoDataAccess::$DB = null;
+			break;
+		
+		case "oldsaja":
+			sys_config::$db_server['database'] = "sajakrrt_rtfund2";
+			PdoDataAccess::$DB = null;
+			break;
+		
+		case "saja":
+			sys_config::$db_server['database'] = "sajakrrt_rtfund";
+			PdoDataAccess::$DB = null;
+			break;
+	}
+}
+
 if(isset($_REQUEST["show"]))
 {
 	if(isset($_REQUEST["rtfund2"]))
@@ -175,7 +196,6 @@ if(isset($_REQUEST["show"]))
 						<td><b><?= $partObj->PayInterval . ($partObj->IntervalType == "DAY" ? "روز" : "ماه") ?>
 							</b></td>
 					</tr>
-					<? if(session::IsFramework()) {?>
 					<tr>
 						<td> کارمزد وام:  </td>
 						<td><b><?= $partObj->CustomerWage ?> %</b></td>
@@ -185,7 +205,6 @@ if(isset($_REQUEST["show"]))
 						<td><b><?= $partObj->ForfeitPercent ?> %
 							</b></td>
 					</tr>
-					<?}?>
 				</table>
 			</td>
 			<td>
@@ -206,7 +225,6 @@ if(isset($_REQUEST["show"]))
 						<td></td>
 						<td><b></b></td>
 					</tr>
-					<? if(session::IsFramework()) {?>
 					<tr>
 						<td>کارمزد تاخیر :</td>
 						<td><b><?= $partObj->LatePercent ?> %
@@ -217,7 +235,6 @@ if(isset($_REQUEST["show"]))
 						<td><b><?= $partObj->ForgivePercent ?> %
 							</b></td>
 					</tr>
-					<?}?>
 				</table>
 			</td>
 			<td>

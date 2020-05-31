@@ -102,8 +102,8 @@ if($editable && $accessObj->EditFlag)
 	$dg->addButton("", "محاسبه قسط آخر", "process", 
 			"function(){InstallmentObject.ComputeLatestInstallment();}");
 	
-	$dg->addButton("", "محاسبه اقساط بر اساس سیستم قدیم", "undo", 
-			"function(){InstallmentObject.ComputeOldInstallments();}");
+	//$dg->addButton("", "محاسبه اقساط بر اساس سیستم قدیم", "undo", 
+	//		"function(){InstallmentObject.ComputeOldInstallments();}");
 	
 	//$dg->enableRowEdit = true;
 	//$dg->rowEditOkHandler = "function(store,record){return InstallmentObject.SaveInstallment(store,record);}";
@@ -822,56 +822,6 @@ Installment.prototype.AddInstallments = function(){
 				}
 			}
 		};
-		
-		/*this.AddWin = new Ext.window.Window({
-			width : 510,
-			height : 460,
-			title : "ثبت دستی اقساط",
-			items : [
-				this.formPanel = new Ext.form.Panel({
-					defaults: {border: false},
-					height : 400,
-					width : 500,
-					frame: true,
-					bodyPadding: '5 5 0',
-					layout: "card",
-					activeItem: 0,
-					items : [this.card0,this.card1],
-					bbar: [{
-						itemId: 'card-prev',
-						text: '&laquo; قبلی',
-						handler: function() {
-							var itemId = InstallmentObject.formPanel.getLayout().getActiveItem().itemId;
-							var i = itemId.split('card-')[1];
-							var pre = i*1 - 1;
-							InstallmentObject.formPanel.getLayout().setActiveItem(pre);
-							InstallmentObject.formPanel.down('[itemId=card-prev]').setDisabled(pre === 0);
-							InstallmentObject.formPanel.down('[itemId=card-next]').setDisabled(pre === 1);
-						},
-						disabled: true
-					},'->', {
-						itemId: 'card-next',
-						text: 'بعدی &raquo;',
-						handler: function() {
-							var itemId = InstallmentObject.formPanel.getLayout().getActiveItem().itemId;
-							var i = itemId.split('card-')[1];
-							var next = parseInt(i, 10) + 1;
-							InstallmentObject.formPanel.getLayout().setActiveItem(next);
-							InstallmentObject.formPanel.down('[itemId=card-prev]').setDisabled(next === 0);
-							InstallmentObject.formPanel.down('[itemId=card-next]').setDisabled(next === 1);
-						}
-					}]
-				})
-			],
-			closeAction : "hide",
-			buttons : [{
-				text : "بازگشت",				
-				iconCls : "undo",
-				handler : function(){
-					InstallmentObject.AddWin.hide();
-				}				
-			}]
-		});*/
 		
 		this.AddWin = new Ext.window.Window({
 			width : 510,

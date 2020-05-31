@@ -1429,18 +1429,18 @@ class LON_Computes extends PdoDataAccess{
 		return $yearDays;
 	}
 
-	static function ComputeInstallment($partObj, $installmentArray, $ComputeDate = "", $ComputeWage = 'YES'){
+	static function ComputeInstallment($partObj, $installmentArray, $ComputeWage = 'YES', $roundUp = true){
 
 		/*@var $partObj LON_ReqParts */
 		
-		if(!empty($ComputeDate))
+		/*if(!empty($ComputeDate))
 		{
 			$dt = LON_requests::GetPureAmount($partObj->RequestID, null, null, 
 					DateModules::shamsi_to_miladi($ComputeDate, "-"));
 			$amount = $dt["PureAmount"];
 		}
 		else
-		{
+		{*/
 			$LastPay = LON_payments::GetLastPayDate($partObj->RequestID);
 			$ComputeDate = DateModules::miladi_to_shamsi($LastPay);
 			$amount = LON_requests::GetPurePayedAmount($partObj->RequestID, $partObj, true);
@@ -1449,7 +1449,7 @@ class LON_Computes extends PdoDataAccess{
 				return false;
 			}
 			$TotalPureAmount = $amount;
-		}
+		/*}*/
 		//------------- compute percents of each installment amount ----------------
 		$zarib = 1;
 		$sum = 0;
@@ -1542,6 +1542,7 @@ class LON_Computes extends PdoDataAccess{
 		//................................
 		$remainPure = $TotalPayedAmount;
 		$totalWage = 0;
+		$totalInstallmentAmounts = 0;
 		for($i=0; $i < count($installmentArray); $i++)
 		{
 			$days = DateModules::JDateMinusJDate($installmentArray[$i]["InstallmentDate"],$ComputeDate);
@@ -1557,26 +1558,28 @@ class LON_Computes extends PdoDataAccess{
 			$remainPure -= $installmentArray[$i]["InstallmentAmount"] - $installmentArray[$i]["PureWage"];
 			$ComputeDate  = $installmentArray[$i]["InstallmentDate"];
 			$totalWage += $installmentArray[$i]["PureWage"];
+			$totalInstallmentAmounts += $installmentArray[$i]["InstallmentAmount"];
 		}
 		//----------------- rounding up to 1000 --------------------	
-		$total = 0;
-		$difference = 0;
-		for($i=0; $i<count($installmentArray);$i++)
+		if($roundUp)
 		{
-			if($i < count($installmentArray)-1)
+			$difference = 0;
+			for($i=0; $i<count($installmentArray);$i++)
 			{
-				$a = $installmentArray[$i]["InstallmentAmount"];
-				$installmentArray[$i]["InstallmentAmount"] = LON_Computes::roundUp($a,-3);
-				$difference += $installmentArray[$i]["InstallmentAmount"] - $a;
+				if($i < count($installmentArray)-1)
+				{
+					$a = $installmentArray[$i]["InstallmentAmount"];
+					$installmentArray[$i]["InstallmentAmount"] = LON_Computes::roundUp($a,-3);
+					$difference += $installmentArray[$i]["InstallmentAmount"] - $a;
+				}
+				else
+				{
+					$installmentArray[$i]["InstallmentAmount"] -= $difference;
+				}
 			}
-			else
-			{
-				$installmentArray[$i]["InstallmentAmount"] -= $difference;
-			}
-			$total += $installmentArray[$i]["InstallmentAmount"];
 		}
 		//--------------------------------------------------
-		$zarib = $totalWage/$total;
+		$zarib = $totalWage/$totalInstallmentAmounts;
 		$sumWages = 0;
 		for($i=0; $i<count($installmentArray);$i++)
 		{
@@ -2647,7 +2650,7 @@ class LON_installments extends PdoDataAccess{
 			PdoDataAccess::runquery("delete from LON_installments "
 				. "where RequestID=? AND history='NO' AND IsDelayed='NO'", array($RequestID));
 
-			$installmentArray = LON_Computes::ComputeInstallment($partObj, $RawInstallmentArray, null, $ComputeWage);
+			$installmentArray = LON_Computes::ComputeInstallment($partObj, $RawInstallmentArray, $ComputeWage);
 			if(!$installmentArray)
 			{
 				if($pdo2 == null)
@@ -2902,6 +2905,8 @@ class LON_BackPays extends PdoDataAccess{
 	}
 	
 	static function EventTrigger_extraPay($SourceObjects, $eventObj, $pdo){
+		
+		return true;
 		
 		$ReqObj = new LON_requests((int)$SourceObjects[0]);
 		$BackPayObj = new LON_BackPays((int)$SourceObjects[2]);

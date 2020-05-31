@@ -2015,9 +2015,6 @@ function emptyDataTable(){
 function ComputeManualInstallments(){
 	
 	$RequestID = $_POST["RequestID"];
-	$ComputeDate = $_POST["ComputeDate"];
-	$ComputeWage = $_POST["ComputeWage"];
-	$WithWage = $_POST["WithWage"] == "YES" ? true : false;
 	
 	$items = json_decode(stripcslashes($_REQUEST["records"]));
 	$installmentArray = array();
