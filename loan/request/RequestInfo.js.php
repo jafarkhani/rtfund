@@ -538,6 +538,12 @@ RequestInfo.prototype.BuildForms = function(){
 			labelWidth : 130
 		},
 		items : [{
+			xtype : "displayfield",
+			fieldLabel : "شماره وام",
+			value : this.RequestID,
+			width : 400,
+			fieldCls : "blueText"
+		},{
 			xtype : "combo",
 			hidden : true,
 			store : new Ext.data.SimpleStore({
@@ -580,7 +586,7 @@ RequestInfo.prototype.BuildForms = function(){
 			valueField : "SubID",
 			name : "SubAgentID",
 			itemId : "cmp_subAgent"
-		},{
+		},{ 
 			xtype : "combo",
 			store : new Ext.data.SimpleStore({
 				proxy: {

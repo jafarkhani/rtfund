@@ -54,7 +54,7 @@ class LON_requests extends PdoDataAccess{
 	public $_SubAgentDesc;
 	public $_LoanGroupID;
 	
-	function __construct($RequestID = "") {
+	function __construct($RequestID = "", $pdo = null) {
 		
 		$this->DT_DomainID = DataMember::CreateDMA(DataMember::DT_INT, 0);
 
@@ -79,7 +79,7 @@ class LON_requests extends PdoDataAccess{
 					left join BSC_persons p2 on(p2.PersonID=ReqPersonID)
 					left join BSC_branches b using(BranchID)
 					left join BSC_SubAgents sa on(SubID=SubAgentID)
-				where RequestID=?", array($RequestID));
+				where RequestID=?", array($RequestID), $pdo);
 	}
 	
 	static function SelectAll($where = "", $param = array()){
@@ -2280,6 +2280,248 @@ class LON_Computes extends PdoDataAccess{
 	}
 }
 
+class LON_difference extends PdoDataAccess{
+
+	public $DocObj;
+	public $ReqObj;
+	public $PartObj;
+	public $pdo;
+	
+	/**
+	 * رویداد عقد قرارداد
+	 */
+	function Contract(){
+
+		$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanContract");
+		if($EventID == 0)
+		{
+			ExceptionHandler::PushException("رویداد عقد قرارداد یافت نشد");
+			return false;
+		}
+
+		$eventobj = new ExecuteEvent($EventID);
+		$eventobj->DocObj = $this->DocObj;
+		$eventobj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
+		$result = $eventobj->RegisterEventDoc($this->pdo);
+		if($result)
+			$this->DocObj = $eventobj->DocObj;
+		if(ExceptionHandler::GetExceptionCount() > 0)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	function Payments(){
+		
+		$result = true;
+		$pays = PdoDataAccess::runquery("select * from LON_payments where RequestID=?", 
+				array($this->ReqObj->RequestID));
+		$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, EVENTTYPE_LoanPayment);
+		
+		foreach($pays as $pay)
+		{
+			$eventobj = new ExecuteEvent($EventID);
+			$eventobj->AfterTriggerFunction = "";
+			$eventobj->TriggerFunction = "";
+			$eventobj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID, $pay["PayID"]);
+			$eventobj->DocObj = $this->DocObj;
+			$result = $eventobj->RegisterEventDoc($this->pdo);
+		}
+		if(ExceptionHandler::GetExceptionCount() > 0)
+			return false;
+		return true;
+	}
+	
+	function BackPay(){
+		$result = true;
+		$backpays = PdoDataAccess::runquery(
+				"select * from LON_BackPays
+					left join ACC_IncomeCheques i using(IncomeChequeID) 
+					where RequestID=? AND PayDate<".PDONOW."
+				AND if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)
+				order by PayDate", array($this->ReqObj->RequestID));
+
+		foreach($backpays as $bpay)
+		{
+			if($bpay["IncomeChequeID"]*1 > 0)
+				$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanBackPayCheque");
+			else
+				$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanBackPay");
+			
+			$eventobj = new ExecuteEvent($EventID);
+			$eventobj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID, $bpay["BackPayID"]);
+			$eventobj->DocObj = $this->DocObj;
+			$result = $eventobj->RegisterEventDoc($this->pdo);
+			if($result)
+				$this->DocObj = $eventobj->DocObj;
+		}
+		if(ExceptionHandler::GetExceptionCount() > 0)
+			return false;
+		return true;
+	}
+
+	function DailyDocs(){
+
+		$eventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyIncome");
+		
+		$GToDate = DateModules::Now();
+		
+		$EventObj = new ExecuteEvent($eventID);
+		$EventObj->DocObj = $this->DocObj;
+		$EventObj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
+		
+		$EventObj->ComputedItems[ "80" ] = 0;
+		$EventObj->ComputedItems[ "81" ] = 0;
+		unset($EventObj->EventFunction);
+		$PureArr = LON_requests::ComputePures($this->ReqObj->RequestID);
+		$ComputeDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
+		$days = 0;
+		for($i=1; $i < count($PureArr);$i++)
+		{
+			if($ComputeDate >= $GToDate)
+				break;
+			$days = DateModules::GDateMinusGDate(min($GToDate, $PureArr[$i]["InstallmentDate"]),$ComputeDate);
+			$totalDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$ComputeDate);
+			$wage = round(($PureArr[$i]["wage"]/$totalDays)*$days);
+			$FundWage = round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$wage);
+			$AgentWage = $wage - $FundWage;
+			$EventObj->ComputedItems[ "80" ] += $FundWage;
+			$EventObj->ComputedItems[ "81" ] += $AgentWage;
+			$ComputeDate = min($GToDate, $PureArr[$i]["InstallmentDate"]);
+		}
+		
+		$EventObj->RegisterEventDoc($this->pdo);
+		if(ExceptionHandler::GetExceptionCount() > 0)
+			return false;
+		
+		//....................................................
+		
+		$computeArr = LON_Computes::ComputePayments($this->ReqObj->RequestID);
+		$totalLate = 0;
+		$totalPenalty = 0;
+		foreach($computeArr as $row)
+		{
+			if($row["type"] == "installment" && $row["InstallmentID"]*1 > 0)
+			{
+				$totalLate += $row["totallate"]*1;
+				$totalPenalty += $row["totalpnlt"]*1;
+			}
+		}
+		
+		
+		$LateEvent = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyLate");
+		$PenaltyEvent = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyPenalty");
+		
+		$EventObj1 = new ExecuteEvent($LateEvent);
+		$EventObj->DocObj = $this->DocObj;
+		$EventObj1->ComputedItems[ 82 ] = round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$totalLate);
+		$EventObj1->ComputedItems[ 83 ] = $totalLate - round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$totalLate);
+		if($EventObj1->ComputedItems[ 82 ] > 0 || $EventObj1->ComputedItems[ 83 ] > 0)
+		{
+			$EventObj1->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
+			$result = $EventObj1->RegisterEventDoc($this->pdo);
+			if(ExceptionHandler::GetExceptionCount() > 0)
+				return false;
+		}
+		
+		
+		$EventObj2 = new ExecuteEvent($PenaltyEvent);
+		$EventObj->DocObj = $this->DocObj;
+		$EventObj2->ComputedItems[ 84 ] = $this->PartObj->ForfeitPercent == 0? 0 :
+				round(($this->PartObj->FundForfeitPercent/$this->PartObj->ForfeitPercent)*$totalPenalty);
+		$EventObj2->ComputedItems[ 85 ] = $this->PartObj->ForfeitPercent == 0? 0 : 
+				$totalPenalty - round(($this->PartObj->FundForfeitPercent/$this->PartObj->ForfeitPercent)*$totalPenalty);
+
+		if($EventObj2->ComputedItems[ 84 ] > 0 || $EventObj2->ComputedItems[ 85 ] > 0)
+		{
+			$EventObj2->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
+			$result = $EventObj2->RegisterEventDoc($this->pdo);
+			if(ExceptionHandler::GetExceptionCount() > 0)
+				return false;
+		}
+
+		return true;
+   }
+   
+	static function RegisterDiffernce($RequestID, $pdo, $DocID=0){
+
+		if(ACC_cycles::IsClosed())
+		{
+			echo Response::createObjectiveResponse(false, "دوره مالی جاری بسته شده است و قادر به اعمال تغییرات نمی باشید");
+			die();	
+		}
+
+		ini_set('max_execution_time', 30000000);
+		ini_set('memory_limit','4000M');
+
+		$ReqObj = new LON_requests($RequestID, $pdo);
+		$NewPartObj = LON_ReqParts::GetValidPartObj($RequestID, $pdo);
+
+		if($DocID > 0)
+		{
+			$obj = new ACC_docs($DocID);
+		}
+		else
+		{
+			$obj = new ACC_docs();
+			$obj->RegDate = PDONOW;
+			$obj->regPersonID = $_SESSION['USER']["PersonID"];
+			$obj->DocDate = PDONOW;
+			$obj->CycleID = $_SESSION["accounting"]["CycleID"];
+			$obj->BranchID = $ReqObj->BranchID;
+			$obj->EventID = EVENT_LOAN_CHANGE; 
+			$obj->description = "سند تغییر شرایط وام شماره " . $ReqObj->RequestID . 
+					" به نام " . $ReqObj->_LoanPersonFullname;
+			if(!$obj->Add($pdo))
+			{
+				ExceptionHandler::PushException("خطا در ایجاد سند");
+				return false;
+			}
+		}
+
+		$process = new LON_difference();
+		$process->ReqObj = $ReqObj;
+		$process->PartObj = $NewPartObj;
+		$process->pdo = $pdo;
+
+		$process->Contract();
+		$process->Payments();
+		$process->BackPay();
+		$process->DailyDocs();
+
+		PdoDataAccess::runquery("update ACC_DocItems d join (select d.ItemID,DebtorAmount,CreditorAmount from ACC_DocItems d where DocID=?)t using(ItemID)
+			set d.DebtorAmount = t.CreditorAmount,d.CreditorAmount = t.DebtorAmount ", array($process->DocObj->DocID), $process->pdo);
+
+		PdoDataAccess::runquery("insert into ACC_DocItems(DocID, CostID, TafsiliID, TafsiliID2, TafsiliID3, 
+			DebtorAmount, CreditorAmount, details, locked, SourceID1, SourceID2, SourceID3, SourceID4, 
+			param1, param2, param3)
+
+			select :d, di.CostID, di.TafsiliID, di.TafsiliID2, di.TafsiliID3, 
+				if(sum(DebtorAmount-CreditorAmount)<0, abs(sum(DebtorAmount-CreditorAmount)), 0) DebtorAmount,
+				if(sum(DebtorAmount-CreditorAmount)>0, sum(DebtorAmount-CreditorAmount), 0) CreditorAmount,
+				di.details, di.locked, di.SourceID1, di.SourceID2, di.SourceID3, di.SourceID4, 
+				di.param1, di.param2, di.param3
+			from ACC_DocItems di join ACC_docs d using(DocID) join ACC_CostCodes cc using(CostID)
+			where case when cc.param1=".CostCode_param_loan." then di.param1=:reqId
+						when cc.param2=".CostCode_param_loan." then di.param2=:reqId
+						when cc.param3=".CostCode_param_loan." then di.param3=:reqId
+					end
+			group by CostID, TafsiliID, TafsiliID2, TafsiliID3
+			having DebtorAmount>0 or CreditorAmount>0
+		", array(
+			":cycle" => $_SESSION["accounting"]["CycleID"],
+			":d" => $obj->DocID,
+			":reqId" => $process->ReqObj->RequestID
+		), $process->pdo);
+
+		ACC_docs::Remove($process->DocObj->DocID, $pdo);
+			
+		return $obj;
+	}
+
+}
+
 class LON_ReqParts extends PdoDataAccess{
 	
 	public $PartID;
@@ -3128,12 +3370,20 @@ class LON_payments extends OperationClass{
 	}
 	
 	static function UpdateRealPayed($SourceObjects, $eventObj, $pdo){
-		return true;
+		
 		$ReqObj = new LON_payments((int)$SourceObjects[2]);
 		$ReqObj->RealPayedDate = PDONOW;
 		$ReqObj->Edit();
 		
-		LON_installments::ComputeInstallments($ReqObj->RequestID, $pdo);
+		return true;
+	}
+	
+	static function UpdateComputes($SourceObjects, $eventObj, $pdo){
+		
+		$ReqObj = new LON_payments((int)$SourceObjects[2]);
+		
+		LON_installments::ComputeInstallments($ReqObj->RequestID, $pdo, true);
+		LON_difference::RegisterDiffernce($ReqObj->RequestID,$pdo);
 		
 		return true;
 	}

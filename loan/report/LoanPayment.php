@@ -21,8 +21,8 @@ if(isset($_REQUEST["v"]))
 			break;
 		
 		case "oldsaja":
-			sys_config::$db_server['database'] = "sajakrrt_rtfund2";
-			PdoDataAccess::$DB = null;
+			sys_config::$db_server['database'] = "sajakrrt_rtfund3";
+			PdoDataAccess::$DB = null; 
 			break;
 		
 		case "saja":

@@ -101,7 +101,7 @@ function selectIncomeCheques() {
 			where $where
 			group by i.IncomeChequeID
 
-		union all
+		/*union all
 
 			select i.*,group_concat(concat_ws(' ','[ وام ',r.RequestID,']',p.CompanyName,p.fname,p.lname) 
 					SEPARATOR '<br>') as fullname,
@@ -113,7 +113,7 @@ function selectIncomeCheques() {
 			join LON_loans l using(LoanID)
 			join BSC_branches br on(r.BranchID=br.BranchID)
 			where $where
-			group by i.IncomeChequeID
+			group by i.IncomeChequeID*/
 
 		union all
 

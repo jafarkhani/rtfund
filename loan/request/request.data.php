@@ -519,10 +519,8 @@ function SavePart(){
 				$partobj->EditPart($pdo);
 			}
 		}
-
-		$NewPartID = LON_ReqParts::GetValidPartObj($obj->RequestID);
-				
-		$DiffDoc = RegisterDifferncePartsDoc($obj->RequestID, $NewPartID, $pdo, $OldDocID);
+		LON_installments::ComputeInstallments($obj->RequestID, $pdo, true);
+		$DiffDoc = LON_difference::RegisterDiffernce($obj->RequestID, $pdo, (int)$OldDocID);
 		if($DiffDoc == false)
 		{
 			$pdo->rollBack();
@@ -530,7 +528,6 @@ function SavePart(){
 			die();
 		}
 		$msg = "سند اختلاف با شماره " . $DiffDoc->LocalNo . " با موفقیت صادر گردید.";
-		LON_installments::ComputeInstallments($obj->RequestID, $pdo, true);
 	}
 	
 	//--------------------------------------------------------------------------
@@ -763,7 +760,18 @@ function GetInstallments(){
 
 function ComputeInstallments($RequestID = "", $returnMode = false, $pdo2 = null, $IsLastest = true){
 	
-	$RequestID = empty($RequestID) ? $_REQUEST["RequestID"] : $RequestID;
+	$RequestID = empty($RequestID) ? (int)$_REQUEST["RequestID"] : (int)$RequestID;
+	
+	//............... control all pays register .................
+	$partObj = LON_ReqParts::GetValidPartObj($RequestID);
+	$dt = PdoDataAccess::runquery("select sum(PayAmount) sumamount from LON_payments where requestID=?",$RequestID);
+	if($partObj->PartAmount*1 <> $dt[0][0]*1)
+	{
+		echo Response::createObjectiveResponse(false, "تا زمانی که کلیه مراحل پرداخت را وارد نکرده اید قادر به محاسبه اقساط نمی باشید");
+		die();
+	}
+	//...........................................................
+	
 	if(isset($_REQUEST["IsLastest"]))
 		$IsLastest = $_REQUEST["IsLastest"] == "true" ? true : false;
 	
@@ -2117,5 +2125,5 @@ function CustomerDefrayRequest(){
 	echo Response::createObjectiveResponse(true,$dt[0]["RequestID"]);
 	die();
 }
-
+	
 ?>

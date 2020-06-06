@@ -28,10 +28,9 @@ if(!session::checkLogin())
 
 if($_SESSION["USER"]["UserName"] == "admin")
 {
-	sys_config::$db_server['database'] = "sajakrrt_oldcomputes";
+	sys_config::$db_server['database'] = "sajakrrt_rtfund3";
 	PdoDataAccess::$DB = null;
 }
-
 
 $address_prefix = getenv("DOCUMENT_ROOT");
 $script = preg_split('/\//', $_SERVER["SCRIPT_NAME"]);

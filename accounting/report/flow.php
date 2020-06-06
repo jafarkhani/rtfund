@@ -111,7 +111,7 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 			$where .= " AND (di.TafsiliID=0 OR di.TafsiliID is null)";
 		else
 		{
-			$where .= " AND (di.TafsiliID = :tid or di.TafsiliID2 = :tid) ";
+			$where .= " AND (di.TafsiliID = :tid or di.TafsiliID2 = :tid or di.TafsiliID3 = :tid) ";
 			$whereParam[":tid"] = $_REQUEST["TafsiliID"];
 		}
 	}
@@ -138,10 +138,18 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 			$whereParam[":tid2"] = $_REQUEST["TafsiliID2"];
 		}
 	}
-	if(!empty($_REQUEST["TafsiliType2"]))
+	if(isset($_REQUEST["TafsiliID3"]))
 	{
-		$where .= " AND di.TafsiliType2 = :tt2 ";
-		$whereParam[":tt2"] = $_REQUEST["TafsiliType2"];
+		if($_REQUEST["TafsiliID3"] == "")
+		{
+			if(isset($_REQUEST["taraz"]))
+				$where .= " AND (di.TafsiliID3=0 OR di.TafsiliID3 is null)";
+		}
+		else
+		{
+			$where .= " AND di.TafsiliID3 = :tid3 ";
+			$whereParam[":tid3"] = $_REQUEST["TafsiliID3"];
+		}
 	}
 	if(!empty($_REQUEST["fromLocalNo"]))
 	{
@@ -181,7 +189,7 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 			continue;
 
 		$ParamID = preg_replace("/paramID/", "", $key);
-		$where .= " AND (
+		$where .= " AND ( 
 				if(cc.param1 = :pid$index, di.param1=:pval$index, 1=0) OR
 				if(cc.param2 = :pid$index, di.param2=:pval$index, 1=0) OR
 				if(cc.param3 = :pid$index, di.param3=:pval$index, 1=0) 
@@ -238,10 +246,11 @@ function GetData(){
 	
 	$group = ReportGenerator::GetSelectedColumnsStr();
 	$query .= $group == "" ? " " : " group by " . $group;
-	$query .= $group == "" ? " order by d.DocDate" : " order by " . $group;	
+	$query .= $group == "" ? " order by d.DocDate,DebtorAmount,CreditorAmount" : " order by " . $group;	
 	
 	$dataTable = PdoDataAccess::runquery($query, $whereParam);
-	//print_r(ExceptionHandler::PopAllExceptions());
+	
+	print_r(ExceptionHandler::PopAllExceptions());
 	//if($_SESSION["USER"]["UserName"] == "admin")
 	//	echo PdoDataAccess::GetLatestQueryString ();
 	//-------------------------- previous remaindar ----------------------------
@@ -673,6 +682,47 @@ function AccReport_flow()
 				}
 			})
 		},{
+			xtype : "combo",
+			displayField : "InfoDesc",
+			fieldLabel : "گروه تفصیلی3",
+			valueField : "InfoID",
+			hiddenName : "TafsiliGroup3",
+			queryMode : 'local',
+			store : new Ext.data.Store({
+				fields:['InfoID','InfoDesc'],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=SelectTafsiliGroups',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				autoLoad : true
+			}),
+			listeners : {
+				select : function(combo,records){
+					el = AccReport_flowObj.formPanel.down("[itemId=cmp_tafsiliID3]");
+					el.setValue();
+					el.enable();
+					el.getStore().proxy.extraParams["TafsiliType"] = this.getValue();
+					el.getStore().load();
+				}
+			}
+		},{
+			xtype : "combo",
+			displayField : "TafsiliDesc",
+			fieldLabel : "تفصیلی",
+			disabled : true,
+			valueField : "TafsiliID",
+			itemId : "cmp_tafsiliID3",
+			hiddenName : "TafsiliID3",
+			store : new Ext.data.Store({
+				fields:["TafsiliID","TafsiliDesc"],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=GetAllTafsilis',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				}
+			})
+		},{
 			xtype : "numberfield",
 			hideTrigger : true,
 			name : "fromLocalNo",
@@ -699,16 +749,21 @@ function AccReport_flow()
 			name : "details",
 			fieldLabel : "جزئیات ردیف"
 		},{
+			xtype : "fieldset",
+			title : "تنظیمات آیتمها",
+			height : 330,
+			width : 300,
+			rowspan : 3,
+			autoScroll : true,
+			itemId : "FS_params"
+		},{
 			xtype : "container",
-			colspan : 2,
 			html : "<input type=checkbox checked name=IncludeRaw> گزارش شامل اسناد پیش نویس نیز باشد"
 		},{
 			xtype : "container",
-			colspan : 2,
 			html : "<input type=checkbox name=IncludeStart> گزارش شامل اسناد افتتاحیه باشد"
 		},{
 			xtype : "container",
-			colspan : 2,
 			html : "<input type=checkbox name=IncludeEnd> گزارش شامل اسناد اختتامیه باشد"
 		},{
 			xtype : "fieldset",
@@ -753,6 +808,56 @@ function AccReport_flow()
 				AccReport_flowObj.get("mainForm").reset();
 			}			
 		}]
+	});
+	
+	paramsStore = new Ext.data.SimpleStore({
+		fields:["ParamID","ParamDesc","ParamType"],
+		proxy: {
+			type: 'jsonp',
+			url: this.address_prefix + '../docs/doc.data.php?task=selectAllParams',
+			reader: {root: 'rows',totalProperty: 'totalCount'}
+		},
+		autoLoad: true,
+		listeners : {
+			load : function(){
+				var ParamsFS = AccReport_flowObj.formPanel.down("[itemId=FS_params]");
+				for(i=0; i< this.totalCount; i++)
+				{
+					record = this.getAt(i);
+					if(record.data.ParamType == "combo")
+					{
+						ParamsFS.add({
+							xtype : "combo",
+							hiddenName : "paramID" + record.data.ParamID,
+							fieldLabel : record.data.ParamDesc,
+							store : new Ext.data.Store({
+								fields:["id","title"],
+								proxy: {
+									type: 'jsonp',
+									url: AccReport_flowObj.address_prefix + 
+										'../docs/doc.data.php?task=selectParamItems&ParamID=' +
+										record.data.ParamID,
+									reader: {root: 'rows',totalProperty: 'totalCount'}
+								},
+								autoLoad: true
+							}),
+							valueField : "id",
+							displayField : "title"
+						});							
+					}
+					else
+					{
+						ParamsFS.add({
+							xtype : record.data.ParamType,
+							name : "paramID" + record.data.ParamID,
+							fieldLabel : record.data.ParamDesc,
+							hideTrigger : (record.data.ParamType == "numberfield" || 
+								record.data.ParamType == "currencyfield" ? true : false)
+						});			
+					}
+				}
+			}
+		}
 	});
 }
 

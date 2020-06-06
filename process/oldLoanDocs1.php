@@ -15,7 +15,7 @@ ini_set('memory_limit','2000M');
 ob_start();
 set_time_limit(0);
 
-//FundIncomeOfAgent();
+//FundIncomeOfAgent();die(); 
 /*
 echo "---------------------";
 PdoDataAccess::runquery("
@@ -72,7 +72,7 @@ while($requset=$reqs->fetch())
 	$reqObj = new LON_requests($requset["RequestID"]);
 	$partObj = LON_ReqParts::GetValidPartObj($requset["RequestID"]);
 	
-	/*$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
+	$result = Contract($reqObj, $partObj, $DocObj[ $reqObj->RequestID ], $pdo);
 	if(!$result)
 	{
 		$pdo->rollBack();
@@ -92,7 +92,7 @@ while($requset=$reqs->fetch())
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
-	}*/
+	}
 	$result = DailyIncome($reqObj, $partObj, $pdo);
 	if(!$result)
 	{
@@ -100,13 +100,13 @@ while($requset=$reqs->fetch())
 			$pdo->rollBack();
 		continue;
 	}
-	/*$result = DailyWage($reqObj, $partObj, $pdo);
+	$result = DailyWage($reqObj, $partObj, $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
-	}*/
+	}
 	
 	//--------------------------------------------------
 	PdoDataAccess::runquery_fetchMode(" update aa set regDoc=1 where DocID=?", array($reqObj->RequestID), $pdo);
