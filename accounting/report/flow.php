@@ -260,7 +260,7 @@ function GetData(){
 	
 	$dataTable = PdoDataAccess::runquery($query, $whereParam);
 	
-	print_r(ExceptionHandler::PopAllExceptions());
+	//print_r(ExceptionHandler::PopAllExceptions());
 	//if($_SESSION["USER"]["UserName"] == "admin")
 	//	echo PdoDataAccess::GetLatestQueryString ();
 	//-------------------------- previous remaindar ----------------------------
