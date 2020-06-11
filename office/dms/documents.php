@@ -145,6 +145,9 @@ $col->width = 130;
 
 $col = $dg->addColumn("عنوان مدرک ارسالی", "DocDesc", "");
 
+$col = $dg->addColumn("ثبت کننده", "regfullname", "");
+$col->width = 120;
+
 if($ObjectType == "package")
 {
 	$col = $dg->addColumn("نسخه", "DocMode", "");

@@ -28,7 +28,7 @@ if(!session::checkLogin())
 
 if($_SESSION["USER"]["UserName"] == "admin")
 {
-	sys_config::$db_server['database'] = "sajakrrt_rtfund3";
+	sys_config::$db_server['database'] = "sajakrrt_admin";
 	PdoDataAccess::$DB = null;
 }
 

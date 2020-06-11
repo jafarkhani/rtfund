@@ -94,17 +94,18 @@ where h.StatusID not in(3003,3009,3011,3008) and c.PayedDate is null and b.BackP
 		*/
 /*
  * چک هایی که در سند وصول نشده ندارند
-select  ChequeNo, InfoDesc ,t2.DociD, h.*
+select  ChequeNo, ChequeAmount, LoanDesc, r.RequestID
 from ACC_ChequeHistory h join(  SELECT max(RowID) RowID,IncomeChequeID FROM `ACC_ChequeHistory` 
                                 where ATS<'2019-03-21' and StatusID<>3333 group by IncomeChequeID
                                      )t on(h.RowID=t.RowID and h.IncomeChequeID=t.IncomeChequeID)
 join ACC_IncomeCheques c on(h.IncomeChequeID=c.IncomeChequeID)
 join LON_BackPays b on(b.IncomeChequeID=c.IncomeChequeID)
+join LON_requests r on(b.RequestID=r.RequestID)
+join LON_loans l using(LoanID)
 left join (select SourceID4,DocID from ACC_DocItems join ACC_docs using(DocID) join COM_events using(EventID) where CycleID=1398 AND 
           EventType in('IncomeCheque','LoanBackPayCheque') group by SourceID4)t2 on(t2.SourceID4=h.IncomeChequeID)
 join BaseInfo on(typeID=4 and InfoID=h.StatusID)
-where h.StatusID not in(3003,3009,3011,3008) and if(c.ChequeStatus=3003,c.PayedDate>='2019-03-21',1=1) and t2.DocID is  null  
- *  */
+where h.StatusID not in(3003,3009,3011,3008) and if(c.ChequeStatus=3003,c.PayedDate>='2019-03-21',1=1) and t2.DocID is  null/
 
 /*
  لیست وام هایی که شرایط برداخت طی اقساط است ولی مبلغ برداختی کمتر از مبلغ وام می باشد

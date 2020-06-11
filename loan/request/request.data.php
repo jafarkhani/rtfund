@@ -642,7 +642,7 @@ function EndRequest(){
 		echo Response::createObjectiveResponse(false, "خطا در تغییر درخواست");
 		die();
 	}
-	LON_requests::ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false, $pdo);		
+	LON_requests::ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false);		
 	
 	echo Response::createObjectiveResponse(true, "");
 	die();

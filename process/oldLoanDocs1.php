@@ -16,7 +16,7 @@ ob_start();
 set_time_limit(0);
 
 //FundIncomeOfAgent();die(); 
-/*
+
 echo "---------------------";
 PdoDataAccess::runquery("
 	
@@ -25,7 +25,7 @@ PdoDataAccess::runquery("
 			DebtorAmount,CreditorAmount,locked,
 			param1,param2,param3,
 			SourceID1,SourceID2,SourceID3,SourceID4)
-		select 67130,CostID,TafsiliType,TafsiliID,TafsiliType2,TafsiliID2,
+		select 9753,CostID,TafsiliType,TafsiliID,TafsiliType2,TafsiliID2,
 			TafsiliType3,TafsiliID3,
 			
 			if( sum(DebtorAmount-CreditorAmount)>0, sum(DebtorAmount-CreditorAmount), 0 ),
@@ -39,7 +39,7 @@ PdoDataAccess::runquery("
 		having sum(CreditorAmount-DebtorAmount)<>0"); 
 print_r(ExceptionHandler::PopAllExceptions());
 echo PdoDataAccess::AffectedRows();
-die();*/
+die();
 /*
 insert into sajakrrt_rtfund.ACC_DocItems(DocID,CostID,TafsiliType,TafsiliID,TafsiliType2,TafsiliID2,
 			TafsiliType3,TafsiliID3,DebtorAmount,CreditorAmount,locked,
@@ -55,9 +55,9 @@ global $GToDate;
 //$GToDate = '2018-03-20'; //1396/12/29
 $GToDate = '2020-02-22'; //1397/12/29
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select DocID as RequestID from aa 
+$reqs = PdoDataAccess::runquery_fetchMode(" select c1 as RequestID from aaa 
 		where regDoc=0
-		order by DocID ");
+		order by c1 ");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
 
@@ -109,7 +109,7 @@ while($requset=$reqs->fetch())
 	}
 	
 	//--------------------------------------------------
-	PdoDataAccess::runquery_fetchMode(" update aa set regDoc=1 where DocID=?", array($reqObj->RequestID), $pdo);
+	PdoDataAccess::runquery_fetchMode(" update aaa set regDoc=1 where c1=?", array($reqObj->RequestID), $pdo);
 	$pdo->commit();
 
 	EventComputeItems::$LoanComputeArray = array();
@@ -147,13 +147,7 @@ function Payment($reqObj , $partObj, &$DocObj, $pdo){
 	$EventID = LON_requests::GetEventID($reqObj->RequestID, EVENTTYPE_LoanPayment);
 	
 	$pays = PdoDataAccess::runquery("select PayID,RequestID,PayDate
-			from sajakrrt_rtfund.LON_PayDocs join LON_payments using(PayID)
-			where RequestID=:rid
-			union 
-        
-			select PayID,RequestID,PayDate  from LON_payments 
-			where RequestID=:rid AND PayDate<'2017-03-21'
-			"
+			from LON_payments where RequestID=:rid"
 			, array(":rid" =>$reqObj->RequestID));
 	
 	foreach($pays as $pay)
@@ -178,24 +172,11 @@ function Payment($reqObj , $partObj, &$DocObj, $pdo){
  */
 function BackPay($reqObj , $partObj, &$DocObj, $pdo){
 	
-	PdoDataAccess::runquery(" 
-		update LON_BackPays b1
-		join LON_BackPays b2 on(b1.PayBillNo=b2.BackPayID)
-		left join ACC_IncomeCheques c on(b2.IncomeChequeID=c.IncomeChequeID)
-		set b2.PayAmount=if(b2.IncomeChequeID is not null,c.ChequeAmount, b2.PayAmount+b1.PayAmount)
-		where b1.PayType=100 and (b2.PayAmount<>c.ChequeAmount or b2.IncomeChequeID is null)
-			AND b1.RequestID=?", array($reqObj->RequestID));
-
-		PdoDataAccess::runquery("delete from LON_BackPays where PayType=100 and RequestID=?", 
-			array($reqObj->RequestID));
-	
-	
-	global $GToDate;
 	$result = true;
 	$backpays = PdoDataAccess::runquery(
 			"select * from LON_BackPays
 				left join ACC_IncomeCheques i using(IncomeChequeID) 
-				where RequestID=? AND PayDate<='$GToDate'
+				where RequestID=? 
 			AND if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)
 			order by PayDate", array($reqObj->RequestID));
 	
@@ -354,6 +335,7 @@ function DailyWage($reqObj , $partObj, $pdo){
 			}
 		}
 	}
+	return true;
 	//--------------------------------------
 	$JToDate = "1398/12/29";
 	$GToDate = DateModules::shamsi_to_miladi($JToDate, "-");

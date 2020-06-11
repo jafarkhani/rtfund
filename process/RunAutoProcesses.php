@@ -34,7 +34,7 @@ require_once '../commitment/ExecuteEvent.class.php';
 $query = " select * from LON_requests  r
 join LON_loans l using(LoanID)
 join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-where ComputeMode='NEW' AND r.RequestID>0 AND l.GroupID=1 AND StatusID=" . LON_REQ_STATUS_CONFIRM;
+where r.RequestID>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM;
 
 $reqs = PdoDataAccess::runquery_fetchMode($query);
 
@@ -53,48 +53,54 @@ while($row = $reqs->fetch())
 	$eventID = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyIncome);
 	$LateEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyLate);
 	$PenaltyEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyPenalty);
-			
-	$obj = new ExecuteEvent($eventID);
-	$obj->DocObj = isset($objArr[$eventID]) ? $objArr[$eventID] : null;
-	$obj->DocDate = $ComputeDate;
-	$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
-	$result = $obj->RegisterEventDoc($pdo);
-	$objArr[$eventID] = $obj->DocObj;
-	if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+	if($eventID > 0)
 	{
-		echo "وام " .  $row["RequestID"] . " : <br>";
-		echo ExceptionHandler::GetExceptionsToString("<br>");
-		print_r(ExceptionHandler::PopAllExceptions());
-		echo "\n--------------------------------------------\n";
+		$obj = new ExecuteEvent($eventID);
+		$obj->DocObj = isset($objArr[$eventID]) ? $objArr[$eventID] : null;
+		$obj->DocDate = $ComputeDate;
+		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
+		$result = $obj->RegisterEventDoc($pdo);
+		$objArr[$eventID] = $obj->DocObj;
+		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+		{
+			echo "وام " .  $row["RequestID"] . " : <br>";
+			echo ExceptionHandler::GetExceptionsToString("<br>");
+			print_r(ExceptionHandler::PopAllExceptions());
+			echo "\n--------------------------------------------\n";
+		}
+	}
+	if($LateEvent > 0)
+	{
+		$obj = new ExecuteEvent($LateEvent);
+		$obj->DocObj = isset($objArr[$LateEvent]) ? $objArr[$LateEvent] : null;
+		$obj->DocDate = $ComputeDate;
+		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
+		$result = $obj->RegisterEventDoc($pdo);
+		$objArr[$LateEvent] = $obj->DocObj;
+		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+		{
+			echo "وام " .  $row["RequestID"] . " : <br>";
+			echo ExceptionHandler::GetExceptionsToString("<br>");
+			print_r(ExceptionHandler::PopAllExceptions());
+			echo "\n--------------------------------------------\n";
+		}
 	}
 	
-	$obj = new ExecuteEvent($LateEvent);
-	$obj->DocObj = isset($objArr[$LateEvent]) ? $objArr[$LateEvent] : null;
-	$obj->DocDate = $ComputeDate;
-	$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
-	$result = $obj->RegisterEventDoc($pdo);
-	$objArr[$LateEvent] = $obj->DocObj;
-	if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+	if($PenaltyEvent > 0)
 	{
-		echo "وام " .  $row["RequestID"] . " : <br>";
-		echo ExceptionHandler::GetExceptionsToString("<br>");
-		print_r(ExceptionHandler::PopAllExceptions());
-		echo "\n--------------------------------------------\n";
-	}
-	
-	
-	$obj = new ExecuteEvent($PenaltyEvent);
-	$obj->DocObj = isset($objArr[$PenaltyEvent]) ? $objArr[$PenaltyEvent] : null;
-	$obj->DocDate = $ComputeDate;
-	$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
-	$result = $obj->RegisterEventDoc($pdo);
-	$objArr[$PenaltyEvent] = $obj->DocObj;
-	if(!$result || ExceptionHandler::GetExceptionCount() > 0)
-	{
-		echo "وام " .  $row["RequestID"] . " : <br>";
-		echo ExceptionHandler::GetExceptionsToString("<br>");
-		print_r(ExceptionHandler::PopAllExceptions());
-		echo "\n--------------------------------------------\n";
+		$obj = new ExecuteEvent($PenaltyEvent);
+		$obj->DocObj = isset($objArr[$PenaltyEvent]) ? $objArr[$PenaltyEvent] : null;
+		$obj->DocDate = $ComputeDate;
+		$obj->Sources = array($row["RequestID"], $row["PartID"] , $ComputeDate);
+		$result = $obj->RegisterEventDoc($pdo);
+		$objArr[$PenaltyEvent] = $obj->DocObj;
+		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+		{
+			echo "وام " .  $row["RequestID"] . " : <br>";
+			echo ExceptionHandler::GetExceptionsToString("<br>");
+			print_r(ExceptionHandler::PopAllExceptions());
+			echo "\n--------------------------------------------\n";
+		}
 	}
 }
 $pdo->commit();	

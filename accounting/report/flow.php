@@ -22,6 +22,7 @@ $page_rpg->addColumn("کد حساب", "CostCode");
 $page_rpg->addColumn("شرح حساب", "CostDesc");
 $page_rpg->addColumn("تفصیلی", "TafsiliDesc");
 $page_rpg->addColumn("تفصیلی2", "TafsiliDesc2");
+$page_rpg->addColumn("تفصیلی3", "TafsiliDesc3");
 $page_rpg->addColumn("آیتم1", "ParamValue1");
 $page_rpg->addColumn("آیتم2", "ParamValue2");
 $page_rpg->addColumn("آیتم3", "ParamValue3");
@@ -198,6 +199,17 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 		$whereParam[":pval$index"] = $val;
 		$index++;
 	}
+	
+	if(!empty($_REQUEST["PersonID"]))
+	{
+		$where .= " AND (
+			if(t.TafsiliType in(320,200),t.ObjectID=:pid,1=0) OR 
+			if(t2.TafsiliType in(320,200),t2.ObjectID=:pid,1=0) OR
+			if(t3.TafsiliType in(320,200),t3.ObjectID=:pid,1=0)
+		)";
+		$whereParam[":pid"] = $_REQUEST["PersonID"];
+	}
+	
 }	
 	
 function GetData(){
@@ -209,10 +221,9 @@ function GetData(){
 		cc.CostCode,
 		concat_ws(' - ' , b1.BlockDesc,b2.BlockDesc,b3.BlockDesc,b4.BlockDesc) CostDesc,
 		b1.essence,
-		b.InfoDesc TafsiliTypeDesc,
 		t.TafsiliDesc TafsiliDesc,
 		t2.TafsiliDesc TafsiliDesc2,
-		bi2.InfoDesc TafsiliTypeDesc2,
+		t3.TafsiliDesc TafsiliDesc3,
 		if(p1.ParamType='combo',pi1.ParamValue,di.param1) ParamValue1,
 		if(p2.ParamType='combo',pi2.ParamValue,di.param2) ParamValue2,
 		if(p3.ParamType='combo',pi3.ParamValue,di.param3) ParamValue3".
@@ -224,10 +235,9 @@ function GetData(){
 			left join ACC_blocks b2 on(level2=b2.BlockID)
 			left join ACC_blocks b3 on(level3=b3.BlockID)
 			left join ACC_blocks b4 on(level4=b4.BlockID)
-			left join BaseInfo b on(TypeID=2 AND di.TafsiliType=InfoID)
 			left join ACC_tafsilis t using(TafsiliID)
-			left join BaseInfo bi2 on(bi2.TypeID=2 AND di.TafsiliType2=bi2.InfoID)
 			left join ACC_tafsilis t2 on(di.TafsiliID2=t2.TafsiliID)
+			left join ACC_tafsilis t3 on(di.TafsiliID3=t3.TafsiliID)
 			
 			left join ACC_CostCodeParams p1 on(p1.ParamID=cc.param1)
 			left join ACC_CostCodeParams p2 on(p2.ParamID=cc.param2)
@@ -313,6 +323,7 @@ function ListData($IsDashboard = false){
 	$rpg->addColumn("شرح حساب", "CostDesc");
 	$rpg->addColumn("تفصیلی", "TafsiliDesc");
 	$rpg->addColumn("تفصیلی2", "TafsiliDesc2");
+	$rpg->addColumn("تفصیلی3", "TafsiliDesc3");
 	$rpg->addColumn("آیتم1", "ParamValue1");
 	$rpg->addColumn("آیتم2", "ParamValue2");
 	$rpg->addColumn("آیتم3", "ParamValue3");
@@ -600,6 +611,11 @@ function AccReport_flow()
 			}),
 			tpl: this.blockTpl
 		},{
+			xtype : "container",
+			colspan : 2,
+			width : 720,
+			html : "<hr style='border-top: 1px solid #999;border-bottom: 0;'>"
+		},{
 			xtype : "combo",
 			displayField : "InfoDesc",
 			fieldLabel : "گروه تفصیلی",
@@ -722,6 +738,34 @@ function AccReport_flow()
 					reader: {root: 'rows',totalProperty: 'totalCount'}
 				}
 			})
+		},{
+			xtype : "container",
+			colspan : 2,
+			width : 720,
+			html : "<hr style='border-top: 1px solid #999;border-bottom: 0;'>"
+		},{
+			colspan : 2,
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../../framework/person/persons.data.php?' +
+						"task=selectPersons",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['PersonID','fullname']
+			}),
+			fieldLabel : "ذینفع",
+			pageSize : 25,
+			width : 400,
+			displayField : "fullname",
+			valueField : "PersonID",
+			hiddenName : "PersonID"
+		},{
+			xtype : "container",
+			colspan : 2,
+			width : 720,
+			html : "<hr style='border-top: 1px solid #999;border-bottom: 0;'>"
 		},{
 			xtype : "numberfield",
 			hideTrigger : true,
