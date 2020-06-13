@@ -299,6 +299,14 @@ function ReturnCancel(){
 	echo Response::createObjectiveResponse($result, "");
 	die();
 }
+
+function GetTazminDocTypes(){
+	
+	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=8 and param1=1");
+	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
+	die();
+}
+
 //------------------------------------------------
 
 function GetRequestPeriods(){

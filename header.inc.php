@@ -28,8 +28,8 @@ if(!session::checkLogin())
 
 if($_SESSION["USER"]["UserName"] == "admin")
 {
-	sys_config::$db_server['database'] = "sajakrrt_admin";
-	PdoDataAccess::$DB = null;
+	//sys_config::$db_server['database'] = "sajakrrt_admin";
+	//PdoDataAccess::$DB = null;
 }
 
 $address_prefix = getenv("DOCUMENT_ROOT");

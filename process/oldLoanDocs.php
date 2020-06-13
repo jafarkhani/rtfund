@@ -15,9 +15,9 @@ ini_set('memory_limit','2000M');
 ob_start();
 set_time_limit(0);
 
-DailyIncome();die();
+EndRequests();die();
 //FundIncomeOfAgent();die();
-/*
+/* 
 echo "---------------------";
 PdoDataAccess::runquery("
 	
@@ -427,6 +427,33 @@ function DailyWage($reqObj , $partObj, $pdo){
 		}
 	}
 	return true;
+}
+
+function EndRequests(){
+	
+	//-------------- fund wage of agent -------------------
+	$reqs = PdoDataAccess::runquery_fetchMode("
+		select aaa.*,EndDate from aaa 
+		join LON_requests on(RequestID=c1) where c3=1 and c1<>902");
+	
+	foreach($reqs as $row)
+	{
+		$RequestID = $row["c1"];
+		echo "RequestID: " .  $RequestID. " <br>";
+		$eventID = LON_requests::GetEventID($RequestID, EVENTTYPE_LoanEnd);
+		echo "eventID: " .  $eventID. " <br>";
+		$obj = new ExecuteEvent($eventID);
+		$obj->DocDate = $row["EndDate"];
+		$obj->Sources = array($RequestID);
+		$result = $obj->RegisterEventDoc();
+		if(!$result || ExceptionHandler::GetExceptionCount() > 0)
+		{
+			print_r(ExceptionHandler::PopAllExceptions());
+		}
+		else
+			echo " : true";
+		echo "<br>------------------------------------------<br>";
+	}
 }
 
 function FundIncomeOfAgent(){

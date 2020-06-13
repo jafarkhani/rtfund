@@ -77,8 +77,8 @@ function merging($main,$sub){
 			echo "delete BSC_persons : " . PdoDataAccess::AffectedRows() . "<br>";
 
 		
-		$TafsiliID1 = PdoDataAccess::runquery("select * from ACC_tafsilis where TafsiliType=1 AND ObjectID=?",array($main));
-		$TafsiliID2 = PdoDataAccess::runquery("select * from ACC_tafsilis where TafsiliType=1 AND ObjectID=?",array($sub));
+		$TafsiliID1 = PdoDataAccess::runquery("select * from ACC_tafsilis where TafsiliType=200 AND ObjectID=?",array($main));
+		$TafsiliID2 = PdoDataAccess::runquery("select * from ACC_tafsilis where TafsiliType=200 AND ObjectID=?",array($sub));
 		if(count($TafsiliID1) == 0 || count($TafsiliID2) == 0)
 		{
 			echo "یکی از کد ها فاقد تفصیلی است";
@@ -89,13 +89,16 @@ function merging($main,$sub){
 			$TafsiliID2 = $TafsiliID2[0]["TafsiliID"];
 			
 			
-			PdoDataAccess::runquery("update ACC_DocItems set TafsiliID=? where TafsiliID=?", 
+			PdoDataAccess::runquery("update ACC_DocItems set TafsiliID=? where TafsiliType=200 AND TafsiliID=?", 
 				array($TafsiliID1, $TafsiliID2));
 			echo "update ACC_DocItems : " . PdoDataAccess::AffectedRows() . "<br>";
-			PdoDataAccess::runquery("update ACC_DocItems set TafsiliID2=? where TafsiliID2=?", 
+			PdoDataAccess::runquery("update ACC_DocItems set TafsiliID2=? where TafsiliType2=200 AND TafsiliID2=?", 
 				array($TafsiliID1, $TafsiliID2));		
 			echo "update ACC_DocItems : " . PdoDataAccess::AffectedRows() . "<br>";
-			PdoDataAccess::runquery("delete from ACC_tafsilis where TafsiliID=?", array($TafsiliID2));
+			PdoDataAccess::runquery("update ACC_DocItems set TafsiliID3=? where TafsiliType3=200 AND TafsiliID3=?", 
+				array($TafsiliID1, $TafsiliID2));		
+			echo "update ACC_DocItems : " . PdoDataAccess::AffectedRows() . "<br>";
+			PdoDataAccess::runquery("delete from ACC_tafsilis where TafsiliType=200 AND TafsiliID=?", array($TafsiliID2));
 			echo "delete ACC_tafsilis : " . PdoDataAccess::AffectedRows() . "<br>";
 		}
 		

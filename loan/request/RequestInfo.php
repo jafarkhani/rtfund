@@ -19,6 +19,8 @@ if(session::IsPortal())
 
 $RequestID = !empty($_POST["RequestID"]) ? $_POST["RequestID"] : 0;
 $ReadOnly = isset($_REQUEST["ReadOnly"]) && $_REQUEST["ReadOnly"] == "true" ? true : false;
+$AddInitCond = ($_SESSION["USER"]["UserName"]=='javadi' || $_SESSION["USER"]["UserName"]=='ashrafi' || $_SESSION["USER"]["UserName"]=='0943277744') ? true : false ;
+$EditInitCond = $_SESSION["USER"]["UserName"]=='0943277744' ? true : false ;
 
 if(session::IsFramework())
 	$User = "Staff";
@@ -94,12 +96,12 @@ $col->sortable = false;
 
 if(!$ReadOnly)
 {
-	if($User == "Staff" && $accessObj->EditFlag) 
-		$dg->addButton("addPart", "ایجاد شرایط", "add", "function(){RequestInfoObject.BeforeAddPart();}");
+	if($User == "Staff" && $accessObj->EditFlag)
+	    	$dg->addButton("addPart", "ایجاد شرایط", "add", "function(){RequestInfoObject.BeforeAddPart();}");
 	
 	$col = $dg->addColumn("", "PartID");
 	$col->renderer = "RequestInfo.OperationRender";
-	$col->width = 50;	
+	$col->width = 50;
 }
 
 $dg->HeaderMenu = false;
