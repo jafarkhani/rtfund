@@ -327,9 +327,9 @@ function GetData($mode = "list"){
 	
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		BeginReport();
-		echo PdoDataAccess::GetLatestQueryString();
-		print_r(ExceptionHandler::PopAllExceptions());
+		//BeginReport();
+		//echo PdoDataAccess::GetLatestQueryString();
+		//print_r(ExceptionHandler::PopAllExceptions()); 
 	}
 	
 	for($i=0; $i< count($dataTable); $i++)
