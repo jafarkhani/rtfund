@@ -26,6 +26,10 @@ $page_rpg->addColumn("شماره فیش", "PayBillNo");
 $page_rpg->addColumn("کد پیگیری", "PayRefNo");
 $page_rpg->addColumn("شماره چک", "ChequeNo");
 $page_rpg->addColumn("شماره سند", "LocalNo");
+$page_rpg->addColumn("پرداخت از اصل", "pay_pure");	
+$page_rpg->addColumn("پرداخت از کارمزد", "pay_wage");	
+$page_rpg->addColumn("پرداخت از کارمزد تاخیر", "pay_late");	
+$page_rpg->addColumn("پرداخت از جریمه", "pay_pnlt");	
 
 function MakeWhere(&$where, &$whereParam){
 
@@ -132,8 +136,6 @@ function GetData(){
 		print_r(ExceptionHandler::PopAllExceptions());
 	}
 	
-	if(empty($_POST["IsInstallmentRowsInclude"]))
-		return $dataTable;
 	//.....................................
 	$computeArr = array();
 	$returnArr = array();
@@ -147,36 +149,57 @@ function GetData(){
 			$computeArr[ $MainRow["RequestID"] ] =LON_Computes::ComputePayments($MainRow["RequestID"]);
 		}
 		$ref = $computeArr[ $MainRow["RequestID"] ];
-		$IsAdded = false;
-		for($i=0; $i < count($ref); $i++)
+		
+		//-----------------------------------------------------------
+		if(empty($_POST["IsInstallmentRowsInclude"]))
 		{
-			$installmentRow = $ref[$i];
-			if($installmentRow["type"] != "installment")
-				continue;
-			
-			for($j=0; $j< count($installmentRow["pays"]); $j++)
+			for($i=0; $i < count($ref); $i++)
 			{
-				if($installmentRow["pays"][$j]["BackPayID"] != $MainRow["BackPayID"])
+				$payRow = $ref[$i];
+				if($ref[$i]["type"] != "pay" || $ref[$i]["BackPayID"] != $MainRow["BackPayID"])
 					continue;
 				
-				$MainRow["InstallmentDate"] = $installmentRow["RecordDate"];
-				$MainRow["pay_pure"] = $installmentRow["pays"][$j]["pay_pure"];
-				$MainRow["pay_wage"] = $installmentRow["pays"][$j]["pay_wage"];
-				$MainRow["pay_late"] = $installmentRow["pays"][$j]["pay_late"];
-				$MainRow["pay_pnlt"] = $installmentRow["pays"][$j]["pay_pnlt"];			
+				$MainRow["pay_pure"] = $ref[$i]["pure"];
+				$MainRow["pay_wage"] = $ref[$i]["wage"];
+				$MainRow["pay_late"] = $ref[$i]["late"];
+				$MainRow["pay_pnlt"] = $ref[$i]["pnlt"];	
 				$returnArr[] = $MainRow;
-				$IsAdded = true;
-				break;
+				break;				
 			}
 		}
-		if(!$IsAdded)
+		else
 		{
-			$MainRow["InstallmentDate"] = "0000-00-00";
-			$MainRow["pay_pure"] = 0;
-			$MainRow["pay_wage"] = 0;
-			$MainRow["pay_late"] = 0;
-			$MainRow["pay_pnlt"] = 0;
-			$returnArr[] = $MainRow;
+			$IsAdded = false;
+			for($i=0; $i < count($ref); $i++)
+			{
+				$installmentRow = $ref[$i];
+				if($installmentRow["type"] != "installment")
+					continue;
+
+				for($j=0; $j< count($installmentRow["pays"]); $j++)
+				{
+					if($installmentRow["pays"][$j]["BackPayID"] != $MainRow["BackPayID"])
+						continue;
+
+					$MainRow["InstallmentDate"] = $installmentRow["RecordDate"];
+					$MainRow["pay_pure"] = $installmentRow["pays"][$j]["pay_pure"];
+					$MainRow["pay_wage"] = $installmentRow["pays"][$j]["pay_wage"];
+					$MainRow["pay_late"] = $installmentRow["pays"][$j]["pay_late"];
+					$MainRow["pay_pnlt"] = $installmentRow["pays"][$j]["pay_pnlt"];			
+					$returnArr[] = $MainRow;
+					$IsAdded = true;
+					break;
+				}
+			}
+			if(!$IsAdded)
+			{
+				$MainRow["InstallmentDate"] = "0000-00-00";
+				$MainRow["pay_pure"] = 0;
+				$MainRow["pay_wage"] = 0;
+				$MainRow["pay_late"] = 0;
+				$MainRow["pay_pnlt"] = 0;
+				$returnArr[] = $MainRow;
+			}
 		}
 	}
 	
@@ -259,7 +282,18 @@ function ListDate($IsDashboard = false){
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RRequestID","PayID", "realPayDate");
 	
-	if(!empty($_POST["IsInstallmentRowsInclude"]))
+	if(empty($_POST["IsInstallmentRowsInclude"]))
+	{
+		$col = $rpg->addColumn("پرداخت از اصل", "pay_pure", "ReportMoneyRender");
+		$col->EnableSummary();
+		$col = $rpg->addColumn("پرداخت از کارمزد", "pay_wage", "ReportMoneyRender");
+		$col->EnableSummary();
+		$col = $rpg->addColumn("پرداخت از کارمزد تاخیر", "pay_late", "ReportMoneyRender");
+		$col->EnableSummary();
+		$col = $rpg->addColumn("پرداخت از جریمه", "pay_pnlt", "ReportMoneyRender");
+		$col->EnableSummary();		
+	}
+	else
 	{
 		$col = $rpg->addColumn("تاریخ قسط", "InstallmentDate", "ReportDateRender");
 		$col = $rpg->addColumn("پرداخت از اصل", "pay_pure", "ReportMoneyRender");	

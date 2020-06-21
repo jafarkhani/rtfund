@@ -84,6 +84,10 @@ function GetData(){
 	MakeWhere($where, $whereParam);
 	
 	$query = "select py.*,r.*,l.*,p.*,
+				PayAmount - ifnull(OldFundDelayAmount,0) 
+						- ifnull(OldAgentDelayAmount,0)
+						- ifnull(OldFundWage,0)
+						- ifnull(OldAgentWage,0)as PurePayAmount,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
 				if(pd.DocID is not null, 'YES', 'NO') IsDocRegistered,
@@ -149,8 +153,9 @@ function ListData($IsDashboard = false){
 	
 	$rpg->addColumn("تاریخ پرداخت مصوب", "PayDate", "ReportDateRender");
 	$rpg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate", "ReportDateRender");
-
-	$rpg->addColumn("مبلغ پرداخت", "PayAmount", "ReportMoneyRender");
+	$rpg->addColumn("مبلغ پرداخت مصوب", "PayAmount", "ReportMoneyRender");
+	$rpg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", "ReportMoneyRender");
+		
 	$col = $rpg->addColumn("صدور سند", "IsDocRegistered" , "IsDocRegisteredRender");
 	$col->align = "center";
 	$rpg->addColumn("شماره سند", "LocalNo");

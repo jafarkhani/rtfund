@@ -365,17 +365,13 @@ function selectDocItems() {
 				$where .= " AND t.tafsiliDesc like :tl";
 				$whereParam[":tl"] = "%" . $_GET["query"] . "%";
 				break;
-			case "moinID":
-				$where .= " AND moinTitle like :tl";
-				$whereParam[":tl"] = "%" . $_GET["query"] . "%";
-				break;
 			case "TafsiliID2":
-				$where .= " AND t2.tafsiliDesc like :tl";
-				$whereParam[":tl"] = "%" . $_GET["query"] . "%";
+				$where .= " AND t2.tafsiliDesc like :t2";
+				$whereParam[":t2"] = "%" . $_GET["query"] . "%";
 				break;
-			case "kolID":
-				$where .= " AND kolTitle like :tl";
-				$whereParam[":tl"] = "%" . $_GET["query"] . "%";
+			case "TafsiliID3":
+				$where .= " AND t3.tafsiliDesc like :t3";
+				$whereParam[":t3"] = "%" . $_GET["query"] . "%";
 				break;
 			case "DebtorAmount":
 				$where .= " AND DebtorAmount = :tl";

@@ -261,8 +261,8 @@ function GetData(){
 	$dataTable = PdoDataAccess::runquery($query, $whereParam);
 	
 	//print_r(ExceptionHandler::PopAllExceptions());
-	//if($_SESSION["USER"]["UserName"] == "admin")
-	//	echo PdoDataAccess::GetLatestQueryString ();
+	if($_SESSION["USER"]["UserName"] == "admin")
+		echo PdoDataAccess::GetLatestQueryString ();
 	//-------------------------- previous remaindar ----------------------------
 	if(!empty($_REQUEST["fromDate"]))
 	{
