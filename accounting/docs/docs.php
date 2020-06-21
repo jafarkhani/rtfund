@@ -135,12 +135,19 @@ $col->width = 110;
 $col->editor = ColumnEditor::TextField(true);
 $col->width = 90;*/
 
+if($accessObj->EditFlag)
+{
+    $col = $dg->addColumn("", "", "string");
+    $col->sortable = false;
+    $col->renderer = "AccDocs.editItemRender";
+    $col->width = 30;	
+} 
 if($accessObj->RemoveFlag)
 {
     $col = $dg->addColumn("", "", "string");
     $col->sortable = false;
-    $col->renderer = "AccDocs.deleteitemRender";
-    $col->width = 50;	
+    $col->renderer = "AccDocs.deleteItemRender";
+    $col->width = 30;	
 }
 
 if($accessObj->AddFlag)
