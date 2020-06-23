@@ -32,7 +32,6 @@ require_once '../loan/request/request.class.php';
 require_once '../commitment/ExecuteEvent.class.php';
 
 $query = " select * from LON_requests  r
-join LON_loans l using(LoanID)
 join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
 where r.RequestID>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM;
 
@@ -53,6 +52,7 @@ while($row = $reqs->fetch())
 	$eventID = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyIncome);
 	$LateEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyLate);
 	$PenaltyEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyPenalty);
+	
 	if($eventID > 0)
 	{
 		$obj = new ExecuteEvent($eventID);
