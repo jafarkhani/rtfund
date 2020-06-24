@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 1394.10
 //-----------------------------
-
+ini_set("display_errors","On");
 require_once 'header.inc.php';
 require_once inc_dataReader;
 require_once 'letter/letter.class.php';
