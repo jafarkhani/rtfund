@@ -66,8 +66,8 @@ foreach($days as $dayRow)
 	{
 		$ComputeDate = $dayRow["gdate"];
 		
-		$eventID = 0;//LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyIncome);
-		$LateEvent = 0;//LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyLate);
+		$eventID = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyIncome);
+		$LateEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyLate);
 		$PenaltyEvent = LON_requests::GetEventID($row["RequestID"], EVENTTYPE_LoanDailyPenalty);
 		
 		$obj = new ExecuteEvent($eventID);
