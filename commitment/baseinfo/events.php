@@ -145,7 +145,7 @@ function Event() {
 			iconCls: "cross",
 			text: "خطای ثبت های اتومات",
 			handler: function () {
-				window.open('../../storage/loanDaily.html');
+				window.open('../../process/loanDaily.html'); 
 			}
 		}
 	);
