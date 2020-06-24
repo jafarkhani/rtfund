@@ -1299,10 +1299,10 @@ class LON_requests extends PdoDataAccess{
 		//----------------------------------------------------
 		$dt = PdoDataAccess::runquery("select * from COM_events where 1=1 " . $where);
 		
-		/*
-		if($_SESSION["USER"]["UserName"] == "admin")
-			echo PdoDataAccess::GetLatestQueryString ();
-		*/
+		
+		//if($_SESSION["USER"]["UserName"] == "admin")
+		//	echo PdoDataAccess::GetLatestQueryString ();
+		
 		if(count($dt) == 0)
 		{
 			return 0;
