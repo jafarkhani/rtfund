@@ -31,6 +31,14 @@ $page_rpg->addColumn("پرداخت از کارمزد", "pay_wage");
 $page_rpg->addColumn("پرداخت از کارمزد تاخیر", "pay_late");	
 $page_rpg->addColumn("پرداخت از جریمه", "pay_pnlt");	
 
+$page_rpg->addColumn("سهم صندوق از کارمزد", "fund_wage");	
+$page_rpg->addColumn("سهم صندوق از کارمزد تاخیر", "fund_late");	
+$page_rpg->addColumn("سهم صندوق از جریمه", "fund_pnlt");	
+
+$page_rpg->addColumn("سهم سرمایه گذار از کارمزد", "agent_wage");	
+$page_rpg->addColumn("سهم سرمایه گذار از کارمزد تاخیر", "agent_late");	
+$page_rpg->addColumn("سهم سرمایه گذار از جریمه", "agent_pnlt");	
+
 function MakeWhere(&$where, &$whereParam){
 
 	if(session::IsPortal() && isset($_REQUEST["dashboard_show"]))
@@ -163,6 +171,47 @@ function GetData(){
 				$MainRow["pay_wage"] = $ref[$i]["wage"];
 				$MainRow["pay_late"] = $ref[$i]["late"];
 				$MainRow["pay_pnlt"] = $ref[$i]["pnlt"];	
+				
+				//.............................................
+				if($MainRow["CustomerWage"]*1 == 0)
+				{
+					$FundWage = $AgentWage = 0;
+				}
+				else
+				{
+					$FundWage = $MainRow["FundWage"]*1 > $MainRow["CustomerWage"]*1 ? $MainRow["pay_wage"] : 
+						round(($MainRow["FundWage"]/$MainRow["CustomerWage"])*$MainRow["pay_wage"]);
+					$AgentWage = $MainRow["pay_wage"] - $FundWage;
+				}
+				$MainRow["fund_wage"] = $FundWage;
+				$MainRow["agent_wage"] = $AgentWage;	
+				//.............................................
+				if($PartObj->LatePercent*1 == 0 || $MainRow["pay_late"]*1 < 0)
+				{
+					$FundLate = $AgentLate = 0;
+				}
+				else
+				{
+					$FundLate = $MainRow["FundWage"]*1 > $MainRow["CustomerWage"]*1 ? $MainRow["pay_late"] : 
+						round(($MainRow["FundWage"]/$MainRow["CustomerWage"])*$MainRow["pay_late"]);
+					$AgentLate = $MainRow["pay_late"] - $FundLate;	
+				}
+				$MainRow["fund_late"] = $FundLate;
+				$MainRow["agent_late"] = $AgentLate;
+				//.............................................
+				if($PartObj->ForfeitPercent*1 == 0)
+				{
+					$FundPnlt = $AgentPnlt = 0;
+				}
+				else
+				{
+					$FundPnlt = $MainRow["FundForfeitPercent"]*1 > $MainRow["ForfeitPercent"]*1 ? $MainRow["pay_pnlt"] : 
+							round(($MainRow["FundForfeitPercent"]/$MainRow["ForfeitPercent"])*$MainRow["pay_pnlt"]);
+					$AgentPnlt = $MainRow["pay_pnlt"] - $FundPnlt;
+				}
+				$MainRow["fund_pnlt"] = $FundPnlt;
+				$MainRow["agent_pnlt"] = $AgentPnlt;
+				//.............................................
 				$returnArr[] = $MainRow;
 				break;				
 			}
@@ -292,6 +341,20 @@ function ListDate($IsDashboard = false){
 		$col->EnableSummary();
 		$col = $rpg->addColumn("پرداخت از جریمه", "pay_pnlt", "ReportMoneyRender");
 		$col->EnableSummary();		
+		
+		$col = $rpg->addColumn("سهم صندوق از کارمزد", "fund_wage");
+		$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم صندوق از کارمزد تاخیر", "fund_late");	
+		$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم صندوق از جریمه", "fund_pnlt");	
+		$col->EnableSummary();	
+
+		$col = $rpg->addColumn("سهم سرمایه گذار از کارمزد", "agent_wage");	
+		$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم سرمایه گذار از کارمزد تاخیر", "agent_late");	
+		$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم سرمایه گذار از جریمه", "agent_pnlt");	
+		$col->EnableSummary();	
 	}
 	else
 	{
