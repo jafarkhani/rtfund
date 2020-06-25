@@ -199,7 +199,7 @@ class EventComputeItems {
 							if($PartObj->ForfeitPercent*1 == 0)
 								return 0;
 							$forfeitAmount = $row["pnlt"];
-							$FundForfeit = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $forfeitAmount : 
+							$FundForfeit = $PartObj->FundForfeitPercent*1 > $PartObj->ForfeitPercent*1 ? $forfeitAmount : 
 									round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$forfeitAmount);
 							$AgentForfeit = $forfeitAmount - $FundForfeit;
 							if($ItemID == 38)
