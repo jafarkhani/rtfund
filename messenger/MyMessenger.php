@@ -69,6 +69,16 @@ require_once inc_dataGrid;
 				text-align: right;
 				vertical-align: middle;        
 			}
+            .SrchChatBox { 
+				background: radial-gradient(circle, #faeceb, #faeceb, #faeceb); 
+				border-radius: 10px;
+				color : black;        
+				padding-right:4px;
+				line-height: 22px; 
+				margin: 2px; 
+				text-align: right;
+				vertical-align: middle;        
+			}
 
 			.MyChatBox {
 				background: radial-gradient(circle, #f2f9ff, #f5faff, #f0f7ff);
@@ -110,12 +120,123 @@ require_once inc_dataGrid;
 				right: 16px;
 				font-size: 18px;
 			}
+            
 
 		</style>
 		<script>
+            
+function div(a, b) {
+    return parseInt((a / b));
+}
+function MiladiToShamsi(g_y, g_m, g_d) {
+    var g_days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    var j_days_in_month = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+    var jalali = [];
+    var gy = g_y - 1600;
+    var gm = g_m - 1;
+    var gd = g_d - 1;
+ 
+    var g_day_no = 365 * gy + div(gy + 3, 4) - div(gy + 99, 100) + div(gy + 399, 400);
+ 
+    for (var i = 0; i < gm; ++i)
+        g_day_no += g_days_in_month[i];
+    if (gm > 1 && ((gy % 4 == 0 && gy % 100 != 0) || (gy % 400 == 0)))
+        /* leap and after Feb */
+        g_day_no++;
+    g_day_no += gd;
+ 
+    var j_day_no = g_day_no - 79;
+ 
+    var j_np = div(j_day_no, 12053);
+    /* 12053 = 365*33 + 32/4 */
+    j_day_no = j_day_no % 12053;
+ 
+    var jy = 979 + 33 * j_np + 4 * div(j_day_no, 1461);
+    /* 1461 = 365*4 + 4/4 */
+ 
+    j_day_no %= 1461;
+ 
+    if (j_day_no >= 366) {
+        jy += div(j_day_no - 1, 365);
+        j_day_no = (j_day_no - 1) % 365;
+    }
+    for (var i = 0; i < 11 && j_day_no >= j_days_in_month[i]; ++i)
+        j_day_no -= j_days_in_month[i];
+    var jm = i + 1;
+    var jd = j_day_no + 1;
+    jalali[0] = jy;
+    jalali[1] = jm;
+    jalali[2] = jd;
+    return jalali;
+    //return jalali[0] + "_" + jalali[1] + "_" + jalali[2];
+    //return jy + "/" + jm + "/" + jd;
+}
+function get_year_month_day(date) {
+    var convertDate;
+    var y = date.substr(0, 4);
+    var m = date.substr(5, 2);
+    var d = date.substr(8, 2);
+    convertDate = MiladiToShamsi(y, m, d);
+    return convertDate;
+}
+function get_hour_minute_second(time) {
+    var convertTime = [];
+    convertTime[0] = time.substr(0, 2);
+    convertTime[1] = time.substr(3, 2);
+    convertTime[2] = time.substr(6, 2);
+    return convertTime;
+}
+function convertDate(date) {
+    var convertDateTime = get_year_month_day(date.substr(0, 10));
+    convertDateTime = convertDateTime[0] + "/" + convertDateTime[1] + "/" + convertDateTime[2] + " " + date.substr(10);
+    return convertDateTime;
+}
+function get_persian_month(month) {
+    switch (month) {
+        case 1:
+            return "فروردین";
+            break;
+        case 2:
+            return "اردیبهشت";
+            break;
+        case 3:
+            return "خرداد";
+            break;
+        case 4:
+            return "تیر";
+            break;
+        case 5:
+            return "مرداد";
+            break;
+        case 6:
+            return "شهریور";
+            break;
+        case 7:
+            return "مهر";
+            break;
+        case 8:
+            return "آبان";
+            break;
+        case 9:
+            return "آذر";
+            break;
+        case 10:
+            return "دی";
+            break;
+        case 11:
+            return "بهمن";
+            break;
+        case 12:
+            return "اسفند";
+            break;
+    }
+}
+
 
 
 			Ext.onReady(function () {
+                
+                var TopPos = 0 ; 
 
 				var ResponsiveApp = ResponsiveApp || {};
 				if (!ResponsiveApp.view) {
@@ -163,18 +284,29 @@ require_once inc_dataGrid;
 							if (st.success)
 							{
 
-								if (st.data > 0) {
-									Ext.getCmp('btn1').show();
-									Ext.getCmp('btn1').setText("<div class='blueText MsgInfoBox2'  style='height:40px;width:40px' > " +
-											"<div> " + st.data + " </div></div>");
+								if (st.data > 0) {                                  
+                                    
+                                    if(TopPos == grid2.getEl().down('.x-grid-view').getScroll().top  )
+                                    {
+                                        store.load({
+                                                callback : function(){
+                                                    grid2.getView().scrollBy(0, 999999, true);                                                     
+                                                }
+                                            });    
+                                        TopPos = grid2.getEl().down('.x-grid-view').getScroll().top ; 
+                                    }  
+                                    
+                                    else {
+                                        Ext.getCmp('btn1').show();
+                                        Ext.getCmp('btn1').setText("<div class='blueText MsgInfoBox2'  style='height:30px;width:30px' > " +
+                                                   "<div> " + st.data + " </div></div>"); 
+                                    }
 								}
-
-								diffPo = grid2.getEl().down('.x-grid-view').getScroll().top - ScrollPosition;
-
-								if (diffPo < 190)
-								{
-									grid2.getStore().load();
-								}
+                                
+                                if( grid2.getEl().down('.x-grid-view').getScroll().top > TopPos )
+                                    TopPos = grid2.getEl().down('.x-grid-view').getScroll().top ; 
+                                
+                                                              
 							}
 							else
 							{
@@ -195,8 +327,8 @@ require_once inc_dataGrid;
 					var FullName = record.data.fname + " " + record.data.lname;
 					var res = record.data.SendingDate.split(" ");
 					var FullTxt = record.data.MSGID + ":" + FullName + ":" + value;
-					var TextTime = res[1].substr(1, 4);
-
+					var TextTime = res[1].substr(1, 4) ;
+                    
 					if (record.data.FileType != "" && record.data.FileType != null) {
 
 						var style = "";
@@ -210,20 +342,13 @@ require_once inc_dataGrid;
 					}
 
 					var MemberID = formpanel.down("[itemId=MID]").getValue();
-
+                    
 					if (record.data.MID == MemberID) {
 
 						if (record.data.ParentMSGID * 1 > 0)
 							ShowMsg = "<div style='background-color:#f2f0f0;width:98%;'> " + Ext.String.ellipsis(record.data.ParentMsg, 200) + " </div>";
 
-						return "<div class=' MyChatBox'  style='width:90%;float:right;margin:2px;' > " +
-								"<table style='width:100%'>" +
-								"<tr><td style='float:right;width:70%' ><font class='blueText'>" + FullName + "</font></td> " +
-								"<td title='عملیات' align='left' class='Expand' onclick='MyOperationMenu(event," + record.data.MSGID + " );' " +
-								"style='float:left;width:30%;clear: left;background-repeat:no-repeat;" +
-								"background-position:right;cursor:pointer;width:30px;height:30' >&nbsp;</td></tr>" +
-								"</table></div>";
-
+						
 						return  "<div class=' MyChatBox'  style='width:90%;float:right;margin:2px;' > " +
 								"<table style='width:100%'>" +
 								"<tr><td style='float:right;width:70%' ><font class='blueText'>" + FullName + "</font></td> " +
@@ -233,7 +358,7 @@ require_once inc_dataGrid;
 								"</table>" +
 								"<div style='width:100%'>" + ShowMsg + ShowImg + "</div>" +
 								"<div style= 'padding-top:6px;align:right;width:100%' > " + value + "</div>" +
-								"<div align='left' style='width:100%'><font style='font-size:10px;' color='#275a87' >" + TextTime + " " + MiladiToShamsi(record.data.SendingDate) + "</font></div></div>";
+								"<div align='left' style='width:100%'><font style='font-size:10px;' color='#275a87' >" + TextTime + " " + MiladiToShamsi(res[0].substr(0, 4), res[0].substr(5, 2), res[0].substr(8, 2)) + "</font></div></div>";
 
 					} else {
 
@@ -249,16 +374,16 @@ require_once inc_dataGrid;
 								"</table>" +
 								"<div style='width:100%'>" + ShowMsg + ShowImg + "</div>" +
 								"<div style= 'padding-top:6px;' > " + value + "</div>" +
-								"<div align='left'><font style='font-size:10px;' color='#275a87' >" + TextTime + " " + MiladiToShamsi(record.data.SendingDate) + "</font></div></div>";
+								"<div align='left'><font style='font-size:10px;' color='#275a87' >" + TextTime + " " + MiladiToShamsi(res[0].substr(0, 4), res[0].substr(5, 2), res[0].substr(8, 2)) + "</font></div></div>";
 
 					}
 
 				}
 
 				renderSrchMsg = function (value, p, record) {
-
-					return   "<div class='ChatBox'  style='width:70%;float:right;cursor:pointer;' onclick='GoToMsg(" + record.data.MSGID + ");' >   " +
-							"<div style= 'padding-top:6px;text-align:right' > " + value + "</div></div>";
+                
+					return   "<div class='SrchChatBox'  style='width:100%;float:right;cursor:pointer;' onclick='GoToMsg(" + record.data.MSGID + ");' >   " +
+							 "<div style= 'padding-top:6px;text-align:right' > " + value + "</div></div>";
 
 				}
 
@@ -271,8 +396,8 @@ require_once inc_dataGrid;
 							ReplyMsg(i);
 						}
 					});
-
-					op_menu.showAt(e.pageX - 120, e.pageY);
+                                       
+					op_menu.showAt(e.pageX+1500, e.pageY);
 				};
 
 				ReplyMsg = function (i) {
@@ -282,12 +407,13 @@ require_once inc_dataGrid;
 					lname = grid2.getStore().getAt(index).data.lname;
 					message = grid2.getStore().getAt(index).data.message;
 
-					Ext.getCmp("Field2").show();
-					newItemPanel.down("[itemId=PersonName]").setValue(fname + ' ' + lname);
-					newItemPanel.down("[itemId=PMsg]").setValue(message);
+					Field2 = Ext.getCmp("Field2");
+					Field2.show();
+					Field2.down("[itemId=PersonName]").setValue(fname + ' ' + lname);
+					Field2.down("[itemId=PMsg]").setValue(message);
 					formpanel.down("[itemId=ParentMSGID]").setValue(i);
 					formpanel.down("[itemId=MsgTxt]").setValue("");
-
+                    
 					return;
 				}
 
@@ -307,7 +433,7 @@ require_once inc_dataGrid;
 						}
 					});
 
-					op_menu.showAt(e.pageX, e.pageY);
+					op_menu.showAt(e.pageX +1200 , e.pageY);
 				};
 
 				EditMsg = function (i) {
@@ -336,7 +462,7 @@ require_once inc_dataGrid;
 						if (btn == "no")
 							return;
 
-						mask = new Ext.LoadMask(newItemPanel, {msg: 'در حال ذخيره سازي...'});
+						mask = new Ext.LoadMask(formpanel, {msg: 'در حال ذخيره سازي...'});
 						mask.show();
 
 						Ext.Ajax.request({
@@ -367,7 +493,7 @@ require_once inc_dataGrid;
 				ClosePanel = function ()
 				{
 					Field2 = Ext.getCmp("Field2");
-					Field2.hide();
+					Field2.hide();                    
 					Field2.down("[itemId=MsgTxt]").setValue("");
 					formpanel.down("[itemId=MSGID]").setValue("");
 					return;
@@ -387,39 +513,18 @@ require_once inc_dataGrid;
 					mask.show();
 					formpanel.getForm().submit(
 							{
-								url: this.address_prefix + 'ManageGroup.data.php?task=SaveMsg',
-								/*params:{
-								 MsgTxt: newItemPanel.down("[itemId=MsgTxt]").getValue(),
-								 FileType:newItemPanel.down("[itemId=FileType]").getValue()
-								 },*/
+								url: 'ManageGroup.data.php?task=SaveMsg',								
 								method: 'POST',
-								isUpload: true,
-								/* success: function (response, option) {
-								 mask.hide();
-								 if (response.responseText.indexOf("InsertError") != -1 ||
-								 response.responseText.indexOf("UpdateError") != -1)
-								 {
-								 alert("عملیات مورد نظر با شکست مواجه شد");
-								 return;
-								 }
-								 var st = Ext.decode(response.responseText);
-								 if (st.success)
-								 {
-								 newItemPanel.hide();
-								 //grid2.getStore().load();
-								 grid2.getView().scrollBy(0, 999999, true);
-								 } else
-								 {
-								 alert(response.responseText);
-								 }
-								 },
-								 failure: function () {} */
+								isUpload: true,								
 								success: function (form, action) {
 									mask.hide();
 									if (action.result.success)
 									{
-										grid2.getStore().load();
-										grid2.getView().scrollBy(0, 999999, true);
+										store.load({
+                                            callback : function(){
+                                                grid2.getView().scrollBy(0, 999999, true);    
+                                            }
+                                        });
 										formpanel.down("[itemId=MsgTxt]").setValue("");
 										formpanel.down("[itemId=FileType]").setValue("");
 										formpanel.down("[itemId=MSGID]").setValue("");
@@ -438,7 +543,7 @@ require_once inc_dataGrid;
 				}
 
 				SeenMsg = function ()
-				{
+				{                    
 					Ext.Ajax.request({
 						url: 'ManageGroup.data.php',
 						params: {
@@ -464,21 +569,17 @@ require_once inc_dataGrid;
 
 				}
 
-				Searching = function () {
+				Searching = function () {                    
 
-					if (!this.SearchPanel.down("[name=SearchTxt]").getValue())
+					if (!SearchPanel.down("[name=SearchTxt]").getValue())
 					{
 						Ext.MessageBox.alert("هشدار", "ورود عبارت جستجو الزامی می باشد.");
 						return false;
 					}
 
-					this.searchGrid.getStore().proxy.extraParams.SearchTxt = this.SearchPanel.down("[name=SearchTxt]").getValue();
-					this.searchGrid.getStore().proxy.extraParams.GID = formpanel.down("[itemId=GID]").getValue();
-
-					if (!this.searchGrid.rendered)
-						this.searchGrid.render(this.get("SearchPanel"));
-					else
-						this.searchGrid.getStore().load();
+					searchGrid.getStore().proxy.extraParams.SearchTxt = SearchPanel.down("[name=SearchTxt]").getValue();
+					searchGrid.getStore().proxy.extraParams.GID = formpanel.down("[itemId=GID]").getValue();
+					searchGrid.getStore().load();
 				}
 
 				GoToMsg = function (v) {
@@ -495,10 +596,10 @@ require_once inc_dataGrid;
 					var record = grid2.getStore().getAt(i);
 					var el = grid2.getView().getNode(record);
 					grid2.getSelectionModel().select(record);
-					el.scrollIntoView();
+				//	el.scrollIntoView();
 
-					// rec = grid2.getStore().data.items[i+1] ;
-					// grid2.getView().focusRow(rec);        
+					 rec = grid2.getStore().data.items[i+1] ;
+					 grid2.getView().focusRow(rec);        
 					return;
 				}
 
@@ -558,39 +659,32 @@ require_once inc_dataGrid;
 					Ext.getCmp("MainView").add(grid2);
 					Ext.getCmp("MainView").add(formpanel);
 
-					//SearchPanel.hide();
-					//Ext.getCmp("MainPanel").add(newItemPanel);
-
 					grid2.getStore().proxy.extraParams.GID = record.data.GID;
 					formpanel.down("[itemId=GID]").setValue(record.data.GID);
 					formpanel.down("[itemId=MID]").setValue(record.data.MID);
-
-					store.load();
-					/*store.prefetch({
-					 start: 0,
-					 limit: 10,
-					 callback: function () {
-					 //  store.guaranteeRange(0,5); 
-					 store.load();
-					 // grid2.getView().scrollBy(0, 999999, true);
-					 //if (IsFirstLoad === false) {                        
-					 / *
-					 * var records = Ext.getCmp('prGrid').getStore().data.length + 1;
-					 * var scrollPosition = 100;   
-					 YourGrid.getEl().down('.x-grid-view').scroll('bottom', scrollPosition, true);
-					 * /
-					 
-					 // ScrollPosition = grid2.getEl().down('.x-grid-view').getScroll().top ; 
-					 // IsFirstLoad = true;
-					 // }
-					 
-					 }
-					 });*/
-
-					//grid.hide();
-					//SeenMsg();
-					//   setInterval(function () {loadNotification()}, 1000);
-					// grid2.getView().scrollBy(0, 999999, true);
+            					
+                    store.load({
+                        callback : function(){
+                            //alert(1);
+                            try {
+                             //   alert(2);
+                                //var r = grid2.getStore().data.length - 1 ; 
+                                //grid2.getView().focusRow(r);  
+                                  grid2.getView().scrollBy(0, 999999, true);  
+                                //  alert(3);
+                            }
+                            catch(err) {
+                               // alert('hiiiii');
+                            }
+                             
+                            // alert(4);
+                             
+                        }
+                    });
+                                        
+                    SeenMsg();
+                    setInterval(function () {loadNotification()}, 1000);
+					
 				});
 
 				var store = Ext.create('Ext.data.Store', {
@@ -616,7 +710,7 @@ require_once inc_dataGrid;
 
 				var SearchStore = Ext.create('Ext.data.Store', {
 					remoteSort: true,
-					buffered: true,
+					//buffered: true,
 					fields: [{name: 'MSGID'}, {name: 'MID'}, {name: 'message'}],
 					proxy: {
 						type: 'jsonp',
@@ -667,8 +761,9 @@ require_once inc_dataGrid;
 							id: "Field2",
 							xtype: "container",
 							fieldLabel: "Field2",
-							style: 'width:95%;background-color:#edf9fd;border-right: 4px solid #bbdbed;border-left: 4px solid #bbdbed;border-top: 4px solid #bbdbed;border-radius: 25px;padding: 5px;',
+							//style: 'width:95%;background-color:#edf9fd;border-right: 4px solid #bbdbed;border-left: 4px solid #bbdbed;border-top: 4px solid #bbdbed;border-radius: 25px;padding: 5px;',
 							// width: 540,
+                            style: 'background-color:#f5f7f6;font-size:13px !important;color:#FF0000 !important',
 							hidden: true,
 							layout: {
 								type: "table",
@@ -677,6 +772,7 @@ require_once inc_dataGrid;
 							items: [
 								{
 									xtype: "container",
+                                    style:'border-top: 3px solid #e8e8e8;',
 									//width: 400,
 									colspan: 4,
 									html: "<div><img width='18px' height='18px' style='border:2px solid #bbdbed;border-radius: 5px;' align='top' src='../messenger/MsgDocuments/close.png' onclick='ClosePanel();' >&nbsp;</div>",
@@ -684,18 +780,16 @@ require_once inc_dataGrid;
 								{
 									xtype: "displayfield",
 									name: "PersonName",
-									itemId: "PersonName",
-									style: "border-radius: 25px;",
-									colspan: 4/*,
-									 renderer: function (v) {
-									 return Ext.util.Format.Money(v) + " ریال"
-									 }*/
+									itemId: "PersonName",                                     
+                                    fieldCls: "blueText",
+									colspan: 4
 								},
 								{
 									xtype: "displayfield",
 									name: "PMsg",
 									itemId: "PMsg",
-									style: "border-radius: 25px;",
+									style: 'width:95%;',	
+                                    fieldCls: "blueText",
 									colspan: 4,
 									renderer: function (v) {
 										return Ext.String.ellipsis(v, 80);
@@ -713,26 +807,40 @@ require_once inc_dataGrid;
 							{
 								xtype: 'button',
 								id: 'btn1',
-								//hidden : true,
+                                style: "border:0px;background: white !important;",
+								hidden : true,
 								handler: function ()
-									{
-										grid2.getStore().load();
-									  //  GoToMsg(279);
-
-										grid2.getView().scrollBy(0, 999999, true);
+									{			                                        
+                                        store.load({
+                                            callback : function(){
+                                                grid2.getView().scrollBy(0, 999999, true);    
+                                            }
+                                        });
 										SeenMsg();
 									}
 							},'->',
+                            {
+								xtype: 'button',
+								iconCls: "back",
+								handler:
+								function ()
+								{									                                  
+                                   window.location.href = "https://saja.krrtf.ir/messenger/MyMessenger.php";                                   
+                                }
+							},
 							{
 								xtype: 'button',
 								iconCls: "down",
 								handler:
 								function ()
-								{
-									grid2.getStore().load();
-								  //  GoToMsg(279);
-
-									grid2.getView().scrollBy(0, 999999, true);
+								{									
+                                    store.load({
+                                            callback : function(){
+                                                //grid2.getView().scrollBy(0, 999999, true);    
+                                               var r = grid2.getStore().data.length - 1 ;                                             
+                                                grid2.getView().focusRow(r);
+                                            }
+                                    });
 									SeenMsg();                                
 								}
 							}
@@ -742,32 +850,27 @@ require_once inc_dataGrid;
 				});
 
 				searchGrid = new Ext.grid.GridPanel({
+                    region: 'north',
 					store: SearchStore,
-					verticalScrollerType: 'paginggridscroller',
-					loadMask: true,
+					//verticalScrollerType: 'paginggridscroller',					
 					disableSelection: true,
-					invalidateScrollerOnRefresh: false,
+                    hideHeaders: true,
+					//invalidateScrollerOnRefresh: false,
 					viewConfig: {
-						trackOver: false
+						stripeRows: false,
+						trackOver: false,
+						loadMask: true
 					},
-					columns: [{menuDisabled: true,
-							align: 'center',
-							header: '',
-							dataIndex: 'MSGID',
-							emptyText: '',
-							hidden: true},
-						{menuDisabled: true,
-							header: '',
-							flex: 1,
-							dataIndex: 'message',
-							renderer: function (v, p, r) {
-								return renderSrchMsg(v, p, r);
-							},
-							//width: 580,
-							type: 'string',
-							hideMode: 'display',
-							searchable: true,
-							emptyText: ''}]
+					columns: [{menuDisabled: true,dataIndex: 'MSGID',hidden: true},
+                              { menuDisabled: true,flex: 1,dataIndex: 'message',
+                                renderer: function (v, p, r) {
+                                    return renderSrchMsg(v, p, r);
+                                },							
+                                type: 'string',
+                                hideMode: 'display',
+                                searchable: false,
+                                emptyText: ''}
+                             ]
 
 				});
 
@@ -813,7 +916,7 @@ require_once inc_dataGrid;
 
 				formpanel = new Ext.form.Panel({
 					region: 'south',
-					height: 80,
+					height: 85,
 					layout: {
 						type: "table",
 						columns: 3
@@ -825,10 +928,10 @@ require_once inc_dataGrid;
 							xtype: "textarea",
 							name: "MsgTxt",
 							itemId: "MsgTxt",
-							rows: 2,
-							style: "width:95%;margin:0px;"
-									//fieldCls: "rcorners2",
-									//height: 80
+							rows: 1,
+							style: "width:95%;margin:9px;"								
+                          
+                            //fieldCls: "rcorners2",
 						}
 						,
 						{
@@ -843,7 +946,16 @@ require_once inc_dataGrid;
 								iconAlign: 'center',
 								style: 'background: #ffffff;border:0;margin-top:10px',
 								scale: 'large'
-							}
+							},
+                            listeners : {
+                                change: function(f,new_val) {                                     
+                                                                      
+                                    Field2 = Ext.getCmp("Field2");
+                                    Field2.show();                                   
+                                    Field2.down("[itemId=PMsg]").setValue(formpanel.down("[name=FileType]").getValue());
+                                                      
+                               }                                                                    
+                            }
 						},
 						{
 							xtype: 'button',

@@ -5,9 +5,10 @@
 //---------------------------
 
 define("VALID_FILE_FORMATS","jpg,jpeg,gif,png");
-define("GRPPIC_DIRECTORY","D:/Projects/rtfund/messenger/MsgDocuments/GRP-");
+
+//define("GRPPIC_DIRECTORY","D:/Projects/rtfund/messenger/MsgDocuments/GRP-");
 //define("GRPMSGPIC_DIRECTORY","D:/Projects/rtfund/messenger/MsgDocuments/MSG-");
-//define("GRPPIC_DIRECTORY","/home/krrtfir/public_html/storage/MsgDocuments/GRP-");
-define("GRPMSGPIC_DIRECTORY","/home/krrtfir/public_html/storage/MsgDocuments/MSG-");
+define("GRPPIC_DIRECTORY","/home/sajakrrt/domains/saja.krrtf.ir/public_html/storage/MsgDocuments/GRP-"); 
+define("GRPMSGPIC_DIRECTORY","/home/sajakrrt/domains/saja.krrtf.ir/public_html/storage/MsgDocuments/MSG-");
 
 ?>

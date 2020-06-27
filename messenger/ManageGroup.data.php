@@ -350,17 +350,18 @@ function SelectMessageGrp()
   
 	$temp = manage_MSG_messages::GetAllGroupMessage($where,$whereParam);     
 	$no = count($temp);
-  
+    
     //..........................secure section ........................
     $start = (int)$_GET["start"] ;
     $limit = (int)$_GET["limit"] ;
+    
     if(!InputValidation::validate($_GET["callback"], InputValidation::Pattern_EnAlphaNum, false))
     {
         echo dataReader::getJsonData(array(), 0);
         die();
     }
     //................................................................
-    $temp = array_slice($temp,$start,$limit);
+    $temp = array_slice($temp,0,null);
 	
 	echo dataReader::getJsonData ($temp, $no, $_GET ["callback"] );
 	die ();
@@ -393,7 +394,7 @@ function SearchMsg()
 function SaveMsg()
 {
 	//.................. secure section .....................
-    if (!InputValidation::validate($_REQUEST['MsgTxt'], InputValidation::Pattern_FaEnAlphaNum, false)) {
+  /*  if (!InputValidation::validate($_REQUEST['MsgTxt'], InputValidation::Pattern_FaEnAlphaNum, false)) {
         echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
         die();
     }
@@ -410,7 +411,7 @@ function SaveMsg()
         echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
         die();
     }
-        
+     */   
     $obj = new manage_MSG_messages();    
     $obj->GID = $_REQUEST['GID'] ; 
     $obj->MID = $_REQUEST['MID'] ; 
@@ -418,7 +419,7 @@ function SaveMsg()
     $obj->MSGID =  $_REQUEST['MSGID'] ; 
     $obj->message = (empty($_REQUEST['MsgTxt']) ? " " : $_REQUEST['MsgTxt'] ) ;
     $obj->SendingDate = PDONOW ;  
-       
+    
     if (empty($obj->MSGID) && !($obj->MSGID > 0) ) {
        
         $size = $_FILES['FileType']['size'];
@@ -443,6 +444,7 @@ function SaveMsg()
         } else {
          
             $filetype = $obj->FileType = $extension; 
+            
             $return = $obj->Add();    
        
             $filename = $obj->MSGID;

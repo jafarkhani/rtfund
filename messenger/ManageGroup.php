@@ -1,5 +1,5 @@
 <?php 
-
+ini_set("display_errors", "On");
 require_once '../header.inc.php';
 require_once inc_dataGrid;
 
@@ -23,6 +23,7 @@ $dgh->addHandler = "function(v,p,r){ return ManageGroupObject.AddGrp(v,p,r);}";
 
 $dgh->title = "گروه های پیام رسان";
 $dgh->width = 500;
+$dgh->height = 500;
 $dgh->DefaultSortField = "GID";
 $dgh->DefaultSortDir = "ASC";
 $dgh->autoExpandColumn = "GroupTitle";
@@ -63,6 +64,7 @@ $dg->addHandler = "function(v,p,r){ return ManageGroupObject.AddMember(v,p,r);}"
 
 $dg->title = "اعضای گروه";
 $dg->width = 500;
+$dg->height = 500;
 $dg->DefaultSortField = "MID";
 $dg->DefaultSortDir = "ASC";
 $dg->autoExpandColumn = "PersonID";

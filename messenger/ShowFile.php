@@ -9,6 +9,7 @@ require_once 'ManageGroup.class.php';
 
 switch($_GET["source"])
 {
+	
 	case "GrpPic":
 		if(!empty($_REQUEST["GID"]))
 		{
@@ -40,11 +41,13 @@ switch($_GET["source"])
         
     case "ShowIcn":
 		if(!empty($_REQUEST["MSGID"]))
-		{     
+		{ 
+			
             //.................. secure section .....................
             InputValidation::validate($_REQUEST["MSGID"], InputValidation::Pattern_Num);         
             //.......................................................
 			$obj = new manage_MSG_messages((int)$_REQUEST['MSGID']);
+            
             if( $obj->FileType == 'pdf' || $obj->FileType == 'PDF' ) 
             {                   
                 $fileName = GRPPIC_DIRECTORY . "pdf.png";
