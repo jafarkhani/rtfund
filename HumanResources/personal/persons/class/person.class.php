@@ -61,6 +61,8 @@ class manage_person extends PdoDataAccess
 public $RefPersonID ;
 public $detectiveID ;
 public $JobCode ;
+public $childCount; //new added
+public $employ_date; //new added
 
 
 	function __construct($PersonID = "", $staff_id = "")

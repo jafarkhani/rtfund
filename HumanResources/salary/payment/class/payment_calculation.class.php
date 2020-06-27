@@ -171,7 +171,8 @@ class manage_payment_calculation extends PdoDataAccess
 		
 			
 			$main_time_slice = (  $between_length / $this->__MONTH_LENGTH) * ($this->cur_work_sheet / $this->__MONTH_LENGTH);
-						
+    //echo $between_length .'---'. $this->__MONTH_LENGTH .'***'. $this->cur_work_sheet .'****'. $this->__MONTH_LENGTH .'--<br>'; 
+   // die();
 			//افزون اقلام يک حکم به اقلام حقوقي
 			reset($temp_array);
 			$this->last_writ_sum_retired_include = 0; // مقداردهي اوليه
@@ -183,11 +184,11 @@ class manage_payment_calculation extends PdoDataAccess
 				}
 								
 				//در صورتي كه اين قلم بايستي تحت تاثير طول ماه نسبت به مبلغ در حكم قرار گيرد
-				
+			
 				if($fields['month_length_effect']) {		
 				
 					$time_slice = $main_time_slice * $this->__MONTH_LENGTH / WRIT_BASE_MONTH_LENGTH;
-		
+    //echo $main_time_slice .'----'. $this->__MONTH_LENGTH.'***'. WRIT_BASE_MONTH_LENGTH; ; die();
 			
 					if( $this->staffRow['person_type'] == HR_CONTRACT ) 
 					{
@@ -222,11 +223,11 @@ class manage_payment_calculation extends PdoDataAccess
 				
 				$resS = PdoDataAccess::runquery($query) ; 
 		
-	if( $fields['SessionItem'] ==  1 && !empty($resS[0]['TotalHour']) ) 
-    {
-                        $fields['param2'] = $resS[0]['TotalHour'] .':'.$resS[0]['TotalMin'] ;//$time_slice ; 					
-
-    }
+	if( $fields['SessionItem'] ==  1 && isset($resS[0]['TotalHour'])) 
+				{
+                                    $fields['param2'] = $resS[0]['TotalHour'] .':'.$resS[0]['TotalMin'] ;//$time_slice ; 					
+					
+				}
             
                 if(isset($resS[0]['TotalMin']) && $resS[0]['TotalMin'] > 0 ){
                  $resS[0]['TotalHour'] += round(($resS[0]['TotalMin']/60),2) ;
@@ -244,8 +245,13 @@ class manage_payment_calculation extends PdoDataAccess
 				/*	$fields['param2'] = $resS[0]['TotalHour'] .':'.$resS[0]['TotalMin'] ; */ 				
 					
 				}
-			
-				
+	
+    
+        //echo $main_time_slice .'---'. $this->__MONTH_LENGTH .'****'. WRIT_BASE_MONTH_LENGTH.'*jjj**<br>';
+                               // echo $time_slice .'---------<br>'; 
+                        
+        
+    
 				/************************/
 				if( isset($this->payment_items[$key]) ) { // اگر قبلا اين قلم در آرايه اقلام حقوقي وجود دارد
 					$this->payment_items[$key]['pay_value'] += $fields['pay_value'] * $time_slice;					
@@ -756,40 +762,19 @@ $Remainder = $this->subRow['receipt'] ;
 			'payment_type' => NORMAL,
 			'param1' => $this->sum_tax_include);
 			return true;
-		}        
+		}
+		
 		/*اين فرد مشمول ماليات نمي باشد*/
 		if(empty($this->staffRow['tax_include'])) {
 			return ;
 		}
-            
+			
 		/*قلم حقوقي ماليات معتبر نبوده است*/
 		if( !$this->validate_salary_item_id($this->acc_info[$key]['validity_start_date'], $this->acc_info[$key]['validity_end_date']) ) {
 			return ;
 		}
 		$this->moveto_curStaff($this->tax_rs,'TAX');
 		$this->moveto_curStaff($this->tax_history_rs,'TAXHIS');
-        
-      
-    /****************محاسبه مالیات افراد غیر از قراردادی به صورت ده درصد می باشد***********/ 
-        if($this->staffRow['emp_state'] != 1 )
-        {
-            
-            
-           $this->payment_items[$key] = array(
-                                            'pay_year' => $this->__YEAR,
-                                            'pay_month' => $this->__MONTH,
-                                            'staff_id' => $this->cur_staff_id,
-                                            'salary_item_type_id' => $key,
-                                            'get_value' => $this->sum_tax_include * 0.1 , 
-                                            'pay_value' => 0,
-                                            'diff_get_value' => 0,//براي اينكه اين قلم هم در پايگاه داده درج شود
-                                            'cost_center_id' => 0,
-                                            'payment_type' => NORMAL,
-                                            'param1' => $this->sum_tax_include);
-			return true;
-        }
-    /*************************/	
-        
 		/* در اين قسمت فرض شده است که تاريخ تعديل ماليات هموراه از ابتداي سال است*/
 //..........................
 		
@@ -811,16 +796,12 @@ $Remainder = $this->subRow['receipt'] ;
 			
 				if( $resAtt['attend'] > 0 )
 				{
-					$this->__START_NORMALIZE_TAX_MONTH =  $t ;                     
+					$this->__START_NORMALIZE_TAX_MONTH =  $t ; 
 					break ;					 
 				}
 			
 			}
-            
-            if($this->staffRow['emp_state'] == 4 )
-            {
-                $this->__START_NORMALIZE_TAX_MONTH = $this->__MONTH ; 
-            }
+		
 //..........................
 	/*	$year_avg_tax_include = ( (($this->cur_staff_id == $this->taxRow['staff_id']) ? $this->taxRow['sum_tax_include'] : 0 ) + 
 		$this->sum_tax_include + $this->taxHisRow['payed_tax_value'] - ( empty($this->payment_items[7]['get_value']) ? 0 : (($this->payment_items[7]['get_value'] * 2) / 7 ) ) ) / ($this->__MONTH - $this->__START_NORMALIZE_TAX_MONTH + 1); */
@@ -831,15 +812,15 @@ $Remainder = $this->subRow['receipt'] ;
     
 		$sum_normalized_tax = $tax_table_type_id = 0; //متغيري جهت نگهداري ماليات تعديل شده براي cur_staff در تمام طول سال
 		
-	 
-/*echo $this->taxRow['sum_tax_include'] .'--sti---'. $this->sum_tax_include.'---stiii---'.  	 $this->taxHisRow['payed_tax_value'].'--ptv--'.
-  ($this->__MONTH - $this->__START_NORMALIZE_TAX_MONTH + 1).'---m---'.$year_avg_tax_include ;  die(); */ 
+/*	 
+echo $this->taxRow['sum_tax_include'] .'--sti---'. 
+     $this->sum_tax_include.'---stiii---'. (($this->payment_items[7]['get_value'] * 2) / 7 ) .'--ptv--'.$this->taxRow['sum_BimeMoaf'].'--bimeMoaf-'.
+  ($this->__MONTH - $this->__START_NORMALIZE_TAX_MONTH + 1).'---m---'.$year_avg_tax_include ;  
+die();*/
 
 		reset($this->tax_tables);
 
 		for($m = $this->__START_NORMALIZE_TAX_MONTH; $m <= $this->__MONTH; $m++ ) {
-            
-//echo $m.'----ff--' ;
 			$begin_month_date = DateModules::shamsi_to_miladi($this->__YEAR."/".$m."/1") ; 			
 			$end_month_date = DateModules::shamsi_to_miladi($this->__YEAR."/".$m."/".DateModules::DaysOfMonth($this->__YEAR,$m)) ;	
 
@@ -875,7 +856,7 @@ $Remainder = $this->subRow['receipt'] ;
 	//	echo $year_avg_tax_include .'---'.$tax_table_row['from_value'] .'****'. $year_avg_tax_include ."****". $tax_table_row['to_value'].'---<br>' ; 
 					if( $year_avg_tax_include >= $tax_table_row['from_value'] && $year_avg_tax_include <= $tax_table_row['to_value'] ) {
 						$sum_normalized_tax += ( $year_avg_tax_include - $tax_table_row['from_value'] ) * $tax_table_row['coeficient'];						
-//echo  $this->__MONTH.'***'.$year_avg_tax_include .'***'. $tax_table_row['from_value'] .'-----'. $tax_table_row['coeficient'].'---<br>';
+		//echo ( $year_avg_tax_include - $tax_table_row['from_value'] ) .'-----'. $tax_table_row['coeficient'];
 					}
 					else if($year_avg_tax_include > $tax_table_row['to_value']){
 						$sum_normalized_tax += ( $tax_table_row['to_value'] - $tax_table_row['from_value'] ) * $tax_table_row['coeficient'];											
@@ -885,8 +866,10 @@ $Remainder = $this->subRow['receipt'] ;
 			}
 		}
 	
-//echo $sum_normalized_tax .'****'.$this->taxRow['sum_tax'];
-//die();
+		/*echo $this->sum_tax_include .'---<br>'.
+                     $sum_normalized_tax .'****'.
+                     $this->taxRow['sum_tax'];
+		die();*/
 	
 	//	$this->__START_NORMALIZE_TAX_MONTH =  1 ;
 		
@@ -894,13 +877,19 @@ $Remainder = $this->subRow['receipt'] ;
 		if($normalized_tax < 0)
 		$normalized_tax = 0;
 		 
+                
+                if($this->staffRow['emp_state'] == 3 ) 
+                {
+                    $normalized_tax = $this->sum_tax_include * 0.1 ; 
+                }
+                
 		//انتصاب ماليات تعديل شده به  payment_items
 		$this->payment_items[$key] = array(
 		'pay_year' => $this->__YEAR,
 		'pay_month' => $this->__MONTH,
 		'staff_id' => $this->cur_staff_id,
 		'salary_item_type_id' => $key,
-		'get_value' => $normalized_tax,
+		'get_value' => round($normalized_tax),
 		'pay_value' => 0,
 		'cost_center_id' => 0 ,
 		'payment_type' => NORMAL );
@@ -1951,7 +1940,7 @@ if($this->backpay)
 		$this->last_month_end = $this->month_end;
 
 		$this->backpay_recurrence = 0;
-				
+		
 		//محاسبه حقوق ماههاي قبلي
 		for ($i = $this->__BACKPAY_BEGIN_FROM; $i<$this->last_month; $i++) {
 			
@@ -1978,6 +1967,7 @@ if($this->backpay)
 		$this->month_end = DateModules::shamsi_to_miladi($this->__YEAR."/".$this->last_month."/".DateModules::DaysOfMonth($this->__YEAR,$this->last_month)) ; 				
 		$this->__MONTH = $this->last_month;
 		$this->__MONTH_LENGTH = DateModules::DaysOfMonth($this->__YEAR,$this->last_month);
+                
 		$this->run();
 		
 		return true ;
@@ -2585,7 +2575,7 @@ return true ;
 									
 								WHERE p.person_type IN(3) AND  ' . $this->__WHERE , $this->__WHEREPARAM ); 	
 						
-	
+
 	}
 
 	/* اجراي query استخراج احکام تاثيرگذار در حکم */
@@ -2702,7 +2692,7 @@ return true ;
 							
                         ORDER BY staff_id,execute_date,writ_id,writ_ver
                 ');		
-              /*  if($this->__MONTH == 8 ) {
+               /* if($this->__MONTH == 1 ) {
               echo PdoDataAccess::GetLatestQueryString().'***' ; die(); 
                     
                 }*/
@@ -3037,16 +3027,14 @@ return true ;
                                         ON(pit2.staff_id = pit.staff_id AND 
                                            pit2.pay_year = pit.pay_year AND
                                            pit2.pay_month = pit.pay_month AND
-                                           pit2.payment_type = ".NORMAL_PAYMENT." AND
-                                           pit2.salary_item_type_id = pit.salary_item_type_id)
-										   
-							     
+                                           pit2.payment_type = pit.payment_type AND
+                                           pit2.salary_item_type_id = pit.salary_item_type_id)										   							     
 
                         WHERE pit.pay_year >= ".$this->__START_NORMALIZE_TAX_YEAR." AND
-                                  pit.pay_month >= ".$this->__START_NORMALIZE_TAX_MONTH." AND
+                                  pit.pay_month >= ".$this->__START_NORMALIZE_TAX_MONTH." AND pit.payment_type = ".NORMAL_PAYMENT." AND
                                   pit.salary_item_type_id IN(8) ".$TaxWhere."
                         GROUP BY pit.staff_id
-                        UNION ALL 
+                       /* UNION ALL 
                         select  pit.staff_id staff_id,ls.PersonID ,
                                 SUM( pit.get_value +
                                    ( pit.diff_get_value * pit.diff_value_coef) ) sum_tax,
@@ -3064,14 +3052,13 @@ return true ;
                                 pit.payment_type !=1 AND  						
                                 pit.salary_item_type_id IN(8)   
 
-                        GROUP BY pit.staff_id
+                        GROUP BY pit.staff_id*/
                         )
 			tbl1
 
 			GROUP BY staff_id
                         ");
 			
-
 	}
 	
 	/* اجراي query مربوط به استخراج سابقه مالياتي*/
@@ -3561,10 +3548,27 @@ return true ;
 
 		
 		$param2 = $DailyMission;
+                if( $this->__MONTH < 7 )
+                    $dayNo = 31 ; 
+                else 
+                    $dayNo = 30 ; 
+                
+                $qry = " select wsi.value
 
+                        from HRM_staff s inner join HRM_writs w
+                                              on s.staff_id = w.staff_id and
+                                                 s.last_writ_id = w.writ_id and s.last_writ_ver = w.writ_ver
+
+                                    inner join HRM_writ_salary_items wsi
+                                              on w.staff_id = wsi.staff_id and
+                                                 w.writ_id = wsi.writ_id and w.writ_ver = wsi.writ_ver
+
+                        where wsi.staff_id = ? and salary_item_type_id = 1 " ;
+                $resItm = PdoDataAccess::runquery($qry, array($this->cur_staff_id)) ; 
+                
 	
-		$salary = ( !empty($this->payment_items[1]['pay_value']) ? ( $this->payment_items[1]['pay_value'] * 30/31 ) : 0  )   ;
-
+		//$salary = ( !empty($this->payment_items[1]['pay_value']) ? ( $this->payment_items[1]['pay_value'] * 30/31  ) : 0  ) ;                          
+                $salary = ( !empty($resItm[0]['value']) ? ( $resItm[0]['value']   ) : 0  ) ; 
 		$param3 = $salary / 30 /*$this->__MONTH_LENGTH*/;
  
 		$value =  $param2 * $param3;

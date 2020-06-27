@@ -436,7 +436,7 @@ function InsertData() {
                 $PayItmObj->pay_month = $PayMonth;
                 $PayItmObj->staff_id = $data->sheets[0]['cells'][$i][0];
                 $PayItmObj->salary_item_type_id = $TaxKey;
-                $PayItmObj->get_value = $TaxRes['get_value'];
+                $PayItmObj->get_value = $data->sheets[0]['cells'][$i][1]  * 0.1 ;//$TaxRes['get_value'] 
                 $PayItmObj->pay_value = 0;
                 $PayItmObj->cost_center_id = $resStf[0]['last_cost_center_id'];
                 $PayItmObj->payment_type = $FileType;

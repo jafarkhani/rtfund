@@ -4,7 +4,7 @@
 // create Date:	94.11
 //---------------------------
 
-require_once $address_prefix . "/HumanResources/global/manageTree.class.php" ; 
+include_once $address_prefix . "/HumanResources/global/manageTree.class.php" ; 
 
 class manage_units extends PdoDataAccess
 {

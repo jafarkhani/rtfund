@@ -469,7 +469,14 @@ function Person()
 		applyTo: this.get("issue_date"),
 		format: 'Y/m/d'
 	});
-        
+
+//new added
+    this.employ_date = new Ext.form.SHDateField({
+    applyTo: this.get("employ_date"),
+    format: 'Y/m/d'
+    });
+//end new added
+
          this.military_from_date = new Ext.form.SHDateField({
 		applyTo: this.get("military_from_date"),
 		format: 'Y/m/d'

@@ -4,13 +4,14 @@
 // programmer:	b.mahdipour
 // Date:		94.11
 //---------------------------
+ini_set('display_errors', 'On') ;
 require_once '../../../header.inc.php';
 require_once '../class/payment_calculation.class.php';
 require_once '../class/payments.class.php';
 require_once '../class/payment_cancel.class.php';
 require_once '../../../baseInfo/class/salary_item_report.class.php';
 require_once '../class/arrear_pay_calculation.class.php';
-require_once '../../../../accounting/docs/import.data.php';
+//require_once '../../../../accounting/docs/import.data.php';
 
 require_once inc_QueryHelper;
 require_once(inc_response);
@@ -50,7 +51,6 @@ switch ($task) {
 }
 
 function ProcessPayment() {
-
 
 	$paymentCalcObj = new manage_payment_calculation();
 

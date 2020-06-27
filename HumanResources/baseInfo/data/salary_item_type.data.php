@@ -168,10 +168,11 @@ function savesalaryItem() {
 	    $obj->tax_include = (isset($_POST['tax_include'])) ? $_POST['tax_include'] : 0;
 	    $obj->retired_include = (isset($_POST['retired_include'])) ? $_POST['retired_include'] : 0;
 	    $obj->pension_include = (isset($_POST['pension_include'])) ? $_POST['pension_include'] : 0; 
-		$obj->month_length_effect = (isset($_POST['month_length_effect'])) ? $_POST['month_length_effect'] : 0;
+            $obj->month_length_effect = (isset($_POST['month_length_effect'])) ? $_POST['month_length_effect'] : 0;
+            $obj->backpay_include = (isset($_POST['backpay_include'])) ? $_POST['backpay_include'] : 0;
 		
-		$obj->SessionItem = (isset($_POST['SessionItem'])) ? $_POST['SessionItem'] : 0;	
-    
+		$obj->user_data_entry = (isset($_POST['SessionItem'])) ? $_POST['SessionItem'] : 0;
+		
 		if(empty($_POST['validity_start_date']))
 			unset($obj->validity_start_date);
  

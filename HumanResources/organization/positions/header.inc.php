@@ -14,7 +14,7 @@ require_once config::$root_path.config::$framework_path.'System.class.php';
 require_once config::$root_path.config::$framework_path.'System.class.php';
   
 require_once('session.inc.php');
-require_once(config::$language.'_utf8.inc.php');
+include_once(config::$language.'_utf8.inc.php');
 
 session_start();
 if(!isset($_SESSION['User'])){

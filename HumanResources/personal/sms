@@ -1,6 +1,6 @@
 <?php
 
-//require_once (dirname(basename(__FILE__))."../smscenter/Classes/SMSUtils.class.php");	       
+//include_once (dirname(basename(__FILE__))."../smscenter/Classes/SMSUtils.class.php");	       
 /**
  * ارسال پیغام sms
  *

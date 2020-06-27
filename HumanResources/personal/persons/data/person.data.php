@@ -232,7 +232,6 @@ function searchPerson() {
 
 	$temp = manage_person::SelectPerson($where, $whereParam, $include_new_persons, $show_All_history);
 
-
 	$no = count($temp);
 	$temp = array_slice($temp, $_GET["start"], $_GET["limit"]);
  
@@ -247,6 +246,7 @@ function saveData() {
  
 		$obj->birth_date = DateModules::Shamsi_to_Miladi($_POST["birth_date"]);
 		$obj->issue_date = DateModules::Shamsi_to_Miladi($_POST["issue_date"]);
+$obj->employ_date = DateModules::Shamsi_to_Miladi($_POST["employ_date"]);
 		$obj->military_from_date = DateModules::Shamsi_to_Miladi($_POST["military_from_date"]);
 		$obj->military_to_date = DateModules::Shamsi_to_Miladi($_POST["military_to_date"]);
 		$obj->person_type = 3 ; 
@@ -387,6 +387,7 @@ function FillPersonItems($src) {
 
 	$obj->birth_date = DateModules::Shamsi_to_Miladi($src["birth_date"]);
 	$obj->issue_date = DateModules::Shamsi_to_Miladi($src["issue_date"]);
+$obj->employ_date = DateModules::Shamsi_to_Miladi($src["employ_date"]);
 	$obj->military_from_date = DateModules::Shamsi_to_Miladi($src["military_from_date"]);
 	$obj->military_to_date = DateModules::Shamsi_to_Miladi($src["military_to_date"]);
 

@@ -229,7 +229,7 @@ $drp_SitAvailable = manage_domains::DRP_SalaryItemAvailableFor("available_for",$
 			fields:["TafsiliID","TafsiliDesc"],
 			proxy: {
 				type: 'jsonp',
-				url: '/accounting/baseinfo/baseinfo.data.php?task=GetAllTafsilis&TafsiliType=9',
+				url: '/accounting/baseinfo/baseinfo.data.php?task=GetAllTafsilis&TafsiliType=<?= TAFSILITYPE_PERSON ?>',
 				reader: {root: 'rows',totalProperty: 'totalCount'}
 			}
 		}),

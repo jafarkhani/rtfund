@@ -8,19 +8,19 @@ require_once("../data/person.data.php");
 require_once '../../staff/class/staff.class.php';
 //require_once '../../staff/class/staff_detasils.php';
 //require_once ("../../../organization/org_units/unit.class.php");
+ini_set('display_errors','on');
 
 require_once inc_dataGrid;
 //-----------------------------------------------
 $RefPersonID = $personID = !empty($_POST["Q0"]) ? $_POST["Q0"] : "";
 $FacilID = isset($_POST["MenuID"]) ? $_POST["MenuID"] : "";
 
+
 $query = " select fname ,lname from BSC_persons  where PersonID = ".$personID  ; 
 $resAccInfo = PdoDataAccess::runquery($query);
 
-
 $query = " select PersonID from HRM_persons  where RefPersonID = ".$personID  ; 
 $resPr = PdoDataAccess::runquery($query);
-
 
 if(!empty($resPr[0]['PersonID']))
 {
@@ -29,10 +29,8 @@ if(!empty($resPr[0]['PersonID']))
 else
 	$personID ="";
 
-
 if(!empty($personID))
-{
-  
+{  
 	$obj = manage_person::SearchPerson($personID);    
 	$SummeryInfo = manage_person::GetAllPersons("p.personid = :PID  ",array(":PID" => $personID));
   
@@ -49,6 +47,7 @@ else
     $staffInfo = new manage_staff();
    
 }
+
 
 //--------------------------------------------------------------------
 $drp_issue_countries = manage_domains::DRP_Countries("country_id","",$obj->country_id,"","70");
@@ -304,6 +303,25 @@ require_once '../js/new_person.js.php';
 							</td>
 						</tr>
 
+                         <tr>
+                            <td width="25%">
+                                &#1578;&#1593;&#1583;&#1575;&#1583; &#1601;&#1585;&#1586;&#1606;&#1583; :
+                            </td>
+                            <td width="25%" >
+                                <input type="text" id="childCount" name="childCount" class="x-form-text x-form-field" style="width: 100px"
+                                       value="<?= $obj->childCount ?>">
+                            </td>
+
+
+                            <td width="25%">
+                                &#1578;&#1575;&#1585;&#1740;&#1582; &#1575;&#1587;&#1578;&#1582;&#1583;&#1575;&#1605; :
+                            </td>
+                            <td width="25%">
+                                <input type="text" id="employ_date" name="employ_date" class="x-form-text x-form-field" style="width: 80px"
+                                       value="<?= DateModules::Miladi_to_Shamsi($obj->employ_date) ?>">
+                            </td>
+                        </tr>
+
 						<tr>
 							<td width="25%" height="21px" >
 							سرپرست خانواده ؟
@@ -423,7 +441,7 @@ require_once '../js/new_person.js.php';
 							شماره حساب :
 							</td>
 							<td width="25%" >
-							<input type="text" id="account_no" name="account_no" class="x-form-text x-form-field" style="width: 120px"
+							<input type="text" id="account_no" name="account_no" class="x-form-text x-form-field" style="width: 200px"
 								   value="<?= $staffInfo->account_no ?>">
 							</td>
 						</tr>
