@@ -4,7 +4,7 @@
 //	Date		: 96.05
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once './ReportDB.class.php';
 
 $DashboardType = $_REQUEST["DashboardType"];

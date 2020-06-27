@@ -4,7 +4,7 @@
 //	Date		: 91.02
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 
 $page_rpg = new ReportGenerator("mainForm","AccReport_IncomeChequeObj");
@@ -142,6 +142,12 @@ function GetData(){
 		$query .= " AND r.BranchID = :brnch";
 		$param[":brnch"] = $_POST["BranchID"];
 	}
+	if(isset($_POST["ReqPersonID"]))
+	{
+		$query .= " AND r.ReqPersonID = :rp";
+		$param[":rp"] = $_POST["ReqPersonID"];
+	}
+	
 	//.........................................................
 	$group = ReportGenerator::GetSelectedColumnsStr();
 	$query .= $group == "" ? " group by i.IncomeChequeID" : " group by " . $group;
@@ -298,7 +304,6 @@ function AccReport_IncomeCheque()
 			}),
 			fieldLabel : "شعبه",
 			queryMode : 'local',
-			value : "<?= !isset($_SESSION["accounting"]["BranchID"]) ? "" : $_SESSION["accounting"]["BranchID"] ?>",
 			displayField : "BranchName",
 			valueField : "BranchID",
 			hiddenName : "BranchID"
@@ -373,9 +378,25 @@ function AccReport_IncomeCheque()
 			fieldLabel : "وضعیت چک",
 			displayField : "TafsiliDesc",
 			queryMode : "local",
-			colspan : 2,
 			valueField : "TafsiliID",
 			hiddenName :"ChequeStatus"
+		},{
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../../framework/person/persons.data.php?' +
+						"task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['PersonID','fullname']
+			}),
+			fieldLabel : "منبع",
+			pageSize : 25,
+			width : 370,
+			displayField : "fullname",
+			valueField : "PersonID",
+			hiddenName : "ReqPersonID"
 		},{
 			xtype : "fieldset",
 			title : "ستونهای گزارش",

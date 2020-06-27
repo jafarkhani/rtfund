@@ -3,19 +3,24 @@
 // programmer:	Jafarkhani 
 // create Date:	95.08
 //---------------------------
-require_once ("../header.inc.php");
+require_once ("../../header.inc.php");
 require_once inc_component;
 
 $IncomeChequeID = $_POST["IncomeChequeID"];
 
 $query = "select h.*,
 				concat_ws(' ',fname, lname,CompanyName) fullname , 
-				bf.InfoDesc StatusDesc, LocalNo
+				bf.InfoDesc StatusDesc, t.LocalNo
 			from ACC_ChequeHistory h 
 				left join BaseInfo bf on(bf.TypeID=4 AND bf.InfoID=StatusID)
 				join BSC_persons using(PersonID) 
-				left join ACC_docs d on(d.DocID=h.DocID)
-				
+				left join(
+					select SourceID4,EventType3, LocalNo
+					from ACC_docs join COM_events using(EventID)
+					join ACC_DocItems using(DocID)
+					where EventType in('".EVENTTYPE_IncomeCheque."','".EVENTTYPE_LoanBackPayCheque."')
+					group by SourceID4,EventType3
+				)t on(t.SourceID4=h.IncomeChequeID AND h.StatusID=t.EventType3)				
 				where h.IncomeChequeID=?
 			order by RowID ";
 $Logs = PdoDataAccess::runquery($query, array($IncomeChequeID));

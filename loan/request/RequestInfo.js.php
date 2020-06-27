@@ -14,6 +14,11 @@ RequestInfo.prototype = {
 	RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
 
 	RequestID : <?= $RequestID ?>,
+	
+	EndEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanEnd) ?>,
+	ContractEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanContract) ?>,
+	
+	
 	RequestRecord : null,
 	User : '<?= $User ?>',
 	ReadOnly : <?= $ReadOnly ? "true" : "false" ?>,
@@ -43,11 +48,11 @@ function RequestInfo(){
 	
 		RequestInfoObject.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
 		RequestInfoObject.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
-		if(record.data.ComputeMode == "BANK")
+		/*if(record.data.ComputeMode == "BANK")
 		{
 			RequestInfoObject.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "block";
 			RequestInfoObject.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "block";
-		}
+		}*/
 	
 	});
 	this.grid.getView().getRowClass = function(record, index)
@@ -84,7 +89,7 @@ RequestInfo.prototype.LoadRequestInfo = function(){
 					"LoanFullname","ReqDate","ReqAmount","ReqDetails","BorrowerDesc","BorrowerID",
 					"BorrowerMobile","guarantees","AgentGuarantee","FundGuarantee","StatusID","DocumentDesc","IsFree",
 					"imp_GirandehCode","imp_VamCode","IsEnded","SubAgentID","PlanTitle","RuleNo","FundRules",
-					"DomainID","DomainDesc",
+					"DomainID","DomainDesc","IsLock",
             		"LetterID","SourceID","ExpertPersonID","DocRequestDate","DocReceiveDate",
 					"MeetingDate","VisitDate","WorkgroupDiscussDate","ContractType"],
 		autoLoad : true,
@@ -115,7 +120,8 @@ RequestInfo.prototype.LoadRequestInfo = function(){
 					me.grid.down("[itemId=addPart]").hide();
 				}
 				//..........................................................
-
+				me.companyPanel.down("[name=IsLock]").setValue(record.data.IsLock == "YES");
+				
 				// set Miladi date to shamsi date
 				me.companyPanel.down("[name=DocRequestDate]").setValue(MiladiToShamsi(record.data.DocRequestDate));
 				me.companyPanel.down("[name=DocReceiveDate]").setValue(MiladiToShamsi(record.data.DocReceiveDate));
@@ -532,6 +538,12 @@ RequestInfo.prototype.BuildForms = function(){
 			labelWidth : 130
 		},
 		items : [{
+			xtype : "displayfield",
+			fieldLabel : "شماره وام",
+			value : this.RequestID,
+			width : 400,
+			fieldCls : "blueText"
+		},{
 			xtype : "combo",
 			hidden : true,
 			store : new Ext.data.SimpleStore({
@@ -574,7 +586,7 @@ RequestInfo.prototype.BuildForms = function(){
 			valueField : "SubID",
 			name : "SubAgentID",
 			itemId : "cmp_subAgent"
-		},{
+		},{ 
 			xtype : "combo",
 			store : new Ext.data.SimpleStore({
 				proxy: {
@@ -720,6 +732,16 @@ RequestInfo.prototype.BuildForms = function(){
 				fieldLabel : "شماره وام قدیم"
 			}],
 			cls : "blueText"
+		},{
+			xtype:'toggleslidefield',
+			fieldLabel : "تغییرات در شرایط و اقساط وام قفل می باشد",
+			state: false,
+			colspan : 2,
+			width : 700,
+			name: 'IsLock',
+			onText: 'فعال', 
+			offText: 'غیرفعال',
+			labelWidth: 200
 		},{
 			xtype : "fieldset",
 			title : "تضمین",
@@ -986,15 +1008,7 @@ RequestInfo.prototype.BuildForms = function(){
 			hidden : true,
 			iconCls : "account",
 			itemId : "cmp_accevents",
-			menu :[/*{
-				text : 'اجرای رویداد تخصیص وام به مشتری',
-				iconCls : "send",
-				handler : function(){ 
-					framework.ExecuteEvent(<?= EVENT_LOAN_ALLOCATE?>, 
-						new Array(RequestInfoObject.RequestRecord.data.RequestID,
-									RequestInfoObject.RequestRecord.data.PartID));
-				}
-			},*/{
+			menu :[{
 				text : 'اجرای رویداد عقد قرارداد با مشتری',
 				iconCls : "send",
 				handler : function(){ RequestInfoObject.ExecuteEvent(); }
@@ -1256,8 +1270,8 @@ RequestInfo.prototype.CustomizeForm = function(record){
 			//this.PartsPanel.down("[name=PayCompute]").getEl().dom.style.display = "none";
 			//this.PartsPanel.down("[name=MaxFundWage]").getEl().dom.style.display = "none";
 			this.PartsPanel.down("[name=AgentReturn]").getEl().dom.style.display = "none";
-			this.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
-			this.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
+			//this.PartsPanel.down("[name=AgentDelayReturn]").getEl().dom.style.display = "none";
+			//this.PartsPanel.down("[name=DelayReturn]").getEl().dom.style.display = "none";
 			this.get("TR_FundWage").style.display = "none";
 			this.get("TR_AgentWage").style.display = "none";
 			this.get("div_yearly").style.display = "none";
@@ -1491,7 +1505,7 @@ RequestInfo.prototype.LoanDocuments = function(ObjectType){
 	if(!this.documentWin)
 	{
 		this.documentWin = new Ext.window.Window({
-			width : 720,
+			width : 920, 
 			height : 440,
 			modal : true,
 			autoScroll:true,
@@ -1663,7 +1677,7 @@ RequestInfo.prototype.SetStatus = function(){
 
 RequestInfo.prototype.EndRequest = function(){
 	
-	framework.ExecuteEvent(<?= EVENT_LOAN_END ?>, 
+	framework.ExecuteEvent(RequestInfoObject.EndEventID, 
 		new Array(RequestInfoObject.RequestRecord.data.RequestID,
 					RequestInfoObject.RequestRecord.data.PartID), "RequestInfoObject.afterEndLoan");
 	
@@ -1672,9 +1686,9 @@ RequestInfo.prototype.EndRequest = function(){
 
 RequestInfo.prototype.afterEndLoan = function(){
 	
-	me.mask.show();
+	RequestInfoObject.mask.show();
 	RequestInfoObject.LoadRequestInfo();
-	me.mask.hide();
+	RequestInfoObject.mask.hide();
 }
 	
 RequestInfo.prototype.DefrayRequest = function(){
@@ -1715,56 +1729,36 @@ RequestInfo.prototype.DefrayRequest = function(){
 
 RequestInfo.prototype.ReturnEndRequest = function(){
 	
-	me.mask.show();
-	Ext.Ajax.request({
-		methos : "post",
-		url : me.address_prefix + "request.data.php",
-		params : {
-			task : "GetEndDoc",
-			RequestID : me.RequestID
-		},
+	Ext.MessageBox.confirm("","آیا مایل به برگشت خاتمه وام می باشید؟", function(btn){
+		if(btn == "no")
+			return false;
 
-		success : function(response){
-			result = Ext.decode(response.responseText);
-			if(result.success)
-			{
-				Ext.MessageBox.confirm("",result.data, function(btn){
-				
-					if(btn == "no")
-						return;
+		me = RequestInfoObject;
+		me.mask.show();
 
-					me = RequestInfoObject;
+		Ext.Ajax.request({
+			methos : "post",
+			url : me.address_prefix + "request.data.php",
+			params : {
+				task : "ReturnEndRequest",
+				RequestID : me.RequestID
+			},
 
-					Ext.Ajax.request({
-						methos : "post",
-						url : me.address_prefix + "request.data.php",
-						params : {
-							task : "ReturnEndRequest",
-							RequestID : me.RequestID
-						},
+			success : function(response){
+				result = Ext.decode(response.responseText);
+				if(result.success)
+				{
+					Ext.MessageBox.alert("","سند مربوطه با موفقیت باطل گردید");
+					RequestInfoObject.LoadRequestInfo();					
+				}	
+				else if(result.data == "")
+					Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
+				else
+					Ext.MessageBox.alert("",result.data);
 
-						success : function(response){
-							result = Ext.decode(response.responseText);
-							if(result.success)
-							{
-								Ext.MessageBox.alert("","سند مربوطه با موفقیت باطل گردید");
-								RequestInfoObject.LoadRequestInfo();					
-							}	
-							else if(result.data == "")
-								Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
-							else
-								Ext.MessageBox.alert("",result.data);
-
-							RequestInfoObject.mask.hide();
-						}
-					});
-				});		
-			}	
-			else 
-				Ext.MessageBox.alert("",result.data);
-
-			RequestInfoObject.mask.hide();
-		}
+				RequestInfoObject.mask.hide();
+			}
+		});
 	});
 }
 
@@ -2009,7 +2003,7 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 						name : "AgentReturn",
 						inputValue : "CUSTOMER"
 					}]
-				},{
+				}/*,{
 					xtype : "fieldset",
 					itemId : "fs_DelayCompute",
 					title : "نحوه دریافت تنفس صندوق",
@@ -2065,7 +2059,7 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 						name : "AgentDelayReturn",
 						inputValue : "NEXTYEARCHEQUE"
 					}]
-				}/*,{
+				}*//*,{
 					xtype : "fieldset",
 					colspan :2,
 					width : 450,
@@ -2124,8 +2118,8 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 			this.PartWin.down("[name=PartDate]").hide();
 			this.PartWin.down("[itemId=fs_WageCompute]").hide();
 			this.PartWin.down("[itemId=fs_AgentWageCompute]").hide();
-			this.PartWin.down("[itemId=fs_DelayCompute]").hide();
-			this.PartWin.down("[itemId=fs_AgentDelayCompute]").hide();
+			//this.PartWin.down("[itemId=fs_DelayCompute]").hide();
+			//this.PartWin.down("[itemId=fs_AgentDelayCompute]").hide();
 			//this.PartWin.down("[itemId=fs_PayCompute]").hide();
 			//this.PartWin.down("[itemId=fs_MaxFundWage]").hide();
 			this.PartWin.down("[name=PartAmount]").colspan = 2;
@@ -2159,13 +2153,6 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 }
 
 RequestInfo.prototype.SavePart = function(){
-
-	/*if(this.PartWin.down('[name=MaxFundWage]').getValue()*1 > 0 && 
-		this.PartWin.down('[name=FundWage]').getValue()*1 > 0 )
-	{
-		Ext.MessageBox.alert("Error","در صورتی که سقف کارمزد صندوق را تعیین می کنید باید کارمزد صندوق را صفر نمایید");
-		return;
-	}*/
 
 	mask = new Ext.LoadMask(this.PartWin, {msg:'در حال ذخیره سازی ...'});
 	mask.show();
@@ -2270,7 +2257,7 @@ RequestInfo.prototype.LoadSummary = function(record){
 	this.get("SUM_LastInstallmentAmount").innerHTML = Ext.util.Format.Money(record.data.LastPay);
 	this.get("SUM_FundDelay").innerHTML = Ext.util.Format.Money(record.data.FundDelay);
 	this.get("SUM_AgentDelay").innerHTML = Ext.util.Format.Money(record.data.AgentDelay);
-	this.get("SUM_TotalWage").innerHTML = Ext.util.Format.Money(record.data.TotalCustomerWage);
+	this.get("SUM_TotalCustomerWage").innerHTML = Ext.util.Format.Money(record.data.TotalCustomerWage);
 	this.get("SUM_FundWage").innerHTML = Ext.util.Format.Money(record.data.TotalFundWage);
 	this.get("SUM_AgentWage").innerHTML = Ext.util.Format.Money(record.data.TotalAgentWage);
 	this.get("SUM_Wage_1Year").innerHTML = Ext.util.Format.Money(record.data.WageYear1);
@@ -2287,7 +2274,7 @@ RequestInfo.prototype.LoadInstallments = function(){
 	if(!this.InstallmentsWin)
 	{
 		this.InstallmentsWin = new Ext.window.Window({
-			width : 770,
+			width : 1000,
 			title : "لیست اقساط",
 			height : 410,
 			modal : true,
@@ -2642,15 +2629,7 @@ RequestInfo.prototype.ShowCheckList = function(){
 RequestInfo.prototype.ExecuteEvent = function(){
 	
 	var eventID = "";
-	if(this.RequestRecord.data.ReqPersonID*1 == 0)
-		eventID = "<?= EVENT_LOANCONTRACT_innerSource ?>";
-	else
-	{
-		if(this.RequestRecord.data.FundGuarantee == "YES")
-			eventID = "<?= EVENT_LOANCONTRACT_agentSource_committal ?>";
-		else
-			eventID = "<?= EVENT_LOANCONTRACT_agentSource_non_committal ?>";
-	}
+	eventID = this.ContractEventID;
 
 	framework.ExecuteEvent(eventID, new Array(this.RequestRecord.data.RequestID,this.RequestRecord.data.PartID));
 }

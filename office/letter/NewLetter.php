@@ -64,7 +64,7 @@ Letter.prototype.LoadLetter = function(){
 			url: this.address_prefix + "letter.data.php?task=SelectLetter&LetterID=" + this.LetterID,
 			reader: {root: 'rows',totalProperty: 'totalCount'}
 		},
-		fields : ["LetterID","LetterType","LetterTitle","SubjectID","summary","context",
+		fields : ["LetterID","LetterType","LetterTitle","SubjectID","summary",
 			"keywords","AccessType","OuterSendType","SignerPersonID", "organization",
 			"OrgPost","InnerLetterNo","InnerLetterDate","OuterCopies","IsSigned", "ProcessID"],
 		autoLoad : true,
@@ -74,7 +74,6 @@ Letter.prototype.LoadLetter = function(){
 				//..........................................................
 				record = this.getAt(0);
 				me.letterPanel.loadRecord(record);
-				me.TabPanel.down("[name=context]").setValue(record.data.context);
 				
 				me.TabPanel.down("[itemId=pagesView]").getStore().proxy.extraParams = {
 					LetterID : record.data.LetterID
@@ -350,7 +349,28 @@ Letter.prototype.BuildForms = function(){
 			})
 		},{
 			title : "متن نامه",
+			itemId : "ContextTab",
 			height : 450,
+			listeners : {
+				afterrender : function(){
+								
+					contextTab  = this;
+					mask = new Ext.LoadMask(this.down("htmleditor"), {msg:'در حال بارگذاری...'});
+					mask.show(); 
+					Ext.Ajax.request({
+						method : "post",
+						url : LetterObject.address_prefix + "letter.data.php?task=GetLetterContext",
+						params : {
+							LetterID : LetterObject.LetterID 
+						},
+						
+						success : function(response){
+							mask.hide();
+							contextTab.down("htmleditor").setValue(response.responseText);
+						}
+					});
+				}
+			},
 			items :[{
 				xtype : "combo",
 				width : 500,
@@ -380,37 +400,7 @@ Letter.prototype.BuildForms = function(){
 				width : 700,
 				height : 400,
 				name : "context"
-			}]/*,			
-			listeners : {
-				activate : function(){
-					if(!LetterObject.LoadEditor)
-					{
-						LetterObject.LoadEditor = true;
-						if ( CKEDITOR.env.ie && CKEDITOR.env.version < 9 )
-							CKEDITOR.tools.enableHtml5Elements( document );
-
-						CKEDITOR.config.width = 'auto';
-						CKEDITOR.config.height = 300;
-						CKEDITOR.config.autoGrow_minHeight = 170;
-						CKEDITOR.replace('LetterEditor');	
-						CKEDITOR.add;
-						
-						if(LetterObject.LetterID > 0)
-						{
-							record = LetterObject.store.getAt(0);
-							CKEDITOR.instances.LetterEditor.on('instanceReady', function( ev ) {
-								ev.editor.setData(record.data.context);
-							});			
-							CKEDITOR.instances.LetterEditor.setData(record.data.context);
-
-						}	
-						else
-							CKEDITOR.instances.LetterEditor.setData();
-						
-						LetterObject.TabPanel.down("[itemId=AddToTemplates]").enable();
-					}					
-				}
-			}*/
+			}]
 		},{
 			title : "تصاویر نامه",
 			itemId : "LetterPices",
@@ -472,7 +462,7 @@ Letter.prototype.BuildForms = function(){
 									'title="{DocumentTitle}" onclick="LetterObject.ShowPage({DocumentID},{ObjectID})">',
 								'<tpl else>',
 									'<img style="width:100px;height:100px;cursor:pointer" ',
-									'src="/office/dms/ShowFile.php?RowID={RowID}&DocumentID={DocumentID}&ObjectID={ObjectID}" ',
+									'src="/office/dms/ShowFile.php?RowID={RowID}&DocumentID={DocumentID}&ObjectID={ObjectID}&inline=true" ',
 									'title="{DocumentTitle}" onclick="LetterObject.ShowPage({DocumentID},{ObjectID})">',
 								'</tpl>',
 							'</div>',
@@ -660,7 +650,9 @@ Letter.prototype.SaveLetter = function(SendFile){
 	params = {LetterID : this.LetterID};
 	/*if(CKEDITOR.instances.LetterEditor)
 		params.context = CKEDITOR.instances.LetterEditor.getData();*/
-	params.context = this.TabPanel.down("[name=context]").getValue();
+		
+	if(this.TabPanel.getComponent("ContextTab").rendered)
+		params.context = this.TabPanel.down("[name=context]").getValue();
 		
 	if(SendFile)
 	   form = this.TabPanel.down("[itemId=LetterPicsPanel]").getForm();

@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	98.10
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataGrid;
  
 //................  GET ACCESS  .....................
@@ -305,6 +305,9 @@ LoanFollow.prototype.DeleteFollow = function(){
 
 LoanFollow.prototype.RegisterLetter = function(RequestID, TemplateID, FollowID){
 	
+	mask = new Ext.LoadMask(this.grid, {msg:'در حال ایجاد نامه ...'});
+	mask.show();
+		
 	Ext.Ajax.request({
 		url: this.address_prefix + 'request.data.php',
 		params:{
@@ -316,16 +319,24 @@ LoanFollow.prototype.RegisterLetter = function(RequestID, TemplateID, FollowID){
 		method: 'POST',
 
 		success: function(response,option){
+			mask.hide();
 			result = Ext.decode(response.responseText);
 			if(result.success)
 			{
-				LoanFollow.OpenLetter(result.data);
+				if(result.data == "0")
+				{
+					Ext.MessageBox.alert("","ایجاد نامه با شکست مواجه شده است");
+					return;
+				}
+				LoanFollowObject.grid.getStore().load({
+					callback : function(){LoanFollow.OpenLetter(result.data);}
+				});
 			}
 			else if(result.data == "")
 				Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
 			else
 				Ext.MessageBox.alert("",result.data);
-			mask.hide();
+			
 
 		},
 		failure: function(){}

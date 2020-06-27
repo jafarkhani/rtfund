@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	94.08
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once 'request.class.php';
 require_once inc_dataGrid;
 
@@ -45,6 +45,7 @@ $dg->addColumn("", "RequestID","", true);
 $dg->addColumn("", "BankDesc", "", true);
 $dg->addColumn("", "ChequeBranch", "", true);
 $dg->addColumn("", "history", "", true);
+$dg->addColumn("", "ComputeType", "", true);
 
 $col = $dg->addColumn("سررسید", "InstallmentDate", GridColumn::ColumnType_date);
 //$col->editor = ColumnEditor::SHDateField();
@@ -52,17 +53,32 @@ $col->width = 80;
 
 $col = $dg->addColumn("مبلغ قسط", "InstallmentAmount", GridColumn::ColumnType_money);
 //$col->editor = ColumnEditor::CurrencyField();
+$col->summaryType = GridColumn::SummeryType_sum;
+$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 
 if(session::IsFramework())
 {
 	$col = $dg->addColumn("کارمزد", "wage", GridColumn::ColumnType_money);
 	$col->width = 80;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
+	
 	$col = $dg->addColumn("اصل", "", GridColumn::ColumnType_money);
 	$col->renderer = "function(v,p,r){return r.data.InstallmentAmount - r.data.wage;}";
 	$col->width = 80;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "Installment.PureRemainSummaryRender";
+	
 	
 	$col = $dg->addColumn("خالص کارمزد", "PureWage", GridColumn::ColumnType_money);
 	$col->width = 80;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
+	
+	$col = $dg->addColumn("کارمزد مازاد صندوق از حساب سرمایه گذار", "PureFundWage", GridColumn::ColumnType_money);
+	$col->width = 80;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 }
 
 $col = $dg->addColumn("مانده قسط", "remain", GridColumn::ColumnType_money);
@@ -86,8 +102,8 @@ if($editable && $accessObj->EditFlag)
 	$dg->addButton("", "محاسبه قسط آخر", "process", 
 			"function(){InstallmentObject.ComputeLatestInstallment();}");
 	
-	$dg->addButton("", "محاسبه اقساط بر اساس سیستم قدیم", "undo", 
-			"function(){InstallmentObject.ComputeOldInstallments();}");
+	//$dg->addButton("", "محاسبه اقساط بر اساس سیستم قدیم", "undo", 
+	//		"function(){InstallmentObject.ComputeOldInstallments();}");
 	
 	//$dg->enableRowEdit = true;
 	//$dg->rowEditOkHandler = "function(store,record){return InstallmentObject.SaveInstallment(store,record);}";
@@ -100,8 +116,9 @@ if(session::IsFramework())
 {
 	$dg->addButton("cmp_report2", "گزارش پرداخت", "report", "function(){InstallmentObject.PayReport();}");
 }
+
+$dg->EnableSummaryRow = true;
 $dg->height = 377;
-$dg->width = 755;
 $dg->emptyTextOfHiddenColumns = true;
 $dg->EnableSearch = false;
 $dg->HeaderMenu = false;
@@ -163,6 +180,17 @@ function Installment()
 		
 	if(this.framework)
 	{
+		this.grid.addDocked({
+			xtype: 'toolbar',
+			dock: 'bottom',
+			items: [{ 
+				xtype: 'container', 
+				autoWidth : true,
+				flex : 1,
+				html : "ردیف های زرد اقساط ثبت سابقه می باشند"+
+					"<br>ردیف های سبز رنگ اقساطی هستند که به صورت دستی ایجاد شده اند"
+			}
+		]});
 		if(this.grid.plugins[0])
 			this.grid.plugins[0].on("beforeedit", function(editor,e){
 				
@@ -175,9 +203,9 @@ function Installment()
 		this.grid.getView().getRowClass = function(record, index)
 		{
 			if(record.data.history == "YES")
-				return "greenRow";
-			if(record.data.IsDelayed == "YES")
 				return "yellowRow";
+			if(record.data.ComputeType == "USER")
+				return "greenRow";
 
 			return "";
 		}
@@ -302,6 +330,12 @@ function Installment()
 			}
 		});
 	}
+}
+
+Installment.PureRemainSummaryRender = function(v,summaryData){
+	e1 = InstallmentObject.grid.columns.findObject('dataIndex','wage').id;
+	e2 = InstallmentObject.grid.columns.findObject('dataIndex','InstallmentAmount').id;
+	return Ext.util.Format.Money(summaryData[e2] - summaryData[e1] );
 }
 
 Installment.prototype.SelectLoan = function(record){
@@ -789,56 +823,6 @@ Installment.prototype.AddInstallments = function(){
 			}
 		};
 		
-		/*this.AddWin = new Ext.window.Window({
-			width : 510,
-			height : 460,
-			title : "ثبت دستی اقساط",
-			items : [
-				this.formPanel = new Ext.form.Panel({
-					defaults: {border: false},
-					height : 400,
-					width : 500,
-					frame: true,
-					bodyPadding: '5 5 0',
-					layout: "card",
-					activeItem: 0,
-					items : [this.card0,this.card1],
-					bbar: [{
-						itemId: 'card-prev',
-						text: '&laquo; قبلی',
-						handler: function() {
-							var itemId = InstallmentObject.formPanel.getLayout().getActiveItem().itemId;
-							var i = itemId.split('card-')[1];
-							var pre = i*1 - 1;
-							InstallmentObject.formPanel.getLayout().setActiveItem(pre);
-							InstallmentObject.formPanel.down('[itemId=card-prev]').setDisabled(pre === 0);
-							InstallmentObject.formPanel.down('[itemId=card-next]').setDisabled(pre === 1);
-						},
-						disabled: true
-					},'->', {
-						itemId: 'card-next',
-						text: 'بعدی &raquo;',
-						handler: function() {
-							var itemId = InstallmentObject.formPanel.getLayout().getActiveItem().itemId;
-							var i = itemId.split('card-')[1];
-							var next = parseInt(i, 10) + 1;
-							InstallmentObject.formPanel.getLayout().setActiveItem(next);
-							InstallmentObject.formPanel.down('[itemId=card-prev]').setDisabled(next === 0);
-							InstallmentObject.formPanel.down('[itemId=card-next]').setDisabled(next === 1);
-						}
-					}]
-				})
-			],
-			closeAction : "hide",
-			buttons : [{
-				text : "بازگشت",				
-				iconCls : "undo",
-				handler : function(){
-					InstallmentObject.AddWin.hide();
-				}				
-			}]
-		});*/
-		
 		this.AddWin = new Ext.window.Window({
 			width : 510,
 			height : 460,
@@ -956,5 +940,5 @@ function LoanRFID(RequestID){
 <center>
 	<div id="div_loans"></div>
 	<div id="div_paying"></div>	
-	<div id="div_grid"></div>	
+	<div id="div_grid" style="width:98%"></div>	
 </center>

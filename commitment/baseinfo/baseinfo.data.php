@@ -3,7 +3,7 @@
 // developer:	Sh.Jafarkhani
 // Date:		97.05
 //---------------------------
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once 'baseinfo.class.php';
 require_once 'TreeModules.class.php';
 require_once(inc_response);
@@ -140,10 +140,10 @@ function selectEventRows(){
 	if(!isset($_REQUEST["AllHistory"]) || $_REQUEST["AllHistory"] == "false")
 		$where .= " AND er.IsActive='YES'";
 		
-	$where .= " order by CostType,CostCode,IsActive desc,ChangeDate";
+	$where .= " order by CostType,CostCode,er.IsActive desc,ChangeDate";
 	
 	$list = COM_EventRows::SelectAll($where, array($_REQUEST["EventID"]));
-	//print_r(ExceptionHandler::PopAllExceptions());
+	print_r(ExceptionHandler::PopAllExceptions());
 	//echo PdoDataAccess::GetLatestQueryString();
 	echo dataReader::getJsonData($list, count($list), $_GET['callback']);
 	die();

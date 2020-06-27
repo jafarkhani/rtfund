@@ -3,9 +3,9 @@
 // programmer:	Jafarkhani 
 // create Date: 94.06
 //-----------------------
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
-
+ 
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
 //...................................................
@@ -23,6 +23,7 @@ $col->editor = ColumnEditor::ComboBox($temp, "InfoID", "InfoDesc");
 $col=$dgh->addColumn("وضعیت مقصد", "DstID");
 $col->editor = ColumnEditor::ComboBox($temp, "InfoID", "InfoDesc");
 $col->width = 200; 
+
 
 if($accessObj->RemoveFlag)
 {

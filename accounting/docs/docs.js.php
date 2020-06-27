@@ -1043,7 +1043,7 @@ AccDocs.prototype.Documents = function(ObjectType){
 	if(!this.documentWin)
 	{
 		this.documentWin = new Ext.window.Window({
-			width : 720,
+			width : 920, 
 			height : 440,
 			modal : true,
 			bodyStyle : "background-color:white;padding: 0 10px 0 10px",
@@ -1294,7 +1294,26 @@ AccDocs.prototype.beforeRowEdit = function(record){
 	}
 }
 
-AccDocs.deleteitemRender = function(v,p,record){
+AccDocs.editItemRender = function(v,p,record){
+	
+	if(<?= $_SESSION["USER"]["UserName"] == "admin" ? "false" : "true" ?>)
+	{
+		if(record.data.locked == "YES")
+			return "";
+		var record = AccDocsObject.grid.getStore().getAt(0);
+		if(!(record.data.StatusID == "<?= ACC_STEPID_RAW ?>" || 
+				(record.data.StepID == "1" && record.data.ActionType == "REJECT")))
+			return "";
+
+		if(!AccDocsObject.EditAccess)
+			return "";
+	}
+	return "<div title='ویرایش' class='edit' onclick='AccDocsObject.EditItem();' " +
+		"style='background-repeat:no-repeat;background-position:center;" +
+		"cursor:pointer;height:16;width:16px;;float:right'></div>";
+}
+
+AccDocs.deleteItemRender = function(v,p,record){
 	
 	if(<?= $_SESSION["USER"]["UserName"] == "admin" ? "false" : "true" ?>)
 	{
@@ -1304,14 +1323,10 @@ AccDocs.deleteitemRender = function(v,p,record){
 		if(!(record.data.StatusID == "<?= ACC_STEPID_RAW ?>" || (record.data.StepID == "1" && record.data.ActionType == "REJECT")))
 			return "";
 
-		if(!AccDocsObject.EditAccess)
+		if(!AccDocsObject.RemoveAccess)
 			return "";
 	}
-	return "<div title='ویرایش' class='edit' onclick='AccDocsObject.EditItem();' " +
-		"style='background-repeat:no-repeat;background-position:center;" +
-		"cursor:pointer;height:16;width:16px;;float:right'></div>" + 
-		
-		"<div title='حذف اطلاعات' class='remove' onclick='AccDocsObject.removeItem();' " +
+	return "<div title='حذف اطلاعات' class='remove' onclick='AccDocsObject.removeItem();' " +
 		"style='background-repeat:no-repeat;background-position:center;" +
 		"cursor:pointer;height:16;width:16px;float:left'></div>";
 }

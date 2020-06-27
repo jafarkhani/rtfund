@@ -14,8 +14,8 @@
 				
 class ReportGenerator {
 
-	const TempFolderAddress = "/tmp/temp.xls";
-	//const TempFolderAddress = "d:/webserver/temp/temp.xls";
+	//public $TempFolderAddress = "/tmp/temp.xls";
+	public $TempFolderAddress = "/home/sajakrrt/temp.xls";
 	
 	public $fontFamily = "nazanin";
 	public $fontSize = "16px";
@@ -55,6 +55,7 @@ class ReportGenerator {
 	public $rowColorRender = "";
 	public $headerContent = "";
 	public $footerContent = "";
+	public $footerExplicit = false;
 	
 	public $groupField = "";
 	public $groupLabel = false;
@@ -81,9 +82,8 @@ class ReportGenerator {
         echo '<html>
 			<head>
 				<link rel="stylesheet" type="text/css" href="/generalUI/fonts/fonts.css" />
-				<META http-equiv=Content-Type content="text/html; charset=UTF-8" >' .
-			'</head>
-			<body dir="rtl">';
+				<META http-equiv=Content-Type content="text/html; charset=UTF-8" >
+			</head><body dir="rtl">';
     	}
     
 	public function ReportGenerator($MainForm = "", $ObjectName = "") {
@@ -150,6 +150,9 @@ class ReportGenerator {
 
 	public function generateReport() {
 		
+		ini_set('max_execution_time', 30000);
+		ini_set('memory_limit','1000M');
+
 		if ($this->mysql_resource instanceof ADORecordSet)
 			$this->mysql_resource = $this->mysql_resource->GetRows();
 
@@ -210,12 +213,13 @@ class ReportGenerator {
 
 	function ExcelGeneration() {
 		
+		//ini_set("display_errors", "On");
 		$worksheet = "";
 		require_once 'excel.php';
 		require_once "php_writeexcel-0.3.0/class.writeexcel_workbook.inc.php";
 		require_once "php_writeexcel-0.3.0/class.writeexcel_worksheet.inc.php";
 
-		$workbook = new writeexcel_workbook(self::TempFolderAddress);
+		$workbook = new writeexcel_workbook($this->TempFolderAddress);
 		$worksheet = & $workbook->addworksheet("Sheet1");
 		$heading = & $workbook->addformat(array('align' => 'center', 'bold' => 1, 'bg_color' => 'blue', 'color' => 'white'));
 
@@ -282,8 +286,8 @@ class ReportGenerator {
 
 		header("Content-type: application/ms-excel");
 		header("Content-disposition: inline; filename=excel.xls");
-		echo file_get_contents(self::TempFolderAddress);
-		unlink(self::TempFolderAddress);
+		echo file_get_contents($this->TempFolderAddress);
+		unlink($this->TempFolderAddress);
 		die();
 	}
 
@@ -303,7 +307,8 @@ class ReportGenerator {
 		//..............................................
 		
 		echo "<table id='page_" . $this->pageCount . "' width='$this->width' 
-				style='font-family:".$this->fontFamily.";border-collapse: collapse'  border='$this->border'
+				style='font-family:".$this->fontFamily.";border-collapse: seperate;border-spacing: 0;' 
+				border='$this->border'
 				cellspacing='$this->cellspace' cellpadding='$this->cellpad'>";
 		echo "<caption style='background-color: #2D72AD;color: white;'>";
 		if($reportTitle)
@@ -329,7 +334,8 @@ class ReportGenerator {
 
 		}//..............................................
 		echo "</caption>";
-		echo "<thead> <tr class='breakPage' bgcolor = '$this->header_color'>";
+		echo "<thead style='position: sticky;top: 0;box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);'>".
+				"<tr class='breakPage' bgcolor = '$this->header_color'>";
 
 		// row number ---------------------------
 		if ($this->rowNumber)
@@ -482,9 +488,11 @@ class ReportGenerator {
 		}
 		if ($this->footerContent != "")
 		{
-			echo "<tr><td colspan=" . count($this->columns) . " >";
+			if(!$this->footerExplicit)
+				echo "<tr><td colspan=" . count($this->columns) . " >";
 			echo $this->footerContent;
-			echo "</td></tr>";
+			if(!$this->footerExplicit)
+				echo "</td></tr>";
 			//$this->pageRecordCounter++;
 		}
 		
@@ -514,11 +522,21 @@ class ReportGenerator {
 		//----------------------------------------
 		for ($i = 0; $i < count($this->columns); $i++) {
 			//Now Draw Data
-            		$row['number']=$index+1;
+            $row['number']=$index+1;
 			$this->columns[$i]->direction = "rtl";
 			
-			echo "<td  height=21px id='col_" . $this->columns[$i]->field . "_" . ($index + 1) .  "' 
-				style='text-align:justify;text-indent:-4px;padding:2px;padding-right:5px;padding-left:5px;min-width: 70px;direction:" . $this->columns[$i]->direction . ";" . $this->columns[$i]->style .
+			//.................................
+			$style = "";
+			if(is_callable($this->columns[$i]->style))
+				$style = call_user_func ($this->columns[$i]->style, $row, $this->columns[$i]);
+			else if($this->columns[$i]->style != "")
+				$style = $this->columns[$i]->style;
+			//.................................
+			
+			echo "<td height=21px id='col_" . $this->columns[$i]->field . "_" . ($index + 1) .  "' 
+				style='/*text-align:justify;*/text-indent:-4px;padding:2px;padding-right:5px;".
+					"padding-left:5px;min-width: 70px;direction:" . $this->columns[$i]->direction . ";" . 
+					$style .
 					($this->columns[$i]->hidden ? ";display:none;" : "") . 
 					(strpos($this->columns[$i]->field,"VerticalSum_") !== false ? "background-color:" . $this->summaryRow_color : "") .
 					"' border='$this->border' align='" . 
@@ -1240,7 +1258,6 @@ class ReportColumn {
 	public $direction;
 	public $SummaryOfRender;
 	
-	
 	public $rowspaning = false;
 	public $rowspanByFields = array();
 	
@@ -1276,9 +1293,9 @@ function ReportMoneyRender($row, $value){
 			return $value;
 		else
 		{
-			if($value*1 < 0)
+			if((int)$value < 0)
 				return "<font color=red>" . number_format($value) . "</font>";
-			return number_format($value*1);
+			return number_format((int)$value);
 		}
 	}
 	

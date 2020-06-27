@@ -211,6 +211,10 @@ class DateModules
 		
         $gdate_array1 = preg_split('/[\-\/]/',$gdate1);
 		$gdate_array2 = preg_split('/[\-\/]/',$gdate2);
+		
+		if(count($gdate_array1) < 3 || count($gdate_array2) < 3)
+			return 0;
+		
 		$dist1 = 1970 - $gdate_array1[0];
 		$dist2 = 1970 - $gdate_array2[0];
 		$diff_years = 0;
@@ -450,7 +454,7 @@ class DateModules
 	
 	static function DateToString($SHdate)
 	{
-		$year = substr($SHdate, 1, 3);
+		$year = substr($SHdate, 1, 3); 
 		$month = substr($SHdate, 5, 2);
 		$day = substr($SHdate, 8, 2);
 		return self::Convert3Digit($day, true) . self::GetMonthName((int)$month) . " ماه هزار و " . 
@@ -503,15 +507,16 @@ class DateModules
 			);
 
 		$digit = (int)$digit;
-
 		$three_digit_string = "";
 		if($digit > 100)
 		{
 			$three_digit_string .= $number_array[floor($digit / 100) * 100] . " و ";
 			$digit %= 100;  
 		}
-		if($digit < 20)
-			$three_digit_string = $number_array[$digit];
+		if($digit == 0)
+			$three_digit_string = substr($three_digit_string,0, strlen($three_digit_string)-3);
+		else if($digit < 20)
+			$three_digit_string .= $number_array[$digit];
 		else
 		{
 			if ($digit > 0) {

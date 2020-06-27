@@ -1,26 +1,27 @@
 <?php
-
-require_once '../loan/request/request.data.php';
+require_once '../header.inc.php';
 ini_set("display_errors", "On");
+require_once '../loan/request/request.class.php';
+
 ini_set('max_execution_time', 30000000);
 ini_set('memory_limit','4000M');
 header("X-Accel-Buffering: no");
 ob_start();
+set_time_limit(0);
 
-$dt = PdoDataAccess::runquery("
-	
-select LoanRequestID from  ACC_IncomeCheques i join LON_requests r on(i.LoanRequestID=r.RequestID) 
-join LON_ReqParts p on(r.RequestID=p.RequestID and IsHistory='NO')
-group by LoanRequestID limit 40,10"); 
+$dt = PdoDataAccess::runquery(" SELECT c1 RequestID FROM sajakrrt_rtfund.aaa 
+	join LON_requests on(c1=RequestID)
+	where StatusID=95"); 
 flush();
 ob_flush();
 $i=0;
 foreach($dt as $row)
 {
-	$RequestID = $row["LoanRequestID"];
-	LON_installments::ComputeInstallments($RequestID);
+	$RequestID = $row["RequestID"];
+	LON_installments::ComputeInstallments($RequestID, null,true);
 	echo $RequestID . " : " ;
 	print_r(ExceptionHandler::PopAllExceptions());
+	ob_flush();flush();
 	continue;
 	
 	

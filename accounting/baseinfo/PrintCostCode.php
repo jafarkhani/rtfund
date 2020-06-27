@@ -3,7 +3,7 @@
 // developer:	Jafarkhani
 // Date:        94.06
 //--------------------------
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once 'baseinfo.class.php';
 require_once '../global/ManageReport.class.php';
 require_once inc_reportGenerator;

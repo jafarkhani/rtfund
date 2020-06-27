@@ -1093,7 +1093,7 @@
     if(!this.documentWin)
 {
     this.documentWin = new Ext.window.Window({
-    width : 720,
+    width : 920, 
     height : 440,
     modal : true,
     autoScroll:true,

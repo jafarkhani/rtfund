@@ -4,7 +4,7 @@
 //	Date		: 98.02
 //-----------------------------
 ini_set("display_errors", "On");
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "../request/request.class.php";
 require_once "../request/request.data.php";
 require_once "ReportGenerator.class.php";
@@ -50,6 +50,8 @@ $col = $page_rpg->addColumn("مانده کل تا انتها", "TotalRemainder",
 $col = $page_rpg->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
 $col = $page_rpg->addColumn("طبقه وام", "LoanLevel"); $col->IsQueryField = false;
 $col = $page_rpg->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
+$col = $page_rpg->addColumn("تاریخ آخرین وضعیت پیگیری", "RegDate"); $col->type = "date";
+
 $col = $page_rpg->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	$col->IsQueryField = false;
 $col = $page_rpg->addColumn("مانده اصل وام تا انتها", "remain_pure","ReportMoneyRender"); $col->IsQueryField = false;
 $col = $page_rpg->addColumn("کارمزد معوقه", "remain_wage","ReportMoneyRender"); $col->IsQueryField = false;
@@ -123,6 +125,7 @@ function GetData(){
 				BranchName,
 				bi.InfoDesc StatusDesc,
 				bif.InfoDesc LatestFollowStatus,
+				t5.RegDate,
 				tazamin,
 				t1.InstallmentAmount,
 				t1.LastInstallmentDate,
@@ -140,7 +143,7 @@ function GetData(){
 			join LON_ReqParts p on(p.RequestID=r.RequestID AND p.IsHistory='NO')
 			join BSC_branches using(BranchID)
 			left join (
-				select RequestID,max(StatusID) FollowStatusID from LON_follows group by RequestID
+				select RequestID,max(StatusID) FollowStatusID,RegDate from LON_follows group by RequestID
 			)t5 on(r.RequestID=t5.RequestID)
 			left join BaseInfo bif on(bif.TypeID=98 AND bif.InfoID=t5.FollowStatusID)
 			left join (
@@ -188,7 +191,7 @@ function GetData(){
 	$dt = PdoDataAccess::runquery_fetchMode($query, $whereParam);
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		print_r(ExceptionHandler::PopAllExceptions());
+		//print_r(ExceptionHandler::PopAllExceptions()); 
 		//echo PdoDataAccess::GetLatestQueryString();
 	}
 	$ComputeDate = !empty($_POST["ComputeDate"]) ? 
@@ -314,7 +317,8 @@ function ListData($IsDashboard = false){
 	$col->EnableSummary();
 	
 	$col = $rpt->addColumn("طبقه وام", "LoanLevel");
-	$col = $rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus"); 
+	$col = $rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
+    $rpt->addColumn(" تاریخ آخرین وضعیت پیگیری", "RegDate","ReportDateRender");
 	
 	
 	$col = $rpt->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	

@@ -4,7 +4,7 @@
 // create Date: 95.05
 //-------------------------
 
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataReader;
 require_once inc_response;
 
@@ -31,7 +31,7 @@ function SaveWarrentyRequest(){
 		$obj->ReqDate = PDONOW;
 		$obj->RequestID = WAR_requests::LastID();
 		$result = $obj->Add();
-		if($result)
+		if($result) 
 			WAR_requests::ChangeStatus($obj->RequestID, $obj->StatusID, "", true);
 		
 		$obj->RefRequestID = $obj->RequestID;
@@ -299,6 +299,14 @@ function ReturnCancel(){
 	echo Response::createObjectiveResponse($result, "");
 	die();
 }
+
+function GetTazminDocTypes(){
+	
+	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=8 and param1=1");
+	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
+	die();
+}
+
 //------------------------------------------------
 
 function GetRequestPeriods(){

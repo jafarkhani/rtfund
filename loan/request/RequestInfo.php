@@ -4,9 +4,9 @@
 //	Date		: 1394.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
-
+require_once './request.class.php';
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess(MENUID_loans);
 //...................................................
@@ -19,6 +19,8 @@ if(session::IsPortal())
 
 $RequestID = !empty($_POST["RequestID"]) ? $_POST["RequestID"] : 0;
 $ReadOnly = isset($_REQUEST["ReadOnly"]) && $_REQUEST["ReadOnly"] == "true" ? true : false;
+$AddInitCond = ($_SESSION["USER"]["UserName"]=='javadi' || $_SESSION["USER"]["UserName"]=='ashrafi' || $_SESSION["USER"]["UserName"]=='0943277744') ? true : false ;
+$EditInitCond = $_SESSION["USER"]["UserName"]=='0943277744' ? true : false ;
 
 if(session::IsFramework())
 	$User = "Staff";
@@ -94,12 +96,12 @@ $col->sortable = false;
 
 if(!$ReadOnly)
 {
-	if($User == "Staff" && $accessObj->EditFlag) 
-		$dg->addButton("addPart", "ایجاد شرایط", "add", "function(){RequestInfoObject.BeforeAddPart();}");
+	if($User == "Staff" && $accessObj->EditFlag)
+	    	$dg->addButton("addPart", "ایجاد شرایط", "add", "function(){RequestInfoObject.BeforeAddPart();}");
 	
 	$col = $dg->addColumn("", "PartID");
 	$col->renderer = "RequestInfo.OperationRender";
-	$col->width = 50;	
+	$col->width = 50;
 }
 
 $dg->HeaderMenu = false;
@@ -139,43 +141,28 @@ if(session::IsFramework())
 	<div id="SendForm"></div>
 	<div id="summaryDIV" style="display:none">
 		<div style="float:right">
-			<table style="width:250px" class="summary">
+			<table style="width:400px" class="summary">
 			<tr>
 				<td style="width:100px;background-color: #dfe8f6;">مبلغ هر قسط</td>
-				<td style="background-color: #dfe8f6;">سود تنفس صندوق</td>
+				<td style="width:100px;background-color: #dfe8f6;">کارمزد مشتری</td>
+				<td><div style="width:100px;" id="SUM_TotalCustomerWage" class="blueText">&nbsp;</div></td>
 			</tr>
 			<tr>
 				<td><div id="SUM_InstallmentAmount" class="blueText">&nbsp;</div></td>
-				<td><div id="SUM_FundDelay" class="blueText">&nbsp;</div></td>
+				<td style="direction:rtl;background-color: #dfe8f6;">کارمزد صندوق</td>
+				<td><div id="SUM_FundWage" class="blueText">&nbsp;</div></td>
 			</tr>
 			<tr>
 				<td style="background-color: #dfe8f6;">مبلغ قسط آخر</td>
-				<td style="background-color: #dfe8f6;">سود تنفس سرمایه گذار</td>
-			</tr>
-			<tr>
-				<td><div id="SUM_LastInstallmentAmount" class="blueText">&nbsp;</div></td>
-				<td><div id="SUM_AgentDelay" class="blueText">&nbsp;</div></td>
-			</tr>			
-		</table></div>
-		<div style="float:right">
-			<table style="width:250px" class="summary">
-			<tr>
-				<td style="width:90px;direction:rtl;background-color: #dfe8f6;">کارمزد وام</td>
-				<td><div id="SUM_TotalWage" class="blueText">&nbsp;</div></td>
-			</tr>
-			<tr id="TR_FundWage">
-				<td style="direction:rtl;background-color: #dfe8f6;">سهم صندوق</td>
-				<td><div id="SUM_FundWage" class="blueText">&nbsp;</div></td>
-			</tr>
-			<tr id="TR_AgentWage">
-				<td style="direction:rtl;background-color: #dfe8f6;">سهم سرمایه گذار</td>
+				<td style="direction:rtl;background-color: #dfe8f6;">کارمزد سرمایه گذار</td>
 				<td><div id="SUM_AgentWage" class="blueText">&nbsp;</div></td>
 			</tr>
 			<tr>
+				<td><div id="SUM_LastInstallmentAmount" class="blueText">&nbsp;</div></td>
 				<td style="direction:rtl;background-color: #dfe8f6;">خالص پرداختی</td>
 				<td><div id="SUM_NetAmount" class="blueText">&nbsp;</div></td>
-			</tr>
-		</table></div>
+			</tr>			
+			</table></div>
 	</div> 
 	<br>
 </center>

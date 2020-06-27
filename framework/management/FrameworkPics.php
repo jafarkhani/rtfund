@@ -3,7 +3,7 @@
 // developer: Jafarkhani
 // create Date: 96.09
 //-----------------------------
-include_once '../header.inc.php';
+include_once '../../header.inc.php';
 
 require_once inc_dataGrid;
 

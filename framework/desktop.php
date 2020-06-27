@@ -3,8 +3,8 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 1395.03
 //-----------------------------
-
-require_once ('header.inc.php');
+ini_set("display_errors","On");
+require_once('../header.inc.php');
 require_once 'management/framework.class.php';
 require_once 'TreeModules.class.php';
 
@@ -156,6 +156,8 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 
 		<link rel="stylesheet" type="text/css" href="/generalUI/icons/icons.css" />
 		<link rel="stylesheet" type="text/css" href="/generalUI/fonts/fonts.css" />
+                <link rel="stylesheet" type="text/css" href="/generalUI/ext4/ux/toggleslide/css/style.css" />
+                
 		<script type="text/javascript" src="/generalUI/ext4/resources/ext-all.js"></script>
 
 		<link rel="stylesheet" type="text/css" href="/generalUI/ext4/resources/css/ext-rtl.css?v=1" />
@@ -290,7 +292,7 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 		this.ExpireInterval = setInterval(function(){
 
 			Ext.Ajax.request({
-				url : "header.inc.php",
+				url : "../header.inc.php",
 				method : "POST",
 
 				success : function(response)
@@ -808,14 +810,18 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 	}
 	//..........................................................................
 	Ext.Loader.setConfig({
-		enabled: true,
-		paths: {
-			'Ext.calendar': '/generalUI/ext4/ux/calendar/src'
-		}
+            enabled: true,
+            paths: {
+                'Ext.calendar': '/generalUI/ext4/ux/calendar/src',
+                'Ext.ux.toggleslide': '/generalUI/ext4/ux/toggleslide',
+		'Ext.ux.form.field': '/generalUI/ext4/ux/form/field'
+            }
 	});
 
 	Ext.require([
-		'Ext.calendar.CalendarPanel'
+		'Ext.calendar.CalendarPanel',
+                'Ext.ux.form.field.ToggleSlide', 
+                'Ext.ux.toggleslide.Thumb'
 	]);
 	//..........................................................................
 	var required = '<span style="color:red;font-weight:bold" data-qtip="فیلد اجباری">*</span>';

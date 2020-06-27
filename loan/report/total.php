@@ -4,7 +4,7 @@
 // Create Date:	94.12
 //-------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "../request/request.class.php";
 require_once "../request/request.data.php";
 require_once "ReportGenerator.class.php";
@@ -32,7 +32,7 @@ $page_rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 $page_rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
 $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
 $col->type = "date";	
-$col = $page_rpg->addColumn("تاریخ خاتمه", "EndReqDate");
+$col = $page_rpg->addColumn("تاریخ خاتمه", "EndDate");
 $col->type = "date";	
 $page_rpg->addColumn("سند خاتمه", "EndDocNo");
 $page_rpg->addColumn("مبلغ درخواست", "ReqAmount");
@@ -58,6 +58,8 @@ $page_rpg->addColumn("تنفس(ماه)", "DelayMonths");
 $page_rpg->addColumn("دوره پرداخت", "PayDuration");
 $page_rpg->addColumn("کارمزد مشتری", "CustomerWage");
 $page_rpg->addColumn("کارمزد صندوق", "FundWage");
+$page_rpg->addColumn("محاسبه کارمزد صندوق", "WageReturn");
+$page_rpg->addColumn("محاسبه کارمزد سرمایه گذار", "AgentReturn");
 $page_rpg->addColumn("کارمزد تاخیر", "LatePercent");
 $page_rpg->addColumn("درصد جریمه", "ForfeitPercent");
 $page_rpg->addColumn("سهم جریمه صندوق", "FundForfeitPercent");
@@ -153,8 +155,8 @@ function MakeWhere(&$where, &$pay_where, &$whereParam){
 			case "toReqDate":
 			case "fromPartDate":
 			case "toPartDate":
-			case "fromEndReqDate":
-			case "toEndReqDate":
+			case "fromEndDate":
+			case "toEndDate":
 				$value = DateModules::shamsi_to_miladi($value, "-");
 				break;
 			case "fromReqAmount":
@@ -208,9 +210,6 @@ function GetData($mode = "list"){
 				p2.address,
 				p2.email,
 				p2.WebSite,
-				
-				doc.EndReqDate,
-				doc.EndDocNo,
 
 				bi.InfoDesc StatusDesc,
 				sb.SubDesc,
@@ -240,13 +239,6 @@ function GetData($mode = "list"){
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
 			left join DMS_packages dp on(p2.PersonID=dp.PersonID AND r.BranchID=dp.BranchID)
 			left join BSC_ActDomain ad on(p2.DomainID=ad.DomainID)
-			
-			left join (
-				select SourceID2 RequestID,LocalNo EndDocNo,DocDate EndReqDate
-				from ACC_DocItems join ACC_docs using(DocID)
-				where DocType=".DOCTYPE_END_REQUEST."
-				group by SourceID2
-			) doc on(r.RequestID=doc.RequestID)
 
 			left join (
 				select RequestID,sum(PayAmount) SumPayments 
@@ -332,36 +324,49 @@ function GetData($mode = "list"){
 	
 	$dataTable = PdoDataAccess::runquery($query, $whereParam);
 	$query = PdoDataAccess::GetLatestQueryString();
+	
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		////BeginReport();
-		//print_r(ExceptionHandler::PopAllExceptions());
+		//BeginReport();
 		//echo PdoDataAccess::GetLatestQueryString();
-		
+		//print_r(ExceptionHandler::PopAllExceptions()); 
 	}
 	
 	for($i=0; $i< count($dataTable); $i++)
 	{
-		$ComputeDate = !empty($_POST["EffectiveDate"]) ? $_POST["EffectiveDate"] : null;
-		$ComputeArr = LON_Computes::ComputePayments($dataTable[$i]["RequestID"], $ComputeDate);
-		$TotalRemain = LON_Computes::GetTotalRemainAmount($dataTable[$i]["RequestID"], $ComputeArr);
-		$remains = LON_Computes::GetRemainAmounts($dataTable[$i]["RequestID"], $ComputeArr);
-		$dataTable[$i]["remainder"] = $TotalRemain;
-		$dataTable[$i]["ForfeitAmount"] = $remains['remain_pnlt'];
-		$dataTable[$i]["LateAmount"] = $remains["remain_late"];
-		$dataTable[$i]["TotalForfeitAmount"] = LON_Computes::GetTotalForfeitAmount($dataTable[$i]["RequestID"], $ComputeArr);
-		$dataTable[$i]["TotalEarlyAmount"] = LON_Computes::GetTotalEarlyAmount($dataTable[$i]["RequestID"], $ComputeArr);
-		
+		if(!empty($_POST["reportcolumn_fld_remainder"]) || 
+			!empty($_POST["reportcolumn_fld_ForfeitAmount"]) || 
+			!empty($_POST["reportcolumn_fld_LateAmount"]) || 
+			!empty($_POST["reportcolumn_fld_TotalForfeitAmount"]) || 
+			!empty($_POST["reportcolumn_fld_TotalEarlyAmount"]) || 
+			!empty($_POST["reportcolumn_fld_TotalNonPenaltyRemainder"])
+		)
+		{
+			$ComputeDate = !empty($_POST["EffectiveDate"]) ? $_POST["EffectiveDate"] : null;
+			$ComputeArr = LON_Computes::ComputePayments($dataTable[$i]["RequestID"], $ComputeDate);
+			$TotalRemain = LON_Computes::GetTotalRemainAmount($dataTable[$i]["RequestID"], $ComputeArr);
+			$remains = LON_Computes::GetRemainAmounts($dataTable[$i]["RequestID"], $ComputeArr);
+			$dataTable[$i]["remainder"] = $TotalRemain;
+			$dataTable[$i]["ForfeitAmount"] = $remains['remain_pnlt'];
+			$dataTable[$i]["LateAmount"] = $remains["remain_late"];
+			$dataTable[$i]["TotalForfeitAmount"] = LON_Computes::GetTotalForfeitAmount($dataTable[$i]["RequestID"], $ComputeArr);
+			$dataTable[$i]["TotalEarlyAmount"] = LON_Computes::GetTotalEarlyAmount($dataTable[$i]["RequestID"], $ComputeArr);
+		}
 		//---------------
-		$computeArr2 = LON_Computes::ComputePayments($dataTable[$i]["RequestID"], $ComputeDate, null, false);
-		$remain = LON_Computes::GetTotalRemainAmount($dataTable[$i]["RequestID"], $computeArr2);
-		$dataTable[$i]["TotalNonPenaltyRemainder"] = $remain;
+		if(!empty($_POST["reportcolumn_fld_TotalNonPenaltyRemainder"]))
+		{
+			$computeArr2 = LON_Computes::ComputePayments($dataTable[$i]["RequestID"], $ComputeDate, null, false);
+			$remain = LON_Computes::GetTotalRemainAmount($dataTable[$i]["RequestID"], $computeArr2);
+			$dataTable[$i]["TotalNonPenaltyRemainder"] = $remain;
+		}
 		//-----------------
-		
-		$record = LON_requests::GetRequestLevel($dataTable[$i]["RequestID"]);
-		$dataTable[$i]["LoanLevel"] = $record["ParamValue"];
+		if(!empty($_POST["reportcolumn_fld_LoanLevel"]))
+		{
+			$record = LON_requests::GetRequestLevel($dataTable[$i]["RequestID"]);
+			$dataTable[$i]["LoanLevel"] = $record["ParamValue"];
+		}
 	}
-			
+	
 	return $dataTable; 
 }
 
@@ -390,7 +395,7 @@ function ListData($IsDashboard = false){
 	$col->EnableSummary();
 	$rpg->addColumn("وام بالاعوض", "IsFree", "IsFreeRender");
 	$rpg->addColumn("تضامین بر اساس", "FundRules", "FundRulesRender");
-	$rpg->addColumn("تاریخ خاتمه", "EndReqDate", "ReportDateRender");
+	$rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
 	$rpg->addColumn("سند خاتمه", "EndDocNo");
 	
 	$rpg->addColumn("مشتری", "LoanFullname");
@@ -418,6 +423,17 @@ function ListData($IsDashboard = false){
 	$rpg->addColumn("کارمزد مشتری", "CustomerWage");
 	$rpg->addColumn("کارمزد صندوق", "FundWage");
 	$rpg->addColumn("کارمزد تاخیر", "LatePercent");
+	
+	function ComputeRender($row,$value){
+		switch($value)
+		{
+			case "INSTALLMENT" : return "طی اقساط";
+			case "CUSTOMER" : return "هنگام پرداخت وام";
+			default : return "";	
+		}
+	}
+	$rpg->addColumn("محاسبه کارمزد صندوق", "WageReturn","ComputeRender");
+	$rpg->addColumn("محاسبه کارمزد سرمایه گذار", "AgentReturn","ComputeRender");
 	$rpg->addColumn("درصد جریمه", "ForfeitPercent");
 	$rpg->addColumn("سهم جریمه صندوق", "FundForfeitPercent");
 	
@@ -452,40 +468,56 @@ function ListData($IsDashboard = false){
 	$col->ExcelRender = false;
 	$col->EnableSummary();
 	
-	function EndRender($row,$value){
-		if($row["IsEnded"] == "YES" || $row["StatusID"] == LON_REQ_STATUS_ENDED || $row["StatusID"] == LON_REQ_STATUS_DEFRAY)
-			return 0;
-		return number_format($value);
+	if(!empty($_POST["reportcolumn_fld_remainder"]))
+	{
+		function EndRender($row,$value){
+			if($row["IsEnded"] == "YES" || $row["StatusID"] == LON_REQ_STATUS_ENDED || $row["StatusID"] == LON_REQ_STATUS_DEFRAY)
+				return 0;
+			return number_format($value);
+		}
+		$col = $rpg->addColumn("مانده کل تا انتها", "remainder", "EndRender");
+		$col->EnableSummary();
 	}
-	$col = $rpg->addColumn("مانده کل تا انتها", "remainder", "EndRender");
-	$col->EnableSummary();
 	
-	function TotalNonPenaltyRemainderRender($row,$value){
-		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
-				"&ComputePenalty=false target=blank >" . number_format($value) . "</a>";
+	if(!empty($_POST["reportcolumn_fld_TotalNonPenaltyRemainder"]))
+	{
+		function TotalNonPenaltyRemainderRender($row,$value){
+			return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
+					"&ComputePenalty=false target=blank >" . number_format($value) . "</a>";
+		}
+		$col = $rpg->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","TotalNonPenaltyRemainderRender");
+		$col->EnableSummary();
 	}
-	$col = $rpg->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","TotalNonPenaltyRemainderRender");
-	$col->EnableSummary();
 	
-	$col = $rpg->addColumn("طبقه وام", "LoanLevel");
+	if(!empty($_POST["reportcolumn_fld_LoanLevel"]))
+	{
+		$col = $rpg->addColumn("طبقه وام", "LoanLevel");
+	}
 	
-	$col = $rpg->addColumn("مانده کارمزد تاخیر", "LateAmount", "EndRender");
-	$col->ExcelRender = false;
-	$col->EnableSummary();
+	if(	!empty($_POST["reportcolumn_fld_ForfeitAmount"]) || 
+		!empty($_POST["reportcolumn_fld_LateAmount"]) || 
+		!empty($_POST["reportcolumn_fld_TotalForfeitAmount"]) || 
+		!empty($_POST["reportcolumn_fld_TotalEarlyAmount"]) 
+		)
+	{
 	
-	$col = $rpg->addColumn("مانده جریمه تاخیر", "ForfeitAmount", "EndRender");
-	$col->ExcelRender = false;
-	$col->EnableSummary();
-	
-	
-	$col = $rpg->addColumn("کل تعجیل از ابتدا", "TotalEarlyAmount", "ReportMoneyRender");
-	$col->ExcelRender = false;
-	$col->EnableSummary();
-	
-	$col = $rpg->addColumn("کل جریمه تاخیر از ابتدا", "TotalForfeitAmount", "ReportMoneyRender");
-	$col->ExcelRender = false;
-	$col->EnableSummary();
-		
+		$col = $rpg->addColumn("مانده کارمزد تاخیر", "LateAmount", "EndRender");
+		$col->ExcelRender = false;
+		$col->EnableSummary();
+
+		$col = $rpg->addColumn("مانده جریمه تاخیر", "ForfeitAmount", "EndRender");
+		$col->ExcelRender = false;
+		$col->EnableSummary();
+
+
+		$col = $rpg->addColumn("کل تعجیل از ابتدا", "TotalEarlyAmount", "ReportMoneyRender");
+		$col->ExcelRender = false;
+		$col->EnableSummary();
+
+		$col = $rpg->addColumn("کل جریمه تاخیر از ابتدا", "TotalForfeitAmount", "ReportMoneyRender");
+		$col->ExcelRender = false;
+		$col->EnableSummary();
+	}
 	if(!$rpg->excel && !$IsDashboard)
 	{
 		BeginReport();
@@ -504,6 +536,7 @@ function ListData($IsDashboard = false){
 		echo "</td></tr></table>";
 		
 	}
+	
 	if($IsDashboard)
 	{
 		echo "<div style=direction:rtl;padding-right:10px>";
@@ -799,7 +832,8 @@ function LoanReport_total()
 				data : [
 					["BANK" , "فرمول بانک مرکزی" ],
 					["NEW" , "فرمول تنزیل اقساط" ],
-					["NOAVARI", 'فرمول صندوق نوآوری']
+					["NOAVARI", 'فرمول صندوق نوآوری'],
+					["PERCENT", 'فرمول درصدی']
 				],
 				fields : ['id','value']
 			}),
@@ -817,11 +851,11 @@ function LoanReport_total()
 				"<input name=FundRules type=radio value='' checked > هردو " 
 		},{
 			xtype : "shdatefield",
-			name : "fromEndReqDate",
+			name : "fromEndDate",
 			fieldLabel : "تاریخ خاتمه از"
 		},{
 			xtype : "shdatefield",
-			name : "toEndReqDate",
+			name : "toEndDate",
 			fieldLabel : "تا تاریخ"
 		},{
 			xtype : "shdatefield",

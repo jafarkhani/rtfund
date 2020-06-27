@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 
 function bdremainRender($row){
@@ -125,7 +125,7 @@ function GetData(&$rpg){
 				from ACC_DocItems di join ACC_docs using(DocID)
 				where DocType=1 " .
 				(!empty($_POST["CycleID"]) ? " AND CycleID=:c" : "") . 
-				(!empty($_POST["BranchID"]) ? " AND BranchID=:b" : "") . "	
+				(!empty($_POST["BranchID"]) ? " AND BranchID=:b" : "") . "	 
 				group by di.CostID,di.TafsiliID,di.TafsiliID2,di.TafsiliID3,di.param1,di.param2,di.param3
 			)tdt on(d.CycleID=tdt.CycleID AND di.CostID=tdt.CostID 
 					AND di.TafsiliID=tdt.TafsiliID 
@@ -224,6 +224,20 @@ function GetData(&$rpg){
 	if($level == "l10")
 	{
 		$group .= ",tbl.param3";
+		$col = $rpg->addColumn("عنوان آیتم3", "paramDesc3");
+		$col = $rpg->addColumn("آیتم3", "param3", "levelRender");
+		$col->ExcelRender = false;
+	}
+	if($level == "l11")
+	{
+		$group .= ",tbl.param1,tbl.param2,tbl.param3";
+		$col = $rpg->addColumn("عنوان آیتم1", "paramDesc1");
+		$col = $rpg->addColumn("آیتم1", "param1", "levelRender");
+		$col->ExcelRender = false;
+		$group .= ",tbl.param2";
+		$col = $rpg->addColumn("عنوان آیتم2", "paramDesc2");
+		$col = $rpg->addColumn("آیتم2", "param2", "levelRender");
+		$col->ExcelRender = false;
 		$col = $rpg->addColumn("عنوان آیتم3", "paramDesc3");
 		$col = $rpg->addColumn("آیتم3", "param3", "levelRender");
 		$col->ExcelRender = false;
@@ -435,7 +449,7 @@ function GetData(&$rpg){
 			from ( " .
 			$query . "
 			where 1=1 " . $where . " 
-			group by di.CostID,di.TafsiliID,di.TafsiliID2)tbl			
+			group by di.CostID,di.TafsiliID,di.TafsiliID2,di.TafsiliID3,di.param1,di.param2,di.param3)tbl			
 	";
 	$query .= $group != "" ? " group by " . $group : "";
 	
@@ -472,7 +486,8 @@ function ListData($IsDashboard = false){
 		"l7" => "تفصیلی3",
 		"l8" => "آیتم1",
 		"l9" => "آیتم2",
-		"l10" => "آیتم3"
+		"l10" => "آیتم3",
+		"l11" => "همه آیتم ها"
 		);
 	$dt = PdoDataAccess::runquery("select * from BSC_branches");
 	$branches = array();
@@ -533,7 +548,7 @@ function ListData($IsDashboard = false){
 	$col->GroupHeader = "مانده پایان دوره";
 	$col->EnableSummary(true);
 
-	//if($_SESSION["USER"]["UserName"] == "admin")
+	////if($_SESSION["USER"]["UserName"] == "admin")
 	//	echo PdoDataAccess::GetLatestQueryString ();
 	
 	if(!$rpg->excel && !$IsDashboard)
@@ -1191,7 +1206,8 @@ function AccReport_taraz()
 				xtype : "container",
 				html :  "<input type='radio' name='level' id='level-l8' value='l8' > آیتم 1" + "<br>" +  
 						"<input type='radio' name='level' id='level-l9' value='l9' >آیتم 2" + "<br>" +  
-						"<input type='radio' name='level' id='level-l10' value='l10' >آیتم 3"
+						"<input type='radio' name='level' id='level-l10' value='l10' >آیتم 3"+ "<br>" + 
+						"<input type='radio' name='level' id='level-l11' value='l11' >همه آیتم ها"
 			},{
 				xtype : "container",
 				html : "ستون های تراز: "

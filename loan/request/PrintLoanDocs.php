@@ -4,7 +4,7 @@
 //	Date		: 1395.08
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once '../../office/dms/dms.class.php';
 require_once 'request.class.php';
 require_once inc_reportGenerator;

@@ -3,9 +3,9 @@
 // programmer:	Jafarkhani
 // Create Date:	95.07
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataGrid;
- 
+require_once './request.class.php';
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
 //...................................................
@@ -72,6 +72,8 @@ LoanCost.prototype = {
 	RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
 
 	RequestID : <?= $RequestID ?>,
+	PartID : <?= LON_ReqParts::GetValidPartObj($RequestID)->PartID ?>,
+	EventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanCost) ?>,
 	
 	get : function(elementID){
 		return findChild(this.TabID, elementID);
@@ -84,7 +86,7 @@ function LoanCost()
 	if(this.AddAccess)
 		this.grid.plugins[0].on("beforeedit", function(editor,e){
 
-			if(e.record.data.CostID != null)
+			if(e.record.data.CostID != null && e.record.data.LocalNo*1 > 0)
 				return false;
 		});
 	
@@ -287,28 +289,8 @@ LoanCost.prototype.SaveCost = function(record){
 LoanCost.prototype.ExecuteEvent = function(){
 	
 	var record = this.grid.getSelectionModel().getLastSelected();
-	
-	var loanStore = new Ext.data.Store({
-		proxy:{
-			type: 'jsonp',
-			url: this.address_prefix + "request.data.php?task=SelectAllRequests&RequestID=" + record.data.RequestID,
-			reader: {root: 'rows',totalProperty: 'totalCount'}
-		},
-		fields : ["RequestID","ReqPersonID","PartID"]
-	});
-	loanStore.load({
-		callback : function(){
-			var eventID = "";
-			ReqRecord = this.getAt(0);
-			if(ReqRecord.data.ReqPersonID*1 > 0)
-				eventID = "<?= EVENT_LOAN_COST_AGENT ?>";
-			else
-				eventID = "<?= EVENT_LOAN_COST_INNER ?>";
-			
-			framework.ExecuteEvent(eventID, new Array(
-				ReqRecord.data.RequestID,ReqRecord.data.PartID,record.data.CostID));
-		}
-	})
+	framework.ExecuteEvent(this.EventID, new Array(
+				this.RequestID,this.PartID,record.data.CostID));
 }
 
 LoanCost.prototype.AddCost = function(){

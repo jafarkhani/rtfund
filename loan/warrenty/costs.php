@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	95.07
 //-------------------------
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataGrid;
 
 $RequestID = $_REQUEST["RequestID"];

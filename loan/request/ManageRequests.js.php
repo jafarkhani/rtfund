@@ -237,7 +237,7 @@ ManageRequest.prototype.LoanDocuments = function(ObjectType){
 	if(!this.documentWin)
 	{
 		this.documentWin = new Ext.window.Window({
-			width : 720,
+			width : 920, 
 			height : 440,
 			modal : true,
 			bodyStyle : "background-color:white;padding: 0 10px 0 10px",
@@ -463,7 +463,7 @@ ManageRequest.prototype.LoadInstallments = function(){
 	if(!this.InstallmentsWin)
 	{
 		this.InstallmentsWin = new Ext.window.Window({
-			width : 770,
+			width : 1000,
 			title : "لیست اقساط",
 			height : 410,
 			modal : true,

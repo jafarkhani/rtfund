@@ -3,7 +3,7 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 1394.07
 //-----------------------------
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
 
 if(session::IsFramework())
@@ -216,7 +216,7 @@ MyRequest.prototype.LoadAttaches = function(){
 	if(!this.documentWin)
 	{
 		this.documentWin = new Ext.window.Window({
-			width : 720,
+			width : 920, 
 			height : 440,
 			modal : true,
 			bodyStyle : "background-color:white;padding: 0 10px 0 10px",

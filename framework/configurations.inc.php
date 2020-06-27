@@ -5,14 +5,14 @@
 //-----------------------------
 
 class sys_config{
-	 public static $db_server = array (
-	        "driver"   => "mysql",
-	        "host"     => "localhost",
-			"database" => "krrtfir_rtfund",
-			//"database" => "framewor_rtfund",
-	        "user"     => "root",
-	        "pass"     => "1297"
-	 );
+	public static $db_server = array (
+		"driver"   => "mysql",
+		"host"     => "localhost",
+		"database" => "krrtfir_rtfund",
+		//"database" => "framewor_rtfund",
+		"user"     => "root",
+		"pass"     => "1297"
+	);
 }
 
 class smtp_config{
@@ -32,7 +32,7 @@ class sms_config{
 define("BANK_AYANDEH_PIN", "qn75G3KAr0R03J5lCm6X");
 
 define("BANK_TEJARAT_MERCHANTID", "D01E");
-define("BANK_TEJARAT_SHALKEY", "22338240992352910814917221751200141041845518824222260 ");
+define("BANK_TEJARAT_SHALKEY", "22338240992352910814917221751200141041845518824222260");
 define("BANK_TEJARAT_ADMINEMAIL", "krfn.ir@gmail.com");
 
 define("SoftwareName", "صندوق پژوهش و فناوری غیر دولتی استان خراسان رضوی");

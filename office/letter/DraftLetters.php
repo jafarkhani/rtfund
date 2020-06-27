@@ -72,7 +72,7 @@ DraftLetter.prototype.LoadDraftLetter = function(){
 			url: this.address_prefix + "DraftLetter.data.php?task=SelectDraftLetter&LetterID=" + this.LetterID,
 			reader: {root: 'rows',totalProperty: 'totalCount'}
 		},
-		fields : ["LetterID","DraftLetterType","DraftLetterTitle","SubjectID","summary","context"],
+		fields : ["LetterID","DraftLetterType","DraftLetterTitle","SubjectID","summary"],
 		autoLoad : true,
 		listeners : {
 			load : function(){

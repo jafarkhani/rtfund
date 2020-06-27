@@ -4,7 +4,7 @@
 // create Date: 97.02
 //-------------------------
 
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataReader;
 require_once inc_response;
 require_once 'alarm.class.php';

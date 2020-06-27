@@ -4,7 +4,7 @@
 //	Date		: 1395.04
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
 require_once inc_dataReader;
 

@@ -4,15 +4,42 @@
 //	Date		: 94.12
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 require_once '../request/request.class.php'; 
 require_once '../request/request.data.php';
 
 ini_set("display_errors", "On");
 
+if(isset($_REQUEST["v"]))
+{
+	switch($_REQUEST["v"])
+	{
+		case "admin":
+			sys_config::$db_server['database'] = "sajakrrt_oldcomputes";
+			PdoDataAccess::$DB = null;
+			break;
+		
+		case "oldsaja":
+			sys_config::$db_server['database'] = "sajakrrt_rtfund3";
+			PdoDataAccess::$DB = null; 
+			break;
+		
+		case "saja":
+			sys_config::$db_server['database'] = "sajakrrt_rtfund";
+			PdoDataAccess::$DB = null;
+			break;
+	}
+}
+
 if(isset($_REQUEST["show"]))
 {
+	if(isset($_REQUEST["rtfund2"]))
+	{
+		sys_config::$db_server['database'] = "krrtfir_rtfund2";
+		PdoDataAccess::$DB = null;
+	}
+	
 	$RequestID = $_REQUEST["RequestID"];
 	$ReqObj = new LON_requests($RequestID);
 	$partObj = LON_ReqParts::GetValidPartObj($RequestID);
@@ -87,7 +114,11 @@ if(isset($_REQUEST["show"]))
 	$rpg->addColumn("کارمزد تاخیر", "totallate","ReportMoneyRender");
 	$rpg->addColumn("جریمه", "totalpnlt","ReportMoneyRender");
 	
-	$rpg->addColumn("تخفیف تعجیل", "early","ReportMoneyRender");
+	function EarlyRender($row, $value){
+		return $value;
+		//return $row['type'] == "installment" ? 0 : $value;
+	}
+	$rpg->addColumn("تخفیف تعجیل", "totalearly","EarlyRender");
 	
 	function RemainsRender($row, $value){
 		if($row["type"] == "pay")
@@ -102,11 +133,13 @@ if(isset($_REQUEST["show"]))
 	$col->EnableSummary();
 	$col = $rpg->addColumn("مانده جریمه", "remain_pnlt","RemainsRender");
 	$col->EnableSummary();
+	$col = $rpg->addColumn("مانده تعجیل", "remain_early","RemainsRender");
+	$col->EnableSummary();
 	
 	function totalRemainRender($row){
 		if($row["type"] == "installment")
 			return number_format($row["remain_pure"]*1 + $row["remain_wage"]*1 + 
-					$row["remain_late"]*1 + $row["remain_pnlt"]*1);
+					$row["remain_late"]*1 + $row["remain_pnlt"]*1 );
 		else
 			return number_format($row["remainPayAmount"]);
 	}
@@ -163,7 +196,6 @@ if(isset($_REQUEST["show"]))
 						<td><b><?= $partObj->PayInterval . ($partObj->IntervalType == "DAY" ? "روز" : "ماه") ?>
 							</b></td>
 					</tr>
-					<? if(session::IsFramework()) {?>
 					<tr>
 						<td> کارمزد وام:  </td>
 						<td><b><?= $partObj->CustomerWage ?> %</b></td>
@@ -173,7 +205,6 @@ if(isset($_REQUEST["show"]))
 						<td><b><?= $partObj->ForfeitPercent ?> %
 							</b></td>
 					</tr>
-					<?}?>
 				</table>
 			</td>
 			<td>
@@ -194,7 +225,6 @@ if(isset($_REQUEST["show"]))
 						<td></td>
 						<td><b></b></td>
 					</tr>
-					<? if(session::IsFramework()) {?>
 					<tr>
 						<td>کارمزد تاخیر :</td>
 						<td><b><?= $partObj->LatePercent ?> %
@@ -205,7 +235,6 @@ if(isset($_REQUEST["show"]))
 						<td><b><?= $partObj->ForgivePercent ?> %
 							</b></td>
 					</tr>
-					<?}?>
 				</table>
 			</td>
 			<td>
@@ -278,6 +307,28 @@ LoanReport_payments.prototype.showReport = function(btn, e)
 	return;
 }
 
+LoanReport_payments.prototype.showReport2 = function(btn, e)
+{
+	this.form = this.get("mainForm")
+	this.form.target = "_blank";
+	this.form.method = "POST";
+	this.form.action =  this.address_prefix + "DebitReport.php?show=true";
+	this.form.submit();
+	this.get("excel").value = "";
+	return;
+}
+
+LoanReport_payments.prototype.showReport3 = function(btn, e)
+{
+	this.form = this.get("mainForm") 
+	this.form.target = "_blank";
+	this.form.method = "POST";
+	this.form.action =  this.address_prefix + "LoanPayment.php?show=true&rtfund2=true";
+	this.form.submit();
+	this.get("excel").value = "";
+	return;
+}
+
 function LoanReport_payments()
 {
 	this.formPanel = new Ext.form.Panel({
@@ -341,6 +392,14 @@ function LoanReport_payments()
 		buttons : [{
 			text : "مشاهده گزارش",
 			handler : Ext.bind(this.showReport,this),
+			iconCls : "report"
+		},{
+			text : "گزارش پرداخت جدید",
+			handler : Ext.bind(this.showReport2,this),
+			iconCls : "report"
+		},{
+			text : "گزارش پرداخت  قبل از بروز رسانی مراحل پرداخت",
+			handler : Ext.bind(this.showReport3,this),
 			iconCls : "report"
 		}]
 	});

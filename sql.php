@@ -1,12 +1,124 @@
 <?php
+/*
+insert into aaa(c1,ddate) select r.RequestID,ActDate from LON_requests r join LON_ReqFlow using(RequestID,StatusID) where r.StatusID=95 and ActDate>='2019-03-21'
+insert into aaa(c1,ddate) select r.RequestID,EndDate from LON_requests r where r.IsEnded='YES' and EndDate>='2019-03-21'
+insert into aaa(c1) select r.RequestID from LON_requests r where r.StatusID=70
+ * 
+select * from aaa join sajakrrt_rtfund.LON_ReqParts p1 on(p1.IsHistory='NO' AND c1=p1.RequestID) 
+ join sajakrrt_oldcomputes.LON_ReqParts p2 on(p2.IsHistory='NO' AND c1=p2.RequestID)
+ where p1.partID<>p2.PartID
+ * 
+ * 
+ * ایجاد چک های ردیف های پرداخت
+insert into ACC_DocCheques(DociD, AccountID,CheckNo ,CheckDate , amount , CheckStatus,description ,TafsiliID,AccountTafsiliID)
+select d1.DocID,c.AccountID,c.CheckNo ,c.CheckDate , c.amount , c.CheckStatus,c.description ,c.TafsiliID,c.AccountTafsiliID from sajakrrt_rtfund.LON_payments p join sajakrrt_rtfund3.LON_PayDocs d2 using(PayID)
+        join sajakrrt_rtfund.LON_PayDocs d1 on(p.PayID=d1.PayID)
+        join sajakrrt_rtfund3.ACC_DocCheques c on(c.DociD=d2.DocID)
+        where PayDate>='2019-03-21'
+ * 
+ * به روز رسانی ردیف های بانک اسناد پرداخت
+ * update sajakrrt_rtfund.LON_payments p join aaa on(requestID=c1)
+join sajakrrt_rtfund.LON_PayDocs d1 on(p.PayID=d1.PayID)
+join sajakrrt_rtfund.ACC_DocItems di1 on(di1.DocID=d1.DocID and di1.CostID=1107)
+join sajakrrt_rtfund3.LON_PayDocs d2 on(p.PayID=d2.PayID)
+join sajakrrt_rtfund3.ACC_DocItems di2 on(di2.DocID=d2.DocID and di2.CostID=1107)
+set di1.TafsiliID=di2.TafsiliID,di1.TafsiliID2=di2.TafsiliID2,di1.TafsiliID3=di2.TafsiliID3,
+di1.param1=di2.param1,di1.param2=di2.param2,di1.param3=di2.param3
+where p.PayDate>='2019-03-21'
+ * 
+ *
+ * به روز رسانی ردیف های بانک پرداخت های مشتری
+ * update 
+ sajakrrt_rtfund.LON_BackPays p join aaa on(requestID=c1)
+join sajakrrt_rtfund.LON_BackPayDocs d1 on(p.BackPayID=d1.BackPayID)
+join sajakrrt_rtfund.ACC_DocItems di1 on(di1.DocID=d1.DocID and di1.CostID=1001 and di1.SourceID3=p.BackPayID )
+join sajakrrt_rtfund3.LON_BackPayDocs d2 on(p.BackPayID=d2.BackPayID)
+ join sajakrrt_rtfund3.ACC_DocItems di2 on(di2.DocID=d2.DocID and di2.CostID=1001 and di2.SourceID3=p.BackPayID)
+set di1.TafsiliID=di2.TafsiliID,di1.TafsiliID2=di2.TafsiliID2,di1.TafsiliID3=di2.TafsiliID3,
+di1.param1=di2.param1,di1.param2=di2.param2,di1.param3=di2.param3,di1.details=di2.details
+where p.PayDate>='2019-03-21';
+ * 
+ * به روز رسانی ردیف های غیر بانک
+update sajakrrt_rtfund.LON_BackPays p join aaa on(requestID=c1)
+join sajakrrt_rtfund.LON_BackPayDocs d1 on(p.BackPayID=d1.BackPayID)
+join sajakrrt_rtfund.ACC_DocItems di1 on(di1.DocID=d1.DocID and di1.CostID=1001 and di1.SourceID3=p.BackPayID )
+join sajakrrt_rtfund3.LON_BackPayDocs d2 on(p.BackPayID=d2.BackPayID)
+ left join sajakrrt_rtfund3.ACC_DocItems di2 on(di2.DocID=d2.DocID and di2.CostID=1001 and di2.SourceID3=p.BackPayID)
+ join sajakrrt_rtfund3.ACC_DocItems di3 on(di3.DocID=d2.DocID  and di3.SourceID3=p.BackPayID AND di3.Locked='NO')
+ 
+ set di1.TafsiliID=di3.TafsiliID,di1.TafsiliID2=di3.TafsiliID2,di1.TafsiliID3=di3.TafsiliID3,
+di1.param1=di3.param1,di1.param2=di3.param2,di1.param3=di3.param3,di1.details=di3.details, di1.CostID=di3.CostID
+, di1.TafsiliType=di3.TafsiliType, di1.TafsiliType2=di3.TafsiliType2, di1.TafsiliType3=di3.TafsiliType3
+
+ where p.PayDate>='2019-03-21' AND di2.ItemID is null
+
+
+
+select jdate,description,SourceID1,SourceID3,SourceID4, DebtorAmount,CreditorAmount
+from ACC_docs join ACC_DocItems using(DocID)  join dates on(gdate=DocDate)
+where EventID>0 and CostID=1001
+order by DocDate,SourceID1,SourceID3,SourceID4 
+ */
+
+
+
+
+
+
+
+
+
+
+
 
 /*
-update ACC_docs join ACC_DocItems using(DocID) join LON_payments on(SourceID3=PayID) 
-set DebtorAmount = if(DebtorAmount>0, PayAmount-OldFundWage-OldAgentWage, 0),
-CreditorAmount = if(CreditorAmount>0, PayAmount-OldFundWage-OldAgentWage, 0)
-where EventID in(141,143)
- * 
- *  */
+select p.RequestID,p.PayID,g2j(p.payDate),p.PayAmount,
+                p.PayAmount - ifnull(p.OldFundDelayAmount,0) - ifnull(p.OldAgentDelayAmount,0)
+                        - ifnull(p.OldFundWage,0) - ifnull(p.OldAgentWage,0)as PurePayAmount1,
+                        
+                        p2.PayAmount - ifnull(p2.OldFundDelayAmount,0) - ifnull(p2.OldAgentDelayAmount,0)
+                        - ifnull(p2.OldFundWage,0) - ifnull(p2.OldAgentWage,0)as PurePayAmount2
+                
+            from krrtfir_rtfund.LON_payments p join krrtfir_oldcomputes.LON_payments p2 on(p.PayID=p2.PayID)
+            join krrtfir_oldcomputes.aa on(aa.DociD=p.RequestID)   */
+/*
+ * چک های وصول نشده در یک تاریخ خاص
+select ifnull(b.BackPayID,LoanRequestID) RequestID, ChequeNo,g2j(ChequeDate), InfoDesc 
+from ACC_ChequeHistory h join(  SELECT max(RowID) RowID,IncomeChequeID FROM `ACC_ChequeHistory` 
+								where ATS<'2019-03-21' and StatusID<>3333 group by IncomeChequeID
+                                     )t on(h.RowID=t.RowID and h.IncomeChequeID=t.IncomeChequeID)
+join ACC_IncomeCheques c on(h.IncomeChequeID=c.IncomeChequeID)
+left join LON_BackPays b on(c.IncomeChequeID=b.IncomeChequeID)
+join BaseInfo on(typeID=4 and InfoID=h.StatusID)
+where h.StatusID not in(3003,3009,3011,3008) and c.PayedDate is null and b.BackPayID is null
+		*/
+/*
+ * چک هایی که در سند وصول نشده ندارند
+select  ChequeNo, ChequeAmount, LoanDesc, r.RequestID
+from ACC_ChequeHistory h join(  SELECT max(RowID) RowID,IncomeChequeID FROM `ACC_ChequeHistory` 
+                                where ATS<'2019-03-21' and StatusID<>3333 group by IncomeChequeID
+                                     )t on(h.RowID=t.RowID and h.IncomeChequeID=t.IncomeChequeID)
+join ACC_IncomeCheques c on(h.IncomeChequeID=c.IncomeChequeID)
+join LON_BackPays b on(b.IncomeChequeID=c.IncomeChequeID)
+join LON_requests r on(b.RequestID=r.RequestID)
+join LON_loans l using(LoanID)
+left join (select SourceID4,DocID from ACC_DocItems join ACC_docs using(DocID) join COM_events using(EventID) where CycleID=1398 AND 
+          EventType in('IncomeCheque','LoanBackPayCheque') group by SourceID4)t2 on(t2.SourceID4=h.IncomeChequeID)
+join BaseInfo on(typeID=4 and InfoID=h.StatusID)
+where h.StatusID not in(3003,3009,3011,3008) and if(c.ChequeStatus=3003,c.PayedDate>='2019-03-21',1=1) and t2.DocID is  null/
+
+/*
+ لیست وام هایی که شرایط برداخت طی اقساط است ولی مبلغ برداختی کمتر از مبلغ وام می باشد
+select p.RequestID,PartAmount,purepayed from LON_ReqParts p join aa on(DocID=RequestID) 
+join (select RequestID,sum(PayAmount - ifnull(OldFundDelayAmount,0) 
+                        - ifnull(OldAgentDelayAmount,0)
+                        - ifnull(OldFundWage,0)
+                        - ifnull(OldAgentWage,0)) purepayed from LON_payments join aa on(DocID=RequestID) 
+      where OldFundDelayAmount>0 or OldAgentDelayAmount>0 or OldFundWage>0 or OldAgentWage>0
+group by RequestID)t on(t.RequestID=p.RequestID)
+where IsHistory='NO' and (if(FundWage>0,wageReturn='INSTALLMENT',1=0) or if(FundWage<CustomerWage,AgentReturn ='INSTALLMENT',1=0))
+order by aa.DociD  
+  */
 
 /*
 insert into aa select DocID,@i:=@i+1 from (select a.* from ACC_docs a, 
@@ -19,120 +131,75 @@ join LON_ReqParts p on(IsHistory='NO' AND b.RequestID=p.RequestID) set DocDate=i
  * 
  *  */
 
-/*
-select max(DocDate),g2j(max(DocDate)) from ACC_docs where EventID in(161,1722,1723,1724,1725,1726,1727) and DocDate<'2019-10-22'
-select DocID from ACC_docs where EventID in(161,1722,1723,1724,1725,1726,1727) group by EventID,DocDate having count(DocID)>1
- *  */
 
 /*
-insert into STO_AssetFlow(AssetID,ActDate,ActPersonID,StatusID,IsUsable,ReceiverPersonID) 
-select RowID,now(),1000,2,'YES', case `col 5` when 'اشرفی' then 2313
-when 'آخوند زاده' then 2537 
-when 'ابراهیمی' then 1947
-when 'جنتی' then 2265
-when 'حیدری' then 2171
-when 'خادمی' then 2276
-when 'دزیانی' then 2562
-when 'رجبی' then 2606
-when 'سیدیان' then 1108
-when 'کوثر' then 2560
-when 'محبی' then 2550
-when 'مختاری' then 2633
-when 'مدیر عامل' then 2161 end
- from `TABLE 225`
+CREATE   VIEW LON_PayDocs AS
 
+select di.SourceID3 AS PayID,d.DocID AS DocID,d.LocalNo AS LocalNo,d.StatusID AS StatusID
+from (ACC_DocItems di join ACC_docs d on((di.DocID = d.DocID)))
+where (di.SourceType = 4)
+group by di.SourceID3
 
-insert into STO_AssetFlow(AssetID,ActDate,ActPersonID,StatusID,IsUsable,ReceiverPersonID) 
-select AssetID,BuyDate,1000,1,'YES',0 from STO_assets
+union all
 
+select di2.SourceID3 AS SourceID3,d2.DocID AS DocID,d2.LocalNo AS LocalNo,d2.StatusID AS StatusID
+from COM_events e join ACC_docs d2 on(e.EventID = d2.EventID)
+join ACC_DocItems di2 on(d2.DocID = di2.DocID)
+where e.EventFunction = 'PayLoan'
 
-insert into STO_AssetFlow(AssetID,ActDate,ActPersonID,StatusID,IsUsable,DepreciationAmount,details) 
-select RowID,'2016-03-19',1000,4,'YES', `col 18`, 'استهلاک سالهای قبل'
- from `TABLE 225` where `col 18`<>0
+group by di2.SourceID3; */
 
+/*
+CREATE VIEW  LON_BackPayDocs AS
 
-update STO_AssetFlow set IsLock='YES'
+select 1 AS typeID,di.SourceID1 AS RequestID,di.SourceID2 AS BackPayID,d.DocID AS DocID,d.LocalNo AS LocalNo,
+d.StatusID AS StatusID
+from (ACC_DocItems di join ACC_docs d on((di.DocID = d.DocID)))
+where ((di.SourceType = 5) and (di.SourceID2 > 0))
+group by di.SourceID1,di.SourceID2,d.DocID
 
-ALTER TABLE `STO_AssetFlow` 
-ADD COLUMN `IsLock` ENUM('YES','NO') NULL DEFAULT 'NO' AFTER `IsActive`;
+union all
 
+select 2 AS TypeID,di.SourceID1 AS RequestID,di.SourceID3 AS BackPayID,d.DocID AS DocID,d.LocalNo AS LocalNo,
+d.StatusID AS StatusID
+from ACC_DocItems di join ACC_docs d on(di.DocID = d.DocID)
+join COM_events e on(d.EventID = e.EventID)
+where e.EventFunction = 'LoanBackPay' and di.SourceID3 > 0
+group by di.SourceID1,di.SourceID3,d.DocID; */
+
+/*select requestID, sum(wage) w, sum(PureWage) pw from LON_installments join LON_requests using(RequestID)
+where StatusID=70 and ReqPersonID<>1003
+group by RequestID
+having w<>pw*/
+
+/*
+CREATE  VIEW  ParamItems AS 
+
+select 1 AS paramID,BankID AS ItemID,BankDesc AS ParamValue 
+from ACC_banks 
+
+union all 
+
+select 2 AS paramID,BranchID AS ItemID,BranchName AS ParamValue 
+from BSC_branches 
+
+union all 
+
+select 3 AS paramID,RequestID AS ItemID,RequestID AS ParamValue 
+from LON_requests 
+
+union all 
+
+select 101 AS paramID,TafsiliID AS ItemID,TafsiliDesc AS ParamValue 
+from ACC_tafsilis where (TafsiliType = 150) 
+
+union all 
+
+select 104 AS paramID,LoanID AS ItemID,LoanDesc AS ParamValue 
+from LON_loans 
+
+union all 
+
+select ParamID AS paramID,ItemID AS ItemID,ParamValue AS ParamValue 
+from ACC_CostCodeParamItems
  */
-/*
-select  
-si.ItemID,
-b0.blockCode,b0.blockDesc,
-b1.blockCode,b1.blockDesc,
-b2.blockCode,b2.blockDesc,
-b3.blockCode,b3.blockDesc,
-
-bi.InfoDesc TafsiliGroupDesc,t.TafsiliDesc,
-bi2.InfoDesc Tafsili2GroupDesc,t2.TafsiliDesc as Tafsili2Desc,
-bi3.InfoDesc Tafsili3GroupDesc,t3.TafsiliDesc as Tafsili3Desc,
-
-p1.paramDesc paramDesc1,si.param1,
-p2.paramDesc paramDesc2,si.param2,
-p3.paramDesc paramDesc3,si.param3
-
-		from ACC_DocItems si
-			join ACC_CostCodes cc using(CostID)
-            
-			join ACC_blocks b1 on(cc.level1=b1.blockID)
-            join ACC_blocks b0 on(b1.GroupID=b0.blockID)
-			join ACC_blocks b2 on(cc.level2=b2.blockID)
-			join ACC_blocks b3 on(cc.level3=b3.blockID)
-			
-			left join BaseInfo bi on(si.TafsiliType=InfoID AND TypeID=2)
-			left join BaseInfo bi2 on(si.TafsiliType2=bi2.InfoID AND bi2.TypeID=2)
-			left join BaseInfo bi3 on(si.TafsiliType3=bi3.InfoID AND bi3.TypeID=2)
-			
-			left join ACC_tafsilis t on(t.TafsiliID=si.TafsiliID)
-			left join ACC_tafsilis t2 on(t2.TafsiliID=si.TafsiliID2)
-			left join ACC_tafsilis t3 on(t3.TafsiliID=si.TafsiliID3)
-			
-			left join ACC_CostCodeParams p1 on(p1.ParamID=cc.param1)
-			left join ACC_CostCodeParams p2 on(p2.ParamID=cc.param2)
-			left join ACC_CostCodeParams p3 on(p3.ParamID=cc.param3)
-            
-            where DocID=9212
-
- */
-	
-/*	
-insert into ACC_tafsilis(TafsiliCode,TafsiliType,TafsiliDesc,ObjectID) 
-		select PersonID,200,concat_ws(' ',fname,lname,CompanyName),PersonID from BSC_persons
-
-insert into ACC_tafsilis(TafsiliCode,TafsiliType,TafsiliDesc,ObjectID) 
-select AccountID,200,concat(BankDesc,' - ',AccountDesc),AccountID
-from ACC_accounts join ACC_banks using(BankID)
-
-insert into ACC_tafsilis(TafsiliCode,TafsiliType,TafsiliDesc,ObjectID) 
-        select b1.ProcessID,150,b1.ProcessTitle,b1.ProcessID 
- *		from BSC_processes b1 left join BSC_processes b2 on(b2.parentID=b1.ProcessID) where b2.ProcessID is null
- * 
-
-*/
-
-/*
-	$StartDate = "1400-01-01"	;
-	$toDate = '1500-01-01';
-	
-	while($StartDate < $toDate)
-	{
-		PdoDataAccess::runquery("insert into dates values(?,?)", array(
-		DateModules::shamsi_to_miladi($StartDate,"-"),$StartDate
-		));
-		$StartDate = DateModules::AddToJDate($StartDate, 1);
-	}
- *  */
-
-ALTER TABLE `framewor_rtfund`.`ACC_ChequeHistory` ADD COLUMN `DocID` INTEGER UNSIGNED DEFAULT 0 AFTER `details`;
-
-ALTER TABLE `framewor_rtfund`.`LON_payments` 
-ADD COLUMN `OldFundDelayAmount` DECIMAL(13,0) NOT NULL DEFAULT 0,
-ADD COLUMN `OldAgentDelayAmount` DECIMAL(13,0) NOT NULL DEFAULT 0 ;
-
-
-ALTER TABLE `framewor_rtfund`.`LON_requests` ADD COLUMN `DomainID` INTEGER UNSIGNED NOT NULL DEFAULT 0 COMMENT 'حوزه فعالیت' AFTER `FundRules`;
-
-ALTER TABLE `framewor_rtfund`.`LON_payments` ADD COLUMN `OldFundWage` DECIMAL(13,0) NOT NULL DEFAULT 0 AFTER `OldAgentDelayAmount`,
- ADD COLUMN `OldAgentWage` DECIMAL(13,0) NOT NULL DEFAULT 0 AFTER `OldFundWage`;

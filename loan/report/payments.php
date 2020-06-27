@@ -1,6 +1,6 @@
 <?php
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "../request/request.class.php";
 require_once "../request/request.data.php";
 require_once "ReportGenerator.class.php";
@@ -78,19 +78,20 @@ function MakeWhere(&$where, &$whereParam){
 
 function GetData(){
 	
-	ini_set("memory_limit", "1000M");
-	ini_set("max_execution_time", "600");
-	
 	$where = "";
 	$whereParam = array();
 	$userFields = ReportGenerator::UserDefinedFields();
 	MakeWhere($where, $whereParam);
 	
 	$query = "select py.*,r.*,l.*,p.*,
+				PayAmount - ifnull(OldFundDelayAmount,0) 
+						- ifnull(OldAgentDelayAmount,0)
+						- ifnull(OldFundWage,0)
+						- ifnull(OldAgentWage,0)as PurePayAmount,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
-				if(count(di.ItemID) > 0, 'YES', 'NO') IsDocRegistered,
-				dh.LocalNo,
+				if(pd.DocID is not null, 'YES', 'NO') IsDocRegistered,
+				pd.LocalNo,
 				BranchName".
 				($userFields != "" ? "," . $userFields : "")."
 				
@@ -101,8 +102,8 @@ function GetData(){
 			join BSC_branches using(BranchID)
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
-			left join ACC_DocItems di on(di.SourceType=".DOCTYPE_LOAN_PAYMENT." AND di.SourceID1=py.RequestID AND di.SourceID3=py.PayID)
-			left join ACC_docs dh on(di.DocID=dh.DocID)
+			left join LON_PayDocs pd on(py.PayID=pd.PayID)
+
 			where 1=1 " . $where;
 	
 	$group = ReportGenerator::GetSelectedColumnsStr();
@@ -120,8 +121,8 @@ function ListData($IsDashboard = false){
 	$rpg->mysql_resource = GetData();
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		print_r(ExceptionHandler::PopAllExceptions());
-		echo PdoDataAccess::GetLatestQueryString();
+		//print_r(ExceptionHandler::PopAllExceptions());
+		//echo PdoDataAccess::GetLatestQueryString();die();
 	}
 	function endedRender($row,$value){
 		return ($value == "YES") ? "خاتمه" : "جاری";
@@ -152,8 +153,9 @@ function ListData($IsDashboard = false){
 	
 	$rpg->addColumn("تاریخ پرداخت مصوب", "PayDate", "ReportDateRender");
 	$rpg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate", "ReportDateRender");
-
-	$rpg->addColumn("مبلغ پرداخت", "PayAmount", "ReportMoneyRender");
+	$rpg->addColumn("مبلغ پرداخت مصوب", "PayAmount", "ReportMoneyRender");
+	$rpg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", "ReportMoneyRender");
+		
 	$col = $rpg->addColumn("صدور سند", "IsDocRegistered" , "IsDocRegisteredRender");
 	$col->align = "center";
 	$rpg->addColumn("شماره سند", "LocalNo");

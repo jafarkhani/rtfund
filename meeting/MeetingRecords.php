@@ -714,7 +714,7 @@ MTG_MeetingRecords.prototype.RecordDocuments = function(){
 	if(!this.documentWin)
 	{
 		this.documentWin = new Ext.window.Window({
-			width : 720,
+			width : 920, 
 			height : 440,
 			modal : true,
 			bodyStyle : "background-color:white;padding: 0 10px 0 10px",

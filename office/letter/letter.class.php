@@ -28,6 +28,7 @@ class OFC_letters extends PdoDataAccess{
 	public $PostalAddress;
 	public $ProcessID;
     public $MeetingRecordID; /*new added*/
+	public $hasAttach;
 
     function __construct($LetterID = ""){
 		$this->DT_LetterDate = DataMember::CreateDMA(DataMember::DT_DATE);
@@ -39,9 +40,17 @@ class OFC_letters extends PdoDataAccess{
     }
 
     static function GetAll($where = "",$whereParam = array()){
-	    $query = "select * from OFC_letters";
+	    $query = "select * from OFC_letters l ";
 	    $query .= ($where != "") ? " where " . $where : "";
-	    return parent::runquery($query, $whereParam);
+	    $dt = parent::runquery($query, $whereParam);
+		
+		for($i=0; $i<count($dt); $i++)
+		{
+			$dt[$i]["context"] = "";
+			$dt[$i][6] = "";
+		}
+		
+		return $dt;
     }
 	
 	static function FullSelect($where = "",$whereParam = array(), $OrderBy = "", $RefInclude= false){
@@ -49,7 +58,7 @@ class OFC_letters extends PdoDataAccess{
 	    $query = "select l.LetterID,l.LetterType,l.LetterDate,l.LetterTitle,
 				concat(p1.fname,' ',p1.lname) RegName,
 				concat(p4.fname,' ',p4.lname) signer,
-				if(t.cnt > 0,'YES','NO') hasAttach" . 
+				l.hasAttach" . 
 				($RefInclude ? ",s.SendID,s.SendDate,s.SendComment,	
 				concat(p2.fname,' ',p2.lname) sender,
 				concat(p3.fname,' ',p3.lname) receiver" : "") . " 
@@ -57,9 +66,6 @@ class OFC_letters extends PdoDataAccess{
 			from OFC_letters l 
 			join BSC_persons p1 on(l.PersonID=p1.PersonID)
 			left join BSC_persons p4 on(l.SignerPersonID=p4.PersonID)
-			left  join (select ObjectID,count(DocumentID) cnt 
-					from DMS_documents where ObjectType='letterAttach' group by ObjectID )t
-			on(t.ObjectID = l.LetterID)
 			left join OFC_LetterCustomers lc on(l.LetterID=lc.LetterID)";
 			
 		if($RefInclude)
@@ -80,13 +86,13 @@ class OFC_letters extends PdoDataAccess{
 		    return false;
 
 	    $this->LetterID = parent::InsertID($pdo);
-
-	    $daObj = new DataAudit();
+        
+		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_add;
 		$daObj->MainObjectID = $this->LetterID;
 		$daObj->TableName = "OFC_letters";
 		$daObj->execute($pdo);
-		return true;	
+        return true;
     }
 
     function EditLetter($pdo = null){
@@ -121,21 +127,23 @@ class OFC_letters extends PdoDataAccess{
 	
 	static function SelectReceivedLetters($where = "", $param = array()){
 		 
-		$query = "select s.*,l.*, 
+		$query = "select s.*,
+				l.organization,
+				l.LetterType,
+				l.IsSigned,
+				l.LetterTitle,
+				l.OrgPost,
+				l.hasAttach,
+				
 				concat_ws(' ',fname, lname,CompanyName) FromPersonName,
-				if(t.cnt > 0,'YES','NO') hasAttach,
 				substr(s.SendDate,1,10) _SendDate,
 				InfoDesc SendTypeDesc
 				
 			from OFC_send s
 				left join BaseInfo b on(b.TypeID=12 AND s.SendType=InfoID)
 				join OFC_letters l using(LetterID)
-				join BSC_persons p on(s.FromPersonID=p.PersonID)
-				left  join (select ObjectID,count(DocumentID) cnt 
-							from DMS_documents where ObjectType='letterAttach' group by ObjectID )t
-					on(t.ObjectID = s.LetterID)
+				join BSC_persons p on(s.FromPersonID=p.PersonID)				
 				left join OFC_send s2 on(s2.LetterID=s.LetterID AND s2.SendID>s.SendID AND s2.FromPersonID=s.ToPersonID)
-				
 				
 			where s2.SendID is null AND s.ToPersonID=:tpid " . $where . "
 			group by SendID";
@@ -147,7 +155,8 @@ class OFC_letters extends PdoDataAccess{
 	
 	static function SelectDraftLetters($where = "", $param = array()){
 		
-		$query = "select * from OFC_letters
+		$query = "select LetterID,LetterTitle,LetterType,LetterDate,LetterTitle
+			from OFC_letters
 			left join OFC_send using(LetterID) 
 			where SendID  is null AND PersonID=:pid " . $where;
 		$param[':pid'] = $_SESSION["USER"]["PersonID"];
@@ -160,13 +169,12 @@ class OFC_letters extends PdoDataAccess{
 		
 		$query = "select s.*,l.*, InfoDesc SendTypeDesc,
 				concat_ws(' ',fname, lname,CompanyName) ToPersonName,
-				if(count(DocumentID) > 0,'YES','NO') hasAttach,
+				l.hasAttach,
 				substr(s.SendDate,1,10) _SendDate
 			from OFC_send s
 				left join BaseInfo b on(b.TypeID=12 AND s.SendType=InfoID)
 				join OFC_letters l using(LetterID)
 				join BSC_persons p on(s.ToPersonID=p.PersonID)
-				left join DMS_documents on(ObjectType='letterAttach' AND ObjectID=s.LetterID)
 			where FromPersonID=:fpid " . $where . "
 			group by SendID
 		";
@@ -301,7 +309,7 @@ class OFC_letters extends PdoDataAccess{
 	
 	static function HasAttach($LetterID){
 		
-		$dt = PdoDataAccess::runquery( "select LetterID				
+		$dt = PdoDataAccess::runquery( "select hasAttach				
 			from OFC_letters l 
 				join DMS_documents on(ObjectType='letterAttach' AND ObjectID=l.LetterID)
 			where l.LetterID=?", array($LetterID));
@@ -531,9 +539,10 @@ class OFC_MessageReceivers extends OperationClass{
 	
 	static function GetNewMessageReceiveCount(){
 		
-		$dt = PdoDataAccess::runquery("select SendID from OFC_MessageReceivers 
-			where IsSeen='NO' AND IsDeleted='NO' AND
-			PersonID=" . $_SESSION["USER"]["PersonID"]);
+		$dt = PdoDataAccess::runquery("select SendID from OFC_MessageReceivers r
+            join OFC_messages using(MessageID)
+            where r.IsSeen='NO' AND r.IsDeleted='NO' AND
+            r.PersonID=" . $_SESSION["USER"]["PersonID"]);
 		return count($dt);
 	}
 	

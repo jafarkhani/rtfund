@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 
 $page_rpg = new ReportGenerator("mainForm","AccReport_docsObj");
@@ -52,12 +52,7 @@ function GetData(){
 		$query .= " AND d.CycleID=:c";
 		$whereParam[":c"] = $_POST["CycleID"];
 	}
-	else 
-	{
-		$query .= " AND d.CycleID=:c";
-		$whereParam[":c"] = $_SESSION["accounting"]["CycleID"];
-		
-	}
+	
 	if(!empty($_POST["DocType"]))
 	{
 		$query .= " AND DocType=:dt";
@@ -127,6 +122,21 @@ function GetData(){
 		$query .= " AND di.details like :q10 ";
 		$whereParam[":q10"] = '%' . $_POST["details"] . "%";
 	}
+	if(!empty($_REQUEST["TafsiliID"]))
+	{
+		$query .= " AND di.TafsiliID = :tid1 ";
+		$whereParam[":tid1"] = $_REQUEST["TafsiliID"];
+	}
+	if(!empty($_REQUEST["TafsiliID2"]))
+	{
+		$query .= " AND di.TafsiliID2 = :tid2 ";
+		$whereParam[":tid2"] = $_REQUEST["TafsiliID2"];
+	}
+	if(!empty($_REQUEST["TafsiliID3"]))
+	{
+		$query .= " AND di.TafsiliID3 = :tid3 ";
+		$whereParam[":tid3"] = $_REQUEST["TafsiliID3"];
+	}
 	
 	if(!isset($_REQUEST["IncludeRaw"]))
 		$query .= " AND d.StatusID != " . ACC_STEPID_RAW;
@@ -155,10 +165,10 @@ function GetData(){
 	$query .= $group == "" ? " order by DocDate,LocalNo" : " order by " . $group;
 	
 	$dataTable = PdoDataAccess::runquery($query, $whereParam);
-	if($_SESSION["USER"]["UserName"] == "admin")
-	{
+	//if($_SESSION["USER"]["UserName"] == "admin")
+	//{
 		//echo PdoDataAccess::GetLatestQueryString();
-	}
+	//}
 	return $dataTable;
 }
 
@@ -429,6 +439,129 @@ function AccReport_docs()
 			xtype : "textfield",
 			name : "details",
 			fieldLabel : "جزئیات ردیف"
+		},{
+			xtype : "combo",
+			displayField : "InfoDesc",
+			fieldLabel : "گروه تفصیلی",
+			valueField : "InfoID",
+			hiddenName : "TafsiliGroup",
+			queryMode : 'local',
+			store : new Ext.data.Store({
+				fields:['InfoID','InfoDesc'],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=SelectTafsiliGroups',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				autoLoad : true
+			}),
+			listeners : {
+				select : function(combo,records){
+					el = AccReport_docsObj.formPanel.down("[itemId=cmp_tafsiliID]");
+					el.setValue();
+					el.enable();
+					el.getStore().proxy.extraParams["TafsiliType"] = this.getValue();
+					el.getStore().load();
+				}
+			}
+		},{
+			xtype : "combo",
+			displayField : "TafsiliDesc",
+			fieldLabel : "تفصیلی",
+			disabled : true,
+			valueField : "TafsiliID",
+			itemId : "cmp_tafsiliID",
+			hiddenName : "TafsiliID",
+			store : new Ext.data.Store({
+				fields:["TafsiliID","TafsiliDesc"],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=GetAllTafsilis',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				}
+			})
+		},{
+			xtype : "combo",
+			displayField : "InfoDesc",
+			fieldLabel : "گروه تفصیلی2",
+			valueField : "InfoID",
+			hiddenName : "TafsiliGroup2",
+			queryMode : 'local',
+			store : new Ext.data.Store({
+				fields:['InfoID','InfoDesc'],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=SelectTafsiliGroups',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				autoLoad : true
+			}),
+			listeners : {
+				select : function(combo,records){
+					el = AccReport_docsObj.formPanel.down("[itemId=cmp_tafsiliID2]");
+					el.setValue();
+					el.enable();
+					el.getStore().proxy.extraParams["TafsiliType"] = this.getValue();
+					el.getStore().load();
+				}
+			}
+		},{
+			xtype : "combo",
+			displayField : "TafsiliDesc",
+			fieldLabel : "تفصیلی",
+			disabled : true,
+			valueField : "TafsiliID",
+			itemId : "cmp_tafsiliID2",
+			hiddenName : "TafsiliID2",
+			store : new Ext.data.Store({
+				fields:["TafsiliID","TafsiliDesc"],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=GetAllTafsilis',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				}
+			})
+		},{
+			xtype : "combo",
+			displayField : "InfoDesc",
+			fieldLabel : "گروه تفصیلی3",
+			valueField : "InfoID",
+			hiddenName : "TafsiliGroup3",
+			queryMode : 'local',
+			store : new Ext.data.Store({
+				fields:['InfoID','InfoDesc'],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=SelectTafsiliGroups',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				autoLoad : true
+			}),
+			listeners : {
+				select : function(combo,records){
+					el = AccReport_docsObj.formPanel.down("[itemId=cmp_tafsiliID3]");
+					el.setValue();
+					el.enable();
+					el.getStore().proxy.extraParams["TafsiliType"] = this.getValue();
+					el.getStore().load();
+				}
+			}
+		},{
+			xtype : "combo",
+			displayField : "TafsiliDesc",
+			fieldLabel : "تفصیلی",
+			disabled : true,
+			valueField : "TafsiliID",
+			itemId : "cmp_tafsiliID3",
+			hiddenName : "TafsiliID3",
+			store : new Ext.data.Store({
+				fields:["TafsiliID","TafsiliDesc"],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=GetAllTafsilis',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				}
+			})
 		},{
 			xtype : "container",
 			colspan : 2,

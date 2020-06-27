@@ -7,13 +7,13 @@
 require_once DOCUMENT_ROOT . '/accounting/docs/doc.class.php';
 require_once DOCUMENT_ROOT . "/commitment/ComputeItems.class.php";
 
-class ExecuteEvent {
+class ExecuteEvent extends PdoDataAccess{
 	
 	private $pdo; 
 	public $EventID;
 	public $BranchID;
 	public $DocDate;
-	public $DocObj;
+	public $DocObj = null;
 	
 	public $EventFunction;
 	public $TriggerFunction = "";
@@ -22,6 +22,7 @@ class ExecuteEvent {
 	public $Sources;
 	public $tafsilis = array();
 	public $ComputedItems = array();
+	public $ExtraDescription = "";
 	
 	public $AllRowsAmount = 0;
 	
@@ -30,117 +31,11 @@ class ExecuteEvent {
 		$this->EventID = $EventID;
 		$this->BranchID = $BranchID == "" ? BRANCH_BASE : $BranchID;
 		
-		switch($this->EventID)
-		{
-			case EVENT_LOAN_ALLOCATE:
-				$this->EventFunction = "EventComputeItems::LoanAllocate";
-				break;	
-			
-			case EVENT_LOANPAYMENT_agentSource:
-			case EVENT_LOANPAYMENT_innerSource:
-				$this->TriggerFunction = "LON_payments::UpdateRealPayed";
-				$this->EventFunction = "EventComputeItems::PayLoan";
-				break;
-			
-			case EVENT_LOANCONTRACT_innerSource:
-			case EVENT_LOANCONTRACT_agentSource_committal:
-			case EVENT_LOANCONTRACT_agentSource_non_committal:
-				$this->EventFunction = "EventComputeItems::PayLoan";
-				break;
-			
-			case EVENT_LOANBACKPAY_innerSource_non_cheque:
-			case EVENT_LOANBACKPAY_agentSource_committal_non_cheque:
-			case EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque:
-				$this->EventFunction = "EventComputeItems::LoanBackPay";
-				break;
-			
-			case EVENT_LOANBACKPAY_agentSource_committal_cheque:
-			case EVENT_LOANBACKPAY_agentSource_non_committal_cheque:
-			case EVENT_LOANBACKPAY_innerSource_cheque:
-				//$this->AfterTriggerFunction = "ACC_IncomeCheques::EventTrigger_changeStatus";
-				$this->EventFunction = "EventComputeItems::LoanBackPay";
-				break;
-			
-			case EVENT_CHEQUE_SANDOGHAMANAT_inner:
-			case EVENT_CHEQUE_SANDOGHAMANAT_agent:
-			case EVENT_CHEQUE_SENDTOBANKFROMAMANAT_inner:
-			case EVENT_CHEQUE_SENDTOBANKFROMAMANAT_agent:
-			case EVENT_CHEQUE_SENDTOBANK_inner:
-			case EVENT_CHEQUE_SENDTOBANK_agent:
-			case EVENT_CHEQUE_BARGASHT_inner:
-			case EVENT_CHEQUE_BARGASHT_agent:
-			case EVENT_CHEQUE_BARGASHTHOGHUGHI_inner:
-			case EVENT_CHEQUE_BARGASHTHOGHUGHI_agent:
-				//$this->AfterTriggerFunction = "ACC_IncomeCheques::EventTrigger_changeStatus";
-				break;
-			
-			case EVENT_LOANDAILY_innerSource:
-			case EVENT_LOANDAILY_agentSource_committal:
-			case EVENT_LOANDAILY_agentSource_non_committal:
-			case EVENT_LOANDAILY_innerLate:
-			case EVENT_LOANDAILY_agentlate:
-			case EVENT_LOANDAILY_innerPenalty:
-			case EVENT_LOANDAILY_agentPenalty:
-			case EVENT_LOANDAILY_innerEarly:
-			case EVENT_LOANDAILY_agentEarly:
-				$this->EventFunction = "EventComputeItems::LoanDaily";
-				break;	
-			
-			case EVENT_LOAN_COST_AGENT:
-			case EVENT_LOAN_COST_INNER:
-				$this->EventFunction = "EventComputeItems::LoanCost";
-				break;	
-			
-			case EVENT_LOAN_END:
-				$this->AfterTriggerFunction = "LON_requests::EventTrigger_end";
-				$this->EventFunction = "EventComputeItems::LoanEnd";
-				break;	
-
-			case EVENT_WAR_CANCEL_2:
-			case EVENT_WAR_CANCEL_3:
-			case EVENT_WAR_CANCEL_4:
-			case EVENT_WAR_CANCEL_6:
-			case EVENT_WAR_CANCEL_7:
-			case EVENT_WAR_CANCEL_8:
-			case EVENT_WAR_CANCEL_other:
-				$this->TriggerFunction = "WAR_requests::EventTrigger_cancel";
-				$this->EventFunction = "EventComputeItems::Warrenty";
-				break;	
-			case EVENT_WAR_REG_2:
-			case EVENT_WAR_REG_3:
-			case EVENT_WAR_REG_4:
-			case EVENT_WAR_REG_6:
-			case EVENT_WAR_REG_7:
-			case EVENT_WAR_REG_8:
-			case EVENT_WAR_REG_other:
-			case EVENT_WAR_END_2:
-			case EVENT_WAR_END_3:
-			case EVENT_WAR_END_4:
-			case EVENT_WAR_END_6:
-			case EVENT_WAR_END_7:
-			case EVENT_WAR_REG_8:
-			case EVENT_WAR_END_other:
-			case EVENT_WAR_EXTEND_2:
-			case EVENT_WAR_EXTEND_3:
-			case EVENT_WAR_EXTEND_4:
-			case EVENT_WAR_EXTEND_6:
-			case EVENT_WAR_EXTEND_7:
-			case EVENT_WAR_EXTEND_8:
-			case EVENT_WAR_EXTEND_other:
-				$this->EventFunction = "EventComputeItems::Warrenty";
-				break;	
-			case EVENT_WAR_SUB_2:
-			case EVENT_WAR_SUB_3:
-			case EVENT_WAR_SUB_4:
-			case EVENT_WAR_SUB_6:
-			case EVENT_WAR_SUB_7:
-			case EVENT_WAR_SUB_8:
-			case EVENT_WAR_SUB_other:
-				$this->AfterTriggerFunction = "WAR_requests::EventTrigger_reduce";				
-				$this->EventFunction = "EventComputeItems::Warrenty";
-				break;	
-			
-		}
+		$EventObj = new COM_events($EventID);
+		$this->TriggerFunction = $EventObj->TriggerFunction;
+		$this->EventFunction = $EventObj->EventFunction != "" ? 
+				"EventComputeItems::" . $EventObj->EventFunction : null;
+		$this->AfterTriggerFunction = $EventObj->AfterTriggerFunction;		
 	}
 	
 	function RegisterEventDoc($pdo = null){
@@ -171,12 +66,43 @@ class ExecuteEvent {
 		if($this->TriggerFunction != "")
 			if(!call_user_func($this->TriggerFunction, $this->Sources, $this, $pdo))
 			{
-				ExceptionHandler::PushException("خطا در اجرای  Trigger");
+				ExceptionHandler::PushException("خطا در اجرای  Trigger " . $this->TriggerFunction);
 				return false;
-			}
+			} 
 		//---------------------------------------------------
-		
-		if(!$this->DocObj)
+
+        // new added for set description for warrenty event
+        $warPerson = '';
+        if(isset($eventRows[0]["EventType"]) && $eventRows[0]["EventType"]=='RegisterWarrenty'){
+            require_once DOCUMENT_ROOT . "/loan/warrenty/request.class.php";
+            $RequestID=$this->Sources[0];
+            $warrenty = new WAR_requests($RequestID);
+            $warPersonID = $warrenty->PersonID;
+            $dt1 = PdoDataAccess::runquery("select RequestID,concat_ws(' ',fname,lname,CompanyName) fullname
+		    from WAR_requests r 
+					left join BSC_persons using(PersonID)
+				where RequestID=?", array($RequestID));
+            $warPerson = $dt1[0]['fullname'];
+        }
+        // end new added for set description for warrenty event
+
+
+		switch($eventRows[0]["EventType"])
+		{
+            // new added for set description for warrenty event
+            case 'RegisterWarrenty':
+                $this->ExtraDescription = " شماره ضمانتنامه " . $this->Sources[0] . " " . $warPerson;
+                break;
+            // end new added for set description for warrenty event
+
+			case EVENTTYPE_LoanContract:
+			case EVENTTYPE_LoanPayment:
+			case EVENTTYPE_LoanBackPay:
+			case EVENTTYPE_LoanEnd:
+				$this->ExtraDescription = " شماره وام " . $this->Sources[0] . $this->ExtraDescription;
+		}
+		//---------------------------------------------------
+		if(!$this->DocObj) 
 		{
 			$CycleID = isset($_SESSION["accounting"]) ? 
 				$_SESSION["accounting"]["CycleID"] : 
@@ -190,7 +116,8 @@ class ExecuteEvent {
 			$this->DocObj->BranchID = $this->BranchID;
 			$this->DocObj->DocType = DOCTYPE_EXECUTE_EVENT;
 			$this->DocObj->EventID = $this->EventID;
-			$this->DocObj->description = "اجرای رویداد[ " . $this->EventID . " ] " . $eventRows[0]["EventTitle"];
+			$this->DocObj->description = "اجرای رویداد[ " . $this->EventID . " ] " . 
+				$eventRows[0]["EventTitle"] . " " . $this->ExtraDescription;
 		}
 
 		//----------------------- add doc items -------------------
@@ -203,12 +130,26 @@ class ExecuteEvent {
 				return false;
 			}
 		}
+		//------- balance the doc with low prices -----------
+		$dt = PdoDataAccess::runquery("select di.*, sum(DebtorAmount) dsum, sum(CreditorAmount) csum
+			from ACC_DocItems di where DocID=?", array($this->DocObj->DocID), $pdo);
+		if($dt[0]["dsum"] != $dt[0]["csum"] && $dt[0]["dsum"]*1 - $dt[0]["csum"]*1 < 1000)
+		{
+			$diff = $dt[0]["dsum"]*1 - $dt[0]["csum"]*1;
+			$itemObj = new ACC_DocItems();
+			PdoDataAccess::FillObjectByArray($itemObj, $dt[0]);
+			unset($itemObj->ItemID);
+			$itemObj->DebtorAmount = $diff>0 ? 0 : abs($diff);
+			$itemObj->CreditorAmount = $diff<0 ? 0 : abs($diff);
+			$itemObj->details = "رفع اختلاف حاصل از رند";
+			$itemObj->Add($pdo);
+		}
 		//------------------ run trigger --------------------
 		if($this->AfterTriggerFunction != "")
 			if(!call_user_func($this->AfterTriggerFunction, $this->Sources, $this, $pdo))
 			{
 				$this->pdo->rollBack();
-				ExceptionHandler::PushException("خطا در اجرای  Trigger");	
+				ExceptionHandler::PushException("خطا در اجرای  Trigger " . $this->AfterTriggerFunction);	
 				return false;
 			}
 		//---------------------------------------------------
@@ -245,8 +186,11 @@ class ExecuteEvent {
 					$amount = $this->ComputedItems[ $eventRow["ComputeItemID"] ];
 				else
 				{
-					$amount = call_user_func($this->EventFunction, $eventRow["ComputeItemID"], $this->Sources);
-					$this->ComputedItems[ $eventRow["ComputeItemID"] ] = $amount;
+					if(isset($this->EventFunction))
+					{
+						$amount = call_user_func($this->EventFunction, $eventRow["ComputeItemID"], $this->Sources);
+						$this->ComputedItems[ $eventRow["ComputeItemID"] ] = $amount;
+					}
 				}
 				if(is_array($amount))
 				{
@@ -297,7 +241,7 @@ class ExecuteEvent {
 		$obj->TafsiliType = $eventRow["TafsiliType1"];
 		$obj->TafsiliType2 = $eventRow["TafsiliType2"];
 		$obj->TafsiliType3 = $eventRow["TafsiliType3"];
-		$result = EventComputeItems::SetSpecialTafsilis($this->EventID, $eventRow, $this->Sources);
+		$result = EventComputeItems::SetSpecialTafsilis($eventRow, $this->Sources);
 		$obj->TafsiliID = $result[0]["TafsiliID"];
 		$obj->TafsiliID2 = $result[1]["TafsiliID"];
 		$obj->TafsiliID3 = $result[2]["TafsiliID"];

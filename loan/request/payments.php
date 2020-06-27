@@ -4,7 +4,7 @@
 //	Date		: 1394.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once './request.class.php';
 require_once inc_dataGrid;
 
@@ -61,6 +61,8 @@ $col->align = "center";
 $col = $dg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", GridColumn::ColumnType_money);
 $col->width = 120;
 $col->align = "center";
+$col->summaryType = GridColumn::SummeryType_sum;
+$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
 
 if(session::IsFramework())
 {
@@ -108,6 +110,8 @@ PartPayment.prototype = {
 	
 	RequestID : "<?= $RequestID ?>",
 	StatusID : "<?= $obj->StatusID ?>", 
+	PartID : <?= LON_ReqParts::GetValidPartObj($RequestID)->PartID ?>,
+	EventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanPayment) ?>,
 
 	get : function(elementID){
 		return findChild(this.TabID, elementID);
@@ -391,28 +395,8 @@ PartPayment.prototype.ReturnPayPartDoc = function(){
 PartPayment.prototype.ExecuteEvent = function(){
 	
 	var record = this.grid.getSelectionModel().getLastSelected();
-
-	var loanStore = new Ext.data.Store({
-		proxy:{
-			type: 'jsonp',
-			url: this.address_prefix + "request.data.php?task=SelectAllRequests&RequestID=" + record.data.RequestID,
-			reader: {root: 'rows',totalProperty: 'totalCount'}
-		},
-		fields : ["RequestID","ReqPersonID","PartID"]
-	});
-	loanStore.load({
-		callback : function(){
-			var eventID = "";
-			ReqRecord = this.getAt(0);
-			if(ReqRecord.data.ReqPersonID*1 > 0)
-				eventID = "<?= EVENT_LOANPAYMENT_agentSource ?>";
-			else
-				eventID = "<?= EVENT_LOANPAYMENT_innerSource ?>";
-			
-			framework.ExecuteEvent(eventID, new Array(
-				ReqRecord.data.RequestID,ReqRecord.data.PartID,record.data.PayID), "PartPaymentObject.AfterEvent");
-		}
-	})
+	framework.ExecuteEvent(this.EventID, new Array(
+		this.RequestID,this.PartID,record.data.PayID), "PartPaymentObject.AfterEvent");
 }
 
 PartPayment.prototype.AfterEvent = function(){

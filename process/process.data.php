@@ -12,7 +12,6 @@ if(isset($_REQUEST["task"]))
 	switch ($_REQUEST["task"])
 	{
 		case "SendRegisterProcess":
-		case "RunDaily":
 			call_user_func($_REQUEST["task"]);
 	}
 }

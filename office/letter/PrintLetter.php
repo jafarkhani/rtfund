@@ -155,17 +155,18 @@ if($LetterObj->OuterCopies != "")
 			<!----------------------------------------------------------------->
 			<? if(isset($_POST["sarbarg"])){ ?>
 				<div class='div-sarbarg' style="width:800px;height:1100px;">
-				<table style="width:19cm;height:100%">
+				<table style="/*width:19cm;*/height:100%">
 					<thead>
 					<tr style="height:150px">
 						<td align="center">
 						</td>
 						<td align="center">
 						</td>
-						<td style="width:80px;line-height: 31px; vertical-align:top; padding-top:32px">
+						<td style="width:100px;line-height: 32px; vertical-align:top; padding-top:0px">
+						<!--<td style="width:80px;line-height: 31px; vertical-align:top; padding-top:32px">-->
 							<br><b><?= DateModules::miladi_to_shamsi($LetterObj->LetterDate) ?><br>
 							 <span dir=ltr><?= $letterYear . "-" . $LetterObj->LetterID ?></span>
-							 <br><?= OFC_letters::HasAttach($LetterObj->LetterID) ? "دارد" : "ندارد" ?></b>
+							 <br><?= $LetterObj->hasAttach == "YES" ? "دارد" : "ندارد" ?></b>
 						</td>
 					</tr>
 					</thead>
@@ -192,7 +193,7 @@ if($LetterObj->OuterCopies != "")
 						<td style="width: 85px;line-height: 21px;vertical-align: top;padding-top: 28px;">
 							<b><?= DateModules::miladi_to_shamsi($LetterObj->LetterDate) ?><br>
 							 <span dir=ltr><?= $letterYear . "-" . $LetterObj->LetterID ?></span>
-							 <br><?= OFC_letters::HasAttach($LetterObj->LetterID) ? "دارد" : "ندارد" ?></b>
+							 <br><?= $LetterObj->hasAttach == "YES" ? "دارد" : "ندارد" ?></b>
 						</td>
 					</tr> 
 					</thead>

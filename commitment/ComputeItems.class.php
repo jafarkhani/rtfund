@@ -9,7 +9,7 @@ require_once DOCUMENT_ROOT . '/accounting/cheque/cheque.class.php';
 require_once DOCUMENT_ROOT . '/accounting/docs/doc.class.php';
 require_once DOCUMENT_ROOT . '/loan/warrenty/request.class.php';
 
-			
+
 class EventComputeItems {
 	
 	static $LoanComputeArray = array();
@@ -48,36 +48,43 @@ class EventComputeItems {
 				return LON_requests::GetPayedAmount($ReqObj->RequestID, $PartObj);
 				
 			case 2 : //مبلغ کل کارمزد
-			case 14 : //مبلغ کارمزد تحقق نیافته سرمایه گذار
-			case 15 : // مبلغ کارمزد تحقق نیافته صندوق
-				
 				$result = LON_requests::GetWageAmounts($ReqObj->RequestID);
-				if($ItemID == 2)
+				if($PartObj->WageReturn == "INSTALLMENT" && $PartObj->FundWage >= $PartObj->CustomerWage)
 					return $result["CustomerWage"];
-				if($ItemID == 14)
-					return $result["AgentWage"];
-				if($ItemID == 15)
+				if($PartObj->AgentReturn == "INSTALLMENT" && $PartObj->FundWage < $PartObj->CustomerWage)
+					return $result["CustomerWage"];
+				return 0;
+				
+			case 14 : //مبلغ کارمزد تحقق نیافته سرمایه گذار
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID);
+				return $PartObj->AgentReturn == "INSTALLMENT" ? $result["AgentWage"] : 0;
+				
+			case 15 : // مبلغ کارمزد تحقق نیافته صندوق
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID);
+				return $PartObj->WageReturn == "INSTALLMENT" ? $result["FundWage"] : 0;
+							
+			case 20: //کارمزد ثابت صندوق
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, 
+						$PayObj->PayID>0 ? $PayObj->_PurePayedAmount : null);
+				if($PartObj->WageReturn != "INSTALLMENT")
 					return $result["FundWage"];
+				return 0;
+				
+			case 21: //کارمزد ثابت سرمایه گذار
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj, 
+						$PayObj->PayID>0 ? $PayObj->_PurePayedAmount : null);
+				if($PartObj->AgentReturn != "INSTALLMENT")
+					return $result["AgentWage"];
+				return 0;
+				
+			case 22: //مبلغ کارمزد صندوق از سپرده سرمایه گذار
+				$result = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj);
+				if($PartObj->FundWage > $PartObj->CustomerWage)
+					return $result["FundWage"] - $result["CustomerWage"];
+				return 0;
 			
-			case 16 : //مبلغ تنفس
-			case 17 : //سهم اصل از تنفس
-			case 18 : //سهم کارمزد از تنفس
-				$result = LON_requests::GetDelayAmounts($ReqObj->RequestID, $PartObj);
-				$wage = LON_requests::GetWageAmounts($ReqObj->RequestID, $PartObj);
-				if($ItemID == 16)
-					return $result["CustomerDelay"];
-				if($ItemID == 17)
-				{
-					return $result["CustomerDelay"];
-					/*return round($result["CustomerDelay"]*$PartObj->PartAmount/
-						($wage["CustomerWage"]*1 + $PartObj->PartAmount*1));*/
-				}
-				if($ItemID == 18)
-				{
-					return 0;
-					/*return $result["CustomerDelay"]*1 - round($result["CustomerDelay"]*$PartObj->PartAmount/
-						($wage["CustomerWage"]*1 + $PartObj->PartAmount*1));*/
-				}
+			case 23: // کارمزد ثابت5% حمایتی پارک
+				return ($PayObj->PayID>0 ? $PayObj->_PurePayedAmount : $PartObj->PartAmount)*5/100;
 				
 			case 6 : // مبلغ تضمین
 				$dt =  array();
@@ -162,9 +169,12 @@ class EventComputeItems {
 							return $row["pure"];
 						case 33:
 						case 34:
-							$wagePercent = $PartObj->CustomerWage;
-							$FundWage = round(($PartObj->FundWage/$wagePercent)*$row["wage"]);
+							if($PartObj->CustomerWage == 0)
+								return 0;
+							$FundWage = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $row["wage"] : 
+								round(($PartObj->FundWage/$PartObj->CustomerWage)*$row["wage"]);
 							$AgentWage = $row["wage"] - $FundWage;
+							
 							if($ItemID == 34)
 								return $FundWage;
 							if($ItemID == 33)
@@ -173,19 +183,24 @@ class EventComputeItems {
 						case 36:
 							if($PartObj->LatePercent*1 == 0)
 								return 0;
-							$lateAmount = $row["late"];
-							$FundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$lateAmount);
+							$lateAmount = $row["totallate"]*1;
+							if($lateAmount < 0)
+								return 0;
+							$FundLate = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $lateAmount : 
+								round(($PartObj->FundWage/$PartObj->CustomerWage)*$lateAmount);
+							
 							$AgentLate = $lateAmount - $FundLate;
 							if($ItemID == 36)
 								return $FundLate;
 							if($ItemID == 35)
-								return $AgentLate;
+								return $AgentLate ;
 						case 37:
 						case 38:	
 							if($PartObj->ForfeitPercent*1 == 0)
 								return 0;
 							$forfeitAmount = $row["pnlt"];
-							$FundForfeit = round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$forfeitAmount);
+							$FundForfeit = $PartObj->FundForfeitPercent*1 > $PartObj->ForfeitPercent*1 ? $forfeitAmount : 
+									round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$forfeitAmount);
 							$AgentForfeit = $forfeitAmount - $FundForfeit;
 							if($ItemID == 38)
 								return $FundForfeit;
@@ -193,8 +208,15 @@ class EventComputeItems {
 								return $AgentForfeit;
 						case 41:
 						case 42:	
-							$earlyAmount = $row["early"];
-							$FundEarly = round(($PartObj->FundWage/$PartObj->CustomerWage)*$earlyAmount);
+							$lateAmount = $row["totallate"]*1;
+							if($lateAmount > 0)
+								return 0;
+							
+							$earlyAmount = $lateAmount*(-1);
+							if($PartObj->CustomerWage == 0)
+								return 0;
+							$FundEarly = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $earlyAmount : 
+									round(($PartObj->FundWage/$PartObj->CustomerWage)*$earlyAmount);
 							$AgentEarly = $earlyAmount - $FundEarly;
 							if($ItemID == 41)
 								return $FundEarly;
@@ -203,6 +225,7 @@ class EventComputeItems {
 							
 						case 43:	
 							return $row["remainPayAmount"];
+							
 					}
 				}
 		}		
@@ -283,29 +306,37 @@ class EventComputeItems {
 				if($PartObj->CustomerWage == 0)
 					return 0;
 				$late = $todayArr["remain_late"] - $yesterdayArr["remain_late"];
-				 $fundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$late);
+				if($late < 0)
+					return 0;
+				$fundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$late);
 				return $fundLate;
 			case 83 : 
 				if($PartObj->CustomerWage == 0)
 					return 0;
 				$late = $todayArr["remain_late"] - $yesterdayArr["remain_late"];
-				 $fundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$late);
+				if($late < 0)
+					return 0;
+				$fundLate = round(($PartObj->FundWage/$PartObj->CustomerWage)*$late);
 				return $late - $fundLate;
 			case 84 : 
 				if($PartObj->ForfeitPercent == 0)
 					return 0;
 				$penalty = $todayArr["remain_pnlt"] - $yesterdayArr["remain_pnlt"];
+				if($penalty < 0)
+					return 0;
 				$fundPenalty = round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$penalty);
 				return $fundPenalty;
 			case 85 : 
 				if($PartObj->ForfeitPercent == 0)
 					return 0;
 				$penalty = $todayArr["remain_pnlt"] - $yesterdayArr["remain_pnlt"];
+				if($penalty < 0)
+					return 0;
 				$fundPenalty = round(($PartObj->FundForfeitPercent/$PartObj->ForfeitPercent)*$penalty);
 				return $penalty - $fundPenalty;
-			case 86 : 
+			/*case 86 : 
 				$early = $todayArr["total_early"] - $yesterdayArr["total_early"];
-				return $early;
+				return $early;*/
 		}
 
 	}
@@ -475,8 +506,8 @@ class EventComputeItems {
 	
 	static function FindTafsili($TafsiliType, $ObjectID){
 
-		$dt = PdoDataAccess::runquery("select * from ACC_tafsilis "
-				. "where IsActive='YES' AND ObjectID=? AND TafsiliType=?",
+		$dt = PdoDataAccess::runquery("select * from ACC_tafsilis 
+				where IsActive='YES' AND ObjectID=? AND TafsiliType=?",
 			array($ObjectID, $TafsiliType));
 		
 		if(count($dt) == 0)
@@ -488,123 +519,76 @@ class EventComputeItems {
 		return array("TafsiliID" => $dt[0]["TafsiliID"], "TafsiliDesc" => $dt[0]["TafsiliDesc"]);
 	}
 	
-	static function SetSpecialTafsilis($EventID, $EventRow, $params){
+	static function SetSpecialTafsilis($EventRow, $params){
 		
 		$t1 = array("TafsiliID" => isset($_POST["TafsiliID1_" . $EventRow["RowID"]]) ? $_POST["TafsiliID1_" . $EventRow["RowID"]] : 0, "TafsiliDesc" => "");
 		$t2 = array("TafsiliID" => isset($_POST["TafsiliID2_" . $EventRow["RowID"]]) ? $_POST["TafsiliID2_" . $EventRow["RowID"]] : 0, "TafsiliDesc" => "");
 		$t3 = array("TafsiliID" => isset($_POST["TafsiliID3_" . $EventRow["RowID"]]) ? $_POST["TafsiliID3_" . $EventRow["RowID"]] : 0, "TafsiliDesc" => "");
 
-		switch($EventID*1)
+		//......................................................................
+		if($EventRow["EventType"] == "OutcomeCheque" && $EventRow["EventType2"] == INCOMECHEQUE_VOSUL)
 		{
-			case EVENT_OutcomeCheque_vosul:
-				$ChequeObj = new ACC_DocCheques($params[1]);
-				if($EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
-					$t2 = array("TafsiliID" => $ChequeObj->TafsiliID, "TafsiliDesc" => "");
-				if($EventRow["CostID"] == COSTID_Bank && $EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
-					$t2 = array("TafsiliID" => $ChequeObj->_AccountTafsiliID, "TafsiliDesc" => "");
-				if($EventRow["TafsiliType1"] == TAFSILITYPE_ACCOUNTTYPE)
-					$t1 = array("TafsiliID" => $ChequeObj->AccountTafsiliID, "TafsiliDesc" => "");
-				
-				break;
-				
-			case EVENT_LOAN_ALLOCATE:
-			case EVENT_LOANPAYMENT_agentSource:
-			case EVENT_LOANPAYMENT_innerSource:
-			case EVENT_LOANBACKPAY_innerSource_cheque:
-			case EVENT_LOANBACKPAY_innerSource_non_cheque:
-			case EVENT_LOANBACKPAY_agentSource_committal_cheque:
-			case EVENT_LOANBACKPAY_agentSource_committal_non_cheque:
-			case EVENT_LOANBACKPAY_agentSource_non_committal_cheque:
-			case EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque:
-			case EVENT_LOANCONTRACT_innerSource:
-			case EVENT_LOANCONTRACT_agentSource_committal:
-			case EVENT_LOANCONTRACT_agentSource_non_committal:
-			case EVENT_LOANDAILY_innerSource:
-			case EVENT_LOANDAILY_agentSource_committal:
-			case EVENT_LOANDAILY_agentSource_non_committal:
-			case EVENT_LOANDAILY_agentlate:
-			case EVENT_LOANDAILY_innerLate:
-			case EVENT_LOANDAILY_agentPenalty:
-			case EVENT_LOANDAILY_innerPenalty:
-			case EVENT_LOANDAILY_agentEarly:
-			case EVENT_LOANDAILY_innerEarly:
-			case EVENT_LOANCHEQUE_payed:
-			case EVENT_LOANCHEQUE_agentSource:
-			case EVENT_LOANCHEQUE_innerSource:
-				
-				$ReqObj = new LON_requests($params[0]);
-				/* @var $ReqObj LON_requests */
-				
-				if(in_array($EventRow["CostCode"],array("3030101","1010101")) !== false)
-					return array($t1,$t2,$t3);
-				
-				if($EventRow["TafsiliType1"] == TAFSILITYPE_LOAN)
-					$t1 = self::FindTafsili(TAFSILITYPE_LOAN, $ReqObj->LoanID);
-				if($EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
-					$t2 = self::FindTafsili(TAFSILITYPE_PERSON, $ReqObj->LoanPersonID);
-				if($EventRow["TafsiliType3"] == TAFSILITYPE_PERSON && $ReqObj->ReqPersonID*1 > 0)
-					$t3 = self::FindTafsili(TAFSILITYPE_PERSON, $ReqObj->ReqPersonID);
-				
-				if($EventRow["TafsiliType1"] == TAFSILITYPE_SOURCE)
-					$t1 = self::FindTafsili(TAFSILITYPE_SOURCE, $ReqObj->ReqPersonID);
-				if($EventRow["TafsiliType2"] == TAFSILITYPE_SOURCE)
-					$t2 = self::FindTafsili(TAFSILITYPE_SOURCE, $ReqObj->ReqPersonID);
-				if($EventRow["TafsiliType3"] == TAFSILITYPE_SOURCE)
-					$t3 = self::FindTafsili(TAFSILITYPE_SOURCE, $ReqObj->ReqPersonID);
-				
-				break;
-				
-			case EVENT_WAR_REG_2:
-			case EVENT_WAR_REG_3:
-			case EVENT_WAR_REG_4:
-			case EVENT_WAR_REG_6:
-			case EVENT_WAR_REG_7:
-			case EVENT_WAR_REG_8:
-			case EVENT_WAR_REG_other:
-			case EVENT_WAR_CANCEL_2:
-			case EVENT_WAR_CANCEL_3:
-			case EVENT_WAR_CANCEL_4:
-			case EVENT_WAR_CANCEL_6:
-			case EVENT_WAR_CANCEL_7:
-			case EVENT_WAR_CANCEL_8:
-			case EVENT_WAR_CANCEL_other:
-			case EVENT_WAR_END_2:
-			case EVENT_WAR_END_3:
-			case EVENT_WAR_END_4:
-			case EVENT_WAR_END_6:
-			case EVENT_WAR_END_7:
-			case EVENT_WAR_END_8:
-			case EVENT_WAR_END_other:
-			case EVENT_WAR_EXTEND_2:
-			case EVENT_WAR_EXTEND_3:
-			case EVENT_WAR_EXTEND_4:
-			case EVENT_WAR_EXTEND_6:
-			case EVENT_WAR_EXTEND_7:
-			case EVENT_WAR_EXTEND_8:
-			case EVENT_WAR_EXTEND_other:
-			case EVENT_WAR_SUB_2:
-			case EVENT_WAR_SUB_3:
-			case EVENT_WAR_SUB_4:
-			case EVENT_WAR_SUB_6:
-			case EVENT_WAR_SUB_7:
-			case EVENT_WAR_SUB_8:	
-			case EVENT_WAR_SUB_other:
-				$ReqObj = new WAR_requests($params[0]);
-				if($EventRow["TafsiliType1"] == TAFSILITYPE_PERSON)
-					$t1 = self::FindTafsili(TAFSILITYPE_PERSON, $ReqObj->PersonID);
-				if($EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
-					$t2 = self::FindTafsili(TAFSILITYPE_PERSON, $ReqObj->PersonID);
-				
-				if($EventRow["TafsiliType1"] == TAFSILITYPE_SOURCE)
-					$t1 = self::FindTafsili(TAFSILITYPE_SOURCE, 0);
-				if($EventRow["TafsiliType2"] == TAFSILITYPE_SOURCE)
-					$t2 = self::FindTafsili(TAFSILITYPE_SOURCE, 0);
-				if($EventRow["TafsiliType3"] == TAFSILITYPE_SOURCE)
-					$t3 = self::FindTafsili(TAFSILITYPE_SOURCE, 0);
-				break;
-				
-				
+			$ChequeObj = new ACC_DocCheques($params[1]);
+			if($EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
+				$t2 = array("TafsiliID" => $ChequeObj->TafsiliID, "TafsiliDesc" => "");
+			if($EventRow["CostID"] == COSTID_Bank && $EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
+				$t2 = array("TafsiliID" => $ChequeObj->_AccountTafsiliID, "TafsiliDesc" => "");
+			if($EventRow["TafsiliType1"] == TAFSILITYPE_ACCOUNTTYPE)
+				$t1 = array("TafsiliID" => $ChequeObj->AccountTafsiliID, "TafsiliDesc" => "");
+		}		
+		//......................................................................
+		if(	$EventRow["EventType"] == "LoanPayment" ||  
+			$EventRow["EventType"] == "LoanBackPay" ||
+			$EventRow["EventType"] == "LoanBackPayCheque" ||
+			$EventRow["EventType"] == "LoanContract" ||
+			$EventRow["EventType"] == "LoanDaily" ||
+			$EventRow["EventType"] == "LoanDailyIncome" ||
+			$EventRow["EventType"] == "LoanDailyLate" ||	
+			$EventRow["EventType"] == "LoanDailyPenalty" ||	
+			$EventRow["EventType"] == "IncomeCheque" ||
+			$EventRow["EventType"] == "LoanEnd" )
+		{
+			$ReqObj = new LON_requests($params[0]);
+			/* @var $ReqObj LON_requests */
+
+			if(in_array($EventRow["CostCode"],array("3030101","1010101")) !== false)
+				return array($t1,$t2,$t3);
+
+			if($EventRow["TafsiliType1"] == TAFSILITYPE_LOAN)
+				$t1 = self::FindTafsili(TAFSILITYPE_LOAN, $ReqObj->LoanID);
+			if($EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
+				$t2 = self::FindTafsili(TAFSILITYPE_PERSON, $ReqObj->LoanPersonID);
+			if($EventRow["TafsiliType3"] == TAFSILITYPE_PERSON && $ReqObj->ReqPersonID*1 > 0)
+				$t3 = self::FindTafsili(TAFSILITYPE_PERSON, $ReqObj->ReqPersonID);
+
+			if($EventRow["TafsiliType1"] == TAFSILITYPE_SOURCE)
+				$t1 = self::FindTafsili(TAFSILITYPE_SOURCE, $ReqObj->ReqPersonID);
+			if($EventRow["TafsiliType2"] == TAFSILITYPE_SOURCE)
+				$t2 = self::FindTafsili(TAFSILITYPE_SOURCE, $ReqObj->ReqPersonID);
+			if($EventRow["TafsiliType3"] == TAFSILITYPE_SOURCE)
+				$t3 = self::FindTafsili(TAFSILITYPE_SOURCE, $ReqObj->ReqPersonID);
 		}
+		//......................................................................
+		if(	$EventRow["EventType"] == "RegisterWarrenty" ||  
+			$EventRow["EventType"] == "CancelWarrenty" ||
+			$EventRow["EventType"] == "EndWarrenty" ||
+			$EventRow["EventType"] == "ExtendWarrenty" ||
+			$EventRow["EventType"] == "SubWarrenty" )
+		{
+			$ReqObj = new WAR_requests($params[0]);
+			if($EventRow["TafsiliType1"] == TAFSILITYPE_PERSON)
+				$t1 = self::FindTafsili(TAFSILITYPE_PERSON, $ReqObj->PersonID);
+			if($EventRow["TafsiliType2"] == TAFSILITYPE_PERSON)
+				$t2 = self::FindTafsili(TAFSILITYPE_PERSON, $ReqObj->PersonID);
+
+			if($EventRow["TafsiliType1"] == TAFSILITYPE_SOURCE)
+				$t1 = self::FindTafsili(TAFSILITYPE_SOURCE, 0);
+			if($EventRow["TafsiliType2"] == TAFSILITYPE_SOURCE)
+				$t2 = self::FindTafsili(TAFSILITYPE_SOURCE, 0);
+			if($EventRow["TafsiliType3"] == TAFSILITYPE_SOURCE)
+				$t3 = self::FindTafsili(TAFSILITYPE_SOURCE, 0);
+		}
+		//......................................................................
 		
 		return array($t1,$t2,$t3);
 	}
@@ -622,14 +606,8 @@ class EventComputeItems {
 						break;
 					
 					case ACC_COST_PARAM_LOAN_LastInstallmentDate : //سررسيد اقساط
-						if(array_search($EventID, array(
-									EVENT_LOANBACKPAY_innerSource_cheque,
-									EVENT_LOANBACKPAY_innerSource_non_cheque,
-									EVENT_LOANBACKPAY_agentSource_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_committal_non_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) === false)
-								break;
+						if($EventRow["EventType"] != "LoanBackPayCheque" && $EventRow["EventType"] != "LoanBackPay")
+							break;
 						$iObj = LON_installments::GetLastInstallmentObj($params[0]);
 						$obj->{ "param" . $i } = DateModules::miladi_to_shamsi($iObj->InstallmentDate);
 						break;
@@ -640,33 +618,21 @@ class EventComputeItems {
 						break;
 
 					case ACC_COST_PARAM_CHEQUE_date:
-						if(array_search($EventID, array(
-									EVENT_LOANBACKPAY_innerSource_cheque,
-									EVENT_LOANBACKPAY_innerSource_non_cheque,
-									EVENT_LOANBACKPAY_agentSource_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_committal_non_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) === false)
-								break;
-						$IncChequObj = new ACC_IncomeCheques($params[1]);
+						if($EventRow["EventType"] != "LoanBackPayCheque")
+							break;
+						$IncChequObj = new ACC_IncomeCheques($params[3]);
 						$obj->{ "param" . $i } = DateModules::miladi_to_shamsi($IncChequObj->ChequeDate);
 						break;
 
 					case ACC_COST_PARAM_BANK:
-						if(array_search($EventID, array(
-									EVENT_LOANBACKPAY_innerSource_cheque,
-									EVENT_LOANBACKPAY_innerSource_non_cheque,
-									EVENT_LOANBACKPAY_agentSource_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_committal_non_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_cheque,
-									EVENT_LOANBACKPAY_agentSource_non_committal_non_cheque)) === false)
+						if($EventRow["EventType"] != "LoanBackPayCheque" && $EventRow["EventType"] != "LoanBackPay")
 							break;
 						$IncChequObj = new ACC_IncomeCheques($params[1]);
 						$obj->{ "param" . $i } = $IncChequObj->ChequeBank;
 						break;
 					
 					case ACC_COST_PARAM_ACCOUNT:
-						if($EventID ==  EVENT_OutcomeCheque_vosul)
+						if($EventRow["EventType"] == "OutcomeCheque")
 						{
 							$ChequObj = new ACC_DocCheques($params[1]);
 							$obj->{ "param" . $i } = $ChequObj->_AccountNo;
@@ -674,10 +640,15 @@ class EventComputeItems {
 						break;
 						
 					case ACC_COST_PARAM_CHEQUE_NO:
-						if($EventID ==  EVENT_OutcomeCheque_vosul)
+						if($EventRow["EventType"] == "OutcomeCheque")
 						{
 							$ChequObj = new ACC_DocCheques($params[1]);
 							$obj->{ "param" . $i } = $ChequObj->CheckNo;
+						}
+						if($EventRow["EventType"] == "IncomeCheque")
+						{
+							$IncChequObj = new ACC_IncomeCheques($params[3]);
+							$obj->{ "param" . $i } = $IncChequObj->ChequeNo;
 						}
 						break;
 						

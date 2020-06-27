@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 
 $x= 0;
@@ -18,9 +18,14 @@ function TotalRemainRender(&$row, $value, $x, $prevRow){
 
 $page_rpg = new ReportGenerator("mainForm","AccReport_flowObj");
 $page_rpg->addColumn("شماره سند", "LocalNo");
+$page_rpg->addColumn("کد حساب", "CostCode");
 $page_rpg->addColumn("شرح حساب", "CostDesc");
 $page_rpg->addColumn("تفصیلی", "TafsiliDesc");
 $page_rpg->addColumn("تفصیلی2", "TafsiliDesc2");
+$page_rpg->addColumn("تفصیلی3", "TafsiliDesc3");
+$page_rpg->addColumn("آیتم1", "ParamValue1");
+$page_rpg->addColumn("آیتم2", "ParamValue2");
+$page_rpg->addColumn("آیتم3", "ParamValue3");
 $col = $page_rpg->addColumn("تاریخ سند", "DocDate");
 $col->type = "date";
 $page_rpg->addColumn("شرح", "detail");	
@@ -107,7 +112,7 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 			$where .= " AND (di.TafsiliID=0 OR di.TafsiliID is null)";
 		else
 		{
-			$where .= " AND (di.TafsiliID = :tid or di.TafsiliID2 = :tid) ";
+			$where .= " AND (di.TafsiliID = :tid or di.TafsiliID2 = :tid or di.TafsiliID3 = :tid) ";
 			$whereParam[":tid"] = $_REQUEST["TafsiliID"];
 		}
 	}
@@ -134,10 +139,18 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 			$whereParam[":tid2"] = $_REQUEST["TafsiliID2"];
 		}
 	}
-	if(!empty($_REQUEST["TafsiliType2"]))
+	if(isset($_REQUEST["TafsiliID3"]))
 	{
-		$where .= " AND di.TafsiliType2 = :tt2 ";
-		$whereParam[":tt2"] = $_REQUEST["TafsiliType2"];
+		if($_REQUEST["TafsiliID3"] == "")
+		{
+			if(isset($_REQUEST["taraz"]))
+				$where .= " AND (di.TafsiliID3=0 OR di.TafsiliID3 is null)";
+		}
+		else
+		{
+			$where .= " AND di.TafsiliID3 = :tid3 ";
+			$whereParam[":tid3"] = $_REQUEST["TafsiliID3"];
+		}
 	}
 	if(!empty($_REQUEST["fromLocalNo"]))
 	{
@@ -177,7 +190,7 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 			continue;
 
 		$ParamID = preg_replace("/paramID/", "", $key);
-		$where .= " AND (
+		$where .= " AND ( 
 				if(cc.param1 = :pid$index, di.param1=:pval$index, 1=0) OR
 				if(cc.param2 = :pid$index, di.param2=:pval$index, 1=0) OR
 				if(cc.param3 = :pid$index, di.param3=:pval$index, 1=0) 
@@ -186,6 +199,17 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 		$whereParam[":pval$index"] = $val;
 		$index++;
 	}
+	
+	if(!empty($_REQUEST["PersonID"]))
+	{
+		$where .= " AND (
+			if(t.TafsiliType in(320,200),t.ObjectID=:pid,1=0) OR 
+			if(t2.TafsiliType in(320,200),t2.ObjectID=:pid,1=0) OR
+			if(t3.TafsiliType in(320,200),t3.ObjectID=:pid,1=0)
+		)";
+		$whereParam[":pid"] = $_REQUEST["PersonID"];
+	}
+	
 }	
 	
 function GetData(){
@@ -194,13 +218,15 @@ function GetData(){
 	
 	$query = "select d.*,di.DebtorAmount,CreditorAmount,
 		concat_ws(' - ',di.details,d.description) detail,
-		concat_ws(' - ' , b1.BlockCode,b2.BlockCode,b3.BlockCode,b4.BlockCode) CostCode,
+		cc.CostCode,
 		concat_ws(' - ' , b1.BlockDesc,b2.BlockDesc,b3.BlockDesc,b4.BlockDesc) CostDesc,
 		b1.essence,
-		b.InfoDesc TafsiliTypeDesc,
 		t.TafsiliDesc TafsiliDesc,
 		t2.TafsiliDesc TafsiliDesc2,
-		bi2.InfoDesc TafsiliTypeDesc2".
+		t3.TafsiliDesc TafsiliDesc3,
+		if(p1.ParamType='combo',pi1.ParamValue,di.param1) ParamValue1,
+		if(p2.ParamType='combo',pi2.ParamValue,di.param2) ParamValue2,
+		if(p3.ParamType='combo',pi3.ParamValue,di.param3) ParamValue3".
 		($userFields != "" ? "," . $userFields : "")."
 		
 		from ACC_DocItems di join ACC_docs d using(DocID)
@@ -209,10 +235,17 @@ function GetData(){
 			left join ACC_blocks b2 on(level2=b2.BlockID)
 			left join ACC_blocks b3 on(level3=b3.BlockID)
 			left join ACC_blocks b4 on(level4=b4.BlockID)
-			left join BaseInfo b on(TypeID=2 AND di.TafsiliType=InfoID)
 			left join ACC_tafsilis t using(TafsiliID)
-			left join BaseInfo bi2 on(bi2.TypeID=2 AND di.TafsiliType2=bi2.InfoID)
 			left join ACC_tafsilis t2 on(di.TafsiliID2=t2.TafsiliID)
+			left join ACC_tafsilis t3 on(di.TafsiliID3=t3.TafsiliID)
+			
+			left join ACC_CostCodeParams p1 on(p1.ParamID=cc.param1)
+			left join ACC_CostCodeParams p2 on(p2.ParamID=cc.param2)
+			left join ACC_CostCodeParams p3 on(p3.ParamID=cc.param3)
+			left join ParamItems pi1 on(pi1.ParamID=cc.param1 AND p1.ParamType='combo' AND di.param1=pi1.ItemID)
+			left join ParamItems pi2 on(pi2.ParamID=cc.param2 AND p2.ParamType='combo' AND di.param2=pi2.ItemID)
+			left join ParamItems pi3 on(pi3.ParamID=cc.param3 AND p3.ParamType='combo' AND di.param3=pi3.ItemID)
+			
 		where 1=1 ";
 	
 	$where = "";
@@ -223,12 +256,13 @@ function GetData(){
 	
 	$group = ReportGenerator::GetSelectedColumnsStr();
 	$query .= $group == "" ? " " : " group by " . $group;
-	$query .= $group == "" ? " order by d.DocDate" : " order by " . $group;	
+	$query .= $group == "" ? " order by d.DocDate,DebtorAmount,CreditorAmount" : " order by " . $group;	
 	
 	$dataTable = PdoDataAccess::runquery($query, $whereParam);
+	
 	//print_r(ExceptionHandler::PopAllExceptions());
-	//if($_SESSION["USER"]["UserName"] == "admin")
-	//	echo PdoDataAccess::GetLatestQueryString ();
+	if($_SESSION["USER"]["UserName"] == "admin")
+		echo PdoDataAccess::GetLatestQueryString ();
 	//-------------------------- previous remaindar ----------------------------
 	if(!empty($_REQUEST["fromDate"]))
 	{
@@ -285,10 +319,14 @@ function ListData($IsDashboard = false){
 	
 	$col = $rpg->addColumn("شماره سند", "LocalNo", "PrintDocRender");
 	$col->ExcelRender = false;
-	//$rpg->addColumn("کد حساب", "CostCode");
+	$rpg->addColumn("کد حساب", "CostCode");
 	$rpg->addColumn("شرح حساب", "CostDesc");
 	$rpg->addColumn("تفصیلی", "TafsiliDesc");
 	$rpg->addColumn("تفصیلی2", "TafsiliDesc2");
+	$rpg->addColumn("تفصیلی3", "TafsiliDesc3");
+	$rpg->addColumn("آیتم1", "ParamValue1");
+	$rpg->addColumn("آیتم2", "ParamValue2");
+	$rpg->addColumn("آیتم3", "ParamValue3");
 	$rpg->addColumn("تاریخ سند", "DocDate","ReportDateRender");
 	$rpg->addColumn("شرح", "detail");	
 	
@@ -573,6 +611,11 @@ function AccReport_flow()
 			}),
 			tpl: this.blockTpl
 		},{
+			xtype : "container",
+			colspan : 2,
+			width : 720,
+			html : "<hr style='border-top: 1px solid #999;border-bottom: 0;'>"
+		},{
 			xtype : "combo",
 			displayField : "InfoDesc",
 			fieldLabel : "گروه تفصیلی",
@@ -655,6 +698,75 @@ function AccReport_flow()
 				}
 			})
 		},{
+			xtype : "combo",
+			displayField : "InfoDesc",
+			fieldLabel : "گروه تفصیلی3",
+			valueField : "InfoID",
+			hiddenName : "TafsiliGroup3",
+			queryMode : 'local',
+			store : new Ext.data.Store({
+				fields:['InfoID','InfoDesc'],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=SelectTafsiliGroups',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				autoLoad : true
+			}),
+			listeners : {
+				select : function(combo,records){
+					el = AccReport_flowObj.formPanel.down("[itemId=cmp_tafsiliID3]");
+					el.setValue();
+					el.enable();
+					el.getStore().proxy.extraParams["TafsiliType"] = this.getValue();
+					el.getStore().load();
+				}
+			}
+		},{
+			xtype : "combo",
+			displayField : "TafsiliDesc",
+			fieldLabel : "تفصیلی",
+			disabled : true,
+			valueField : "TafsiliID",
+			itemId : "cmp_tafsiliID3",
+			hiddenName : "TafsiliID3",
+			store : new Ext.data.Store({
+				fields:["TafsiliID","TafsiliDesc"],
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../baseinfo/baseinfo.data.php?task=GetAllTafsilis',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				}
+			})
+		},{
+			xtype : "container",
+			colspan : 2,
+			width : 720,
+			html : "<hr style='border-top: 1px solid #999;border-bottom: 0;'>"
+		},{
+			colspan : 2,
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../../framework/person/persons.data.php?' +
+						"task=selectPersons",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['PersonID','fullname']
+			}),
+			fieldLabel : "ذینفع",
+			pageSize : 25,
+			width : 400,
+			displayField : "fullname",
+			valueField : "PersonID",
+			hiddenName : "PersonID"
+		},{
+			xtype : "container",
+			colspan : 2,
+			width : 720,
+			html : "<hr style='border-top: 1px solid #999;border-bottom: 0;'>"
+		},{
 			xtype : "numberfield",
 			hideTrigger : true,
 			name : "fromLocalNo",
@@ -681,16 +793,21 @@ function AccReport_flow()
 			name : "details",
 			fieldLabel : "جزئیات ردیف"
 		},{
+			xtype : "fieldset",
+			title : "تنظیمات آیتمها",
+			height : 330,
+			width : 300,
+			rowspan : 3,
+			autoScroll : true,
+			itemId : "FS_params"
+		},{
 			xtype : "container",
-			colspan : 2,
 			html : "<input type=checkbox checked name=IncludeRaw> گزارش شامل اسناد پیش نویس نیز باشد"
 		},{
 			xtype : "container",
-			colspan : 2,
 			html : "<input type=checkbox name=IncludeStart> گزارش شامل اسناد افتتاحیه باشد"
 		},{
 			xtype : "container",
-			colspan : 2,
 			html : "<input type=checkbox name=IncludeEnd> گزارش شامل اسناد اختتامیه باشد"
 		},{
 			xtype : "fieldset",
@@ -735,6 +852,56 @@ function AccReport_flow()
 				AccReport_flowObj.get("mainForm").reset();
 			}			
 		}]
+	});
+	
+	paramsStore = new Ext.data.SimpleStore({
+		fields:["ParamID","ParamDesc","ParamType"],
+		proxy: {
+			type: 'jsonp',
+			url: this.address_prefix + '../docs/doc.data.php?task=selectAllParams',
+			reader: {root: 'rows',totalProperty: 'totalCount'}
+		},
+		autoLoad: true,
+		listeners : {
+			load : function(){
+				var ParamsFS = AccReport_flowObj.formPanel.down("[itemId=FS_params]");
+				for(i=0; i< this.totalCount; i++)
+				{
+					record = this.getAt(i);
+					if(record.data.ParamType == "combo")
+					{
+						ParamsFS.add({
+							xtype : "combo",
+							hiddenName : "paramID" + record.data.ParamID,
+							fieldLabel : record.data.ParamDesc,
+							store : new Ext.data.Store({
+								fields:["id","title"],
+								proxy: {
+									type: 'jsonp',
+									url: AccReport_flowObj.address_prefix + 
+										'../docs/doc.data.php?task=selectParamItems&ParamID=' +
+										record.data.ParamID,
+									reader: {root: 'rows',totalProperty: 'totalCount'}
+								},
+								autoLoad: true
+							}),
+							valueField : "id",
+							displayField : "title"
+						});							
+					}
+					else
+					{
+						ParamsFS.add({
+							xtype : record.data.ParamType,
+							name : "paramID" + record.data.ParamID,
+							fieldLabel : record.data.ParamDesc,
+							hideTrigger : (record.data.ParamType == "numberfield" || 
+								record.data.ParamType == "currencyfield" ? true : false)
+						});			
+					}
+				}
+			}
+		}
 	});
 }
 

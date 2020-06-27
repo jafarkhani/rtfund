@@ -4,7 +4,7 @@
 //	Date		: 1394.07
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
 
 //................  GET ACCESS  .....................
@@ -79,4 +79,9 @@ require_once 'ManageRequests.js.php';
 <center><br>
 	<div id="rejectedDIV"></div>
 	<div id="DivGrid"></div>	
+	ردیف های بنفش رنگ وام های تایید شده هستند
+	<br>
+	ردیف های سبز رنگ وام های خاتمه یافته می باشند
+	<br>
+	ردیف های قرمز رنگ وام های عدم تایید می باشند
 </center>

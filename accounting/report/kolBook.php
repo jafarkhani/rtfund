@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 require_once '../docs/doc.class.php';
 require_once inc_CurrencyModule;
@@ -17,7 +17,7 @@ if(isset($_REQUEST["show"]))
 			b1.BlockDesc kol_desc,
 			DocType,
 			DocDate,
-			substr(g2j(DocDate),6,2) DocMonth,
+			substr(jdate,6,2) DocMonth,
 			di.details,
 			di.details,
 			sum(DebtorAmount) DSUM, 
@@ -25,6 +25,7 @@ if(isset($_REQUEST["show"]))
 			
 		from ACC_DocItems di
 			join ACC_docs d using(docID)
+			left join dates on(DocDate=GDate)
 			join ACC_CostCodes cc using(CostID)
 			left join ACC_blocks b1 on(cc.level1=b1.BlockID)
 			left join BaseInfo b on(di.TafsiliType=InfoID AND TypeID=2)
@@ -58,7 +59,7 @@ if(isset($_REQUEST["show"]))
 		$query .= " AND d.StatusID != " . ACC_STEPID_RAW;
 	
 	if($_POST["ReportDate"] == "month")
-		$groupDate = "if(DocType in(".DOCTYPE_ENDCYCLE.",".DOCTYPE_STARTCYCLE."), DocDate, substr(g2j(DocDate),6,2)  )";
+		$groupDate = "if(DocType in(".DOCTYPE_ENDCYCLE.",".DOCTYPE_STARTCYCLE."), DocDate, substr(jdate,6,2)  )";
 	else
 		$groupDate = "DocDate";
 	

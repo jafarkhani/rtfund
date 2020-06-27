@@ -4,7 +4,7 @@
 // create Date: 94.06
 //-------------------------
 //ini_set("display_errors", "On");
-require_once('../header.inc.php');
+require_once('../../header.inc.php');
 require_once inc_dataReader;
 require_once inc_response;
 require_once 'request.class.php';
@@ -105,6 +105,9 @@ function SaveLoanRequest(){
 	$obj->AgentGuarantee = isset($_POST["AgentGuarantee"]) ? "YES" : "NO";	
 	$obj->FundGuarantee = isset($_POST["FundGuarantee"]) ? "YES" : "NO";	
 	
+	if(isset($_POST["IsLock"]))
+		$obj->IsLock = $_POST["IsLock"] == "true" ? "YES" : "NO";
+	
 	$obj->guarantees = array();
 	$arr = array_keys($_POST);
 	foreach($arr as $index)
@@ -163,6 +166,7 @@ function SaveLoanRequest(){
 	}
 	else
 	{
+		$preObj = new LON_requests($obj->RequestID);
 		$result = $obj->EditRequest();
 		if($result)
 			LON_requests::ChangeStatus($obj->RequestID,$obj->StatusID, "", true);
@@ -171,6 +175,10 @@ function SaveLoanRequest(){
 			echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 			die();
 		}
+		
+		if($preObj->IsLock != $obj->IsLock)
+			LON_requests::ChangeStatus($obj->RequestID,$preObj->StatusID, 
+			($obj->IsLock == "YES" ? "قفل کردن وام" : "باز کردن قفل وام"), true);
 	}
 
 	//print_r(ExceptionHandler::PopAllExceptions());
@@ -427,14 +435,6 @@ function GetRequestParts(){
 		$dt[$i]["TotalCustomerWage"] = $result["CustomerWage"];
 		$dt[$i]["TotalAgentWage"] = $result["AgentWage"];
 		$dt[$i]["TotalFundWage"] = $result["FundWage"];
-		$FundYears = $result["FundWageYears"];
-		$index = 1;
-		foreach($FundYears as $row)
-			$dt[$i]["WageYear" . ($index++)] = $row;
-
-		$res = LON_requests::GetDelayAmounts($PartObj->RequestID, $PartObj);
-		$dt[$i]["FundDelay"] = $res["FundDelay"];
-		$dt[$i]["AgentDelay"] = $res["AgentDelay"];			
 
 		$dt[$i]["SUM_NetAmount"] = LON_requests::GetPayedAmount($PartObj->RequestID);
 		
@@ -494,9 +494,11 @@ function SavePart(){
 	if(!$firstPart)
 	{
 		$temp = PdoDataAccess::runquery("select DocID,LocalNo,CycleDesc,StatusID 
-			from ACC_DocItems join ACC_docs using(DocID)
+			from ACC_DocItems 
+			join ACC_docs using(DocID)
+			join COM_events using(EventID)
 			join ACC_cycles using(CycleID)
-			where EventID=" . EVENT_LOAN_CHANGE ." AND SourceID1=? AND SourceID2=?",
+			where EventType='" . EVENTTYPE_LoanChange ."' AND SourceID1=? AND SourceID2=?",
 			array($obj->RequestID, $obj->PartID));
 
 		if(count($temp) > 0 && $temp[0]["StatusID"] != ACC_STEPID_RAW)
@@ -517,10 +519,8 @@ function SavePart(){
 				$partobj->EditPart($pdo);
 			}
 		}
-
-		$NewPartID = LON_ReqParts::GetValidPartObj($obj->RequestID);
-				
-		$DiffDoc = RegisterDifferncePartsDoc($obj->RequestID, $NewPartID, $pdo, $OldDocID);
+		LON_installments::ComputeInstallments($obj->RequestID, $pdo, true);
+		$DiffDoc = LON_difference::RegisterDiffernce($obj->RequestID, $pdo, (int)$OldDocID);
 		if($DiffDoc == false)
 		{
 			$pdo->rollBack();
@@ -528,7 +528,6 @@ function SavePart(){
 			die();
 		}
 		$msg = "سند اختلاف با شماره " . $DiffDoc->LocalNo . " با موفقیت صادر گردید.";
-		LON_installments::ComputeInstallments($obj->RequestID, $pdo, true);
 	}
 	
 	//--------------------------------------------------------------------------
@@ -605,7 +604,7 @@ function EndRequest(){
 	$RequestID = $_POST["RequestID"];
 	$ReqObj = new LON_requests($RequestID);
 	
-	$pdo = PdoDataAccess::getPdoObject();
+	/*$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
 	
 	$dt = array();
@@ -633,19 +632,18 @@ function EndRequest(){
 		$pdo->rollback();
 		echo Response::createObjectiveResponse(false, "خطا در صدور سند");
 		die();
-	}
+	}*/
 	
 	$ReqObj->IsEnded = "YES";
-	$ReqObj->StatusID = 101;
-	if(!$ReqObj->EditRequest($pdo))
+	$ReqObj->StatusID = LON_REQ_STATUS_ENDED;
+	$ReqObj->EndDate = PDONOW;
+	if(!$ReqObj->EditRequest())
 	{
-		$pdo->rollback();
 		echo Response::createObjectiveResponse(false, "خطا در تغییر درخواست");
 		die();
 	}
-	LON_requests::ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false, $pdo);		
+	LON_requests::ChangeStatus($ReqObj->RequestID,$ReqObj->StatusID,"", false);		
 	
-	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
 	die();
 }
@@ -680,9 +678,6 @@ function ReturnEndRequest(){
 	
 	$ReqObj = new LON_requests($_POST["RequestID"]);
 	
-	$pdo = PdoDataAccess::getPdoObject();
-	$pdo->beginTransaction();
-	
 	$LocalNo = ExecuteEvent::GetRegisteredDoc(EVENT_LOAN_END, array($ReqObj->RequestID));
 	if($LocalNo !== false)
 	{
@@ -693,15 +688,14 @@ function ReturnEndRequest(){
 	
 	$ReqObj->IsEnded = "NO";
 	$ReqObj->StatusID = LON_REQ_STATUS_DEFRAY;
-	if(!$ReqObj->EditRequest($pdo))
+	$ReqObj->EndDate = "";
+	if(!$ReqObj->EditRequest())
 	{
-		$pdo->rollback();
 		echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 		die();
 	}
 	LON_requests::ChangeStatus($ReqObj->RequestID, $ReqObj->StatusID);
 	
-	$pdo->commit();
 	echo Response::createObjectiveResponse(true, "");
 	die();
 }
@@ -766,7 +760,18 @@ function GetInstallments(){
 
 function ComputeInstallments($RequestID = "", $returnMode = false, $pdo2 = null, $IsLastest = true){
 	
-	$RequestID = empty($RequestID) ? $_REQUEST["RequestID"] : $RequestID;
+	$RequestID = empty($RequestID) ? (int)$_REQUEST["RequestID"] : (int)$RequestID;
+	
+	//............... control all pays register .................
+	$partObj = LON_ReqParts::GetValidPartObj($RequestID);
+	$dt = PdoDataAccess::runquery("select sum(PayAmount) sumamount from LON_payments where requestID=?",$RequestID);
+	if($partObj->PartAmount*1 <> $dt[0][0]*1)
+	{
+		echo Response::createObjectiveResponse(false, "تا زمانی که کلیه مراحل پرداخت را وارد نکرده اید قادر به محاسبه اقساط نمی باشید");
+		die();
+	}
+	//...........................................................
+	
 	if(isset($_REQUEST["IsLastest"]))
 		$IsLastest = $_REQUEST["IsLastest"] == "true" ? true : false;
 	
@@ -1034,7 +1039,7 @@ function selectRequestStatuses(){
 
 function GetBackPays(){
 	
-	$dt = LON_BackPays::SelectAll("RequestID=? " . dataReader::makeOrder() , array($_REQUEST["RequestID"]));
+	$dt = LON_BackPays::SelectAll("p.RequestID=? " . dataReader::makeOrder() , array($_REQUEST["RequestID"]));
 	print_r(ExceptionHandler::PopAllExceptions());
 	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
 	die();
@@ -1317,7 +1322,7 @@ function GetEndedRequests(){
 //-------------------------------------------------
 
 function GetPartPayments(){
-	
+	ini_set("display_errors", "On");
 	$dt = LON_payments::Get(" AND p.RequestID=? ", array($_REQUEST["RequestID"]),dataReader::makeOrder());
 	print_r(ExceptionHandler::PopAllExceptions());
 	echo dataReader::getJsonData($dt->fetchAll(), $dt->rowCount(), $_GET["callback"]);
@@ -1754,7 +1759,8 @@ function DeleteCosts(){
 
 function GetGuarantors(){
 	
-	$temp = LON_guarantors::Get("AND RequestID=?", array($_REQUEST["RequestID"]));
+	/*$temp = LON_guarantors::Get("AND RequestID=?", array($_REQUEST["RequestID"]));*/
+    $temp = LON_guarantors::Get("AND FormType=? AND RequestID=?", array($_REQUEST["FormType"],$_REQUEST["RequestID"])); //new edited
 	$res = $temp->fetchAll();
 	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
 	die();
@@ -1952,7 +1958,6 @@ function RegisterLetter(){
 	$LetterObj->organization = $LoanObj->_LoanPersonFullname;
 	if(!$LetterObj->AddLetter())
 	{
-		print_r(ExceptionHandler::PopAllExceptions());
 		echo Response::createObjectiveResponse(false, "خطا در ثبت  نامه");
 		die();
 	}
@@ -2018,9 +2023,6 @@ function emptyDataTable(){
 function ComputeManualInstallments(){
 	
 	$RequestID = $_POST["RequestID"];
-	$ComputeDate = $_POST["ComputeDate"];
-	$ComputeWage = $_POST["ComputeWage"];
-	$WithWage = $_POST["WithWage"] == "YES" ? true : false;
 	
 	$items = json_decode(stripcslashes($_REQUEST["records"]));
 	$installmentArray = array();
@@ -2123,5 +2125,5 @@ function CustomerDefrayRequest(){
 	echo Response::createObjectiveResponse(true,$dt[0]["RequestID"]);
 	die();
 }
-
+	
 ?>

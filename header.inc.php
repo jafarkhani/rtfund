@@ -5,7 +5,6 @@
 //-----------------------------
 
 require_once getenv("DOCUMENT_ROOT") . '/framework/configurations.inc.php';
-
 set_include_path(get_include_path() . PATH_SEPARATOR . getenv("DOCUMENT_ROOT") . "/generalClasses");
 set_include_path(get_include_path() . PATH_SEPARATOR . getenv("DOCUMENT_ROOT") . "/generalUI/ext4");
 
@@ -21,14 +20,17 @@ require_once getenv("DOCUMENT_ROOT") . '/framework/session.php';
 require_once getenv("DOCUMENT_ROOT") . '/framework/management/framework.class.php';
 
 session::sec_session_start();
-
 if(!session::checkLogin())
 {
 	echo "<script>window.location='/framework/login.php';</script>";
 	die();
 } 
 
-define("SYSTEMID", 6);
+if($_SESSION["USER"]["UserName"] == "admin")
+{
+	//sys_config::$db_server['database'] = "sajakrrt_admin";
+	//PdoDataAccess::$DB = null;
+}
 
 $address_prefix = getenv("DOCUMENT_ROOT");
 $script = preg_split('/\//', $_SERVER["SCRIPT_NAME"]);
@@ -47,5 +49,8 @@ if(isset($_REQUEST["framework"]))
 	}
 }
 
+
 define("SHEKOOFAI", 1003);
+
+
 ?>

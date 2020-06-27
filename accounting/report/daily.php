@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
 require_once '../docs/doc.class.php';
 require_once inc_CurrencyModule;
@@ -27,7 +27,7 @@ if(isset($_REQUEST["show"]))
 			concat_ws('-',b1.BlockDesc,b2.BlockDesc,b3.BlockDesc,b4.BlockDesc,t.TafsiliDesc,t2.TafsiliDesc) level6_desc,
 			DocType,
 			DocDate,
-			if(DocType in(".DOCTYPE_ENDCYCLE.",".DOCTYPE_STARTCYCLE."), DocDate, substr(g2j(DocDate),6,2)  ) DocDate2,
+			if(DocType in(".DOCTYPE_ENDCYCLE.",".DOCTYPE_STARTCYCLE."), DocDate, substr(jdate,6,2)  ) DocDate2,
 			if(d.DocType=".DOCTYPE_ENDCYCLE.",1,0) IsEndDoc,
 			di.details,
 			sum(DebtorAmount) DSUM, 
@@ -35,6 +35,7 @@ if(isset($_REQUEST["show"]))
 			
 		from ACC_DocItems di
 			join ACC_docs d using(docID)
+			left join dates on(DocDate=GDate)
 			join ACC_CostCodes cc using(CostID)
 			left join ACC_blocks b1 on(cc.level1=b1.BlockID)
 			left join ACC_blocks b2 on(cc.level2=b2.BlockID)
@@ -68,7 +69,7 @@ if(isset($_REQUEST["show"]))
 	
 	$group = $_POST['ReportLevel'];
 	if($_POST["ReportDate"] == "month")
-		$groupDate = "if(DocType in(".DOCTYPE_ENDCYCLE.",".DOCTYPE_STARTCYCLE."), DocDate, substr(g2j(DocDate),6,2)  )";
+		$groupDate = "if(DocType in(".DOCTYPE_ENDCYCLE.",".DOCTYPE_STARTCYCLE."), DocDate, substr(jdate,6,2)  )";
 	else
 		$groupDate = "DocDate";
 	
@@ -83,8 +84,8 @@ if(isset($_REQUEST["show"]))
 	
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		//print_r(ExceptionHandler::PopAllExceptions());
-		//echo PdoDataAccess::GetLatestQueryString();
+		print_r(ExceptionHandler::PopAllExceptions());
+		echo PdoDataAccess::GetLatestQueryString();
 	}
 	
 	$curDate = '';

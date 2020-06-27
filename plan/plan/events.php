@@ -18,6 +18,11 @@ $dg->addColumn("", "EventID","", true);
 $dg->addColumn("", "PlanID","", true);
 $dg->addColumn("", "EventTypeDesc","", true);
 
+//new added
+$col = $dg->addColumn("ثبت کننده رویداد", "fullname");
+$col->editor = ColumnEditor::TextField();
+//end new added
+
 $col = $dg->addColumn("شرح رویداد", "EventTitle");
 $col->editor = ColumnEditor::TextField();
 	

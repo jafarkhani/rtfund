@@ -4,7 +4,7 @@
 //	Date		: 94.06
 //-----------------------------
 
-require_once '../header.inc.php';
+require_once '../../header.inc.php';
 require_once 'doc.class.php';
 require_once 'import.data.php';
 require_once '../baseinfo/baseinfo.class.php';
@@ -365,17 +365,13 @@ function selectDocItems() {
 				$where .= " AND t.tafsiliDesc like :tl";
 				$whereParam[":tl"] = "%" . $_GET["query"] . "%";
 				break;
-			case "moinID":
-				$where .= " AND moinTitle like :tl";
-				$whereParam[":tl"] = "%" . $_GET["query"] . "%";
-				break;
 			case "TafsiliID2":
-				$where .= " AND t2.tafsiliDesc like :tl";
-				$whereParam[":tl"] = "%" . $_GET["query"] . "%";
+				$where .= " AND t2.tafsiliDesc like :t2";
+				$whereParam[":t2"] = "%" . $_GET["query"] . "%";
 				break;
-			case "kolID":
-				$where .= " AND kolTitle like :tl";
-				$whereParam[":tl"] = "%" . $_GET["query"] . "%";
+			case "TafsiliID3":
+				$where .= " AND t3.tafsiliDesc like :t3";
+				$whereParam[":t3"] = "%" . $_GET["query"] . "%";
 				break;
 			case "DebtorAmount":
 				$where .= " AND DebtorAmount = :tl";
@@ -409,7 +405,7 @@ function selectDocItems() {
 	//$temp = $temp->fetchAll();
 	
 	$temp = ACC_DocItems::GetAll($where, $whereParam);
-	//print_r(ExceptionHandler::PopAllExceptions());	
+	print_r(ExceptionHandler::PopAllExceptions());	
 	$no = $temp->rowCount();
 	$temp = PdoDataAccess::fetchAll($temp, $_REQUEST["start"], $_REQUEST["limit"]);
 
@@ -545,6 +541,7 @@ function selectCheques() {
 	$where .= dataReader::makeOrder();
 
 	$temp = ACC_DocCheques::GetAll($where, $whereParam);
+	print_r(ExceptionHandler::PopAllExceptions());
 	$no = count($temp);
 	echo dataReader::getJsonData($temp, $no, $_GET["callback"]);
 	die();
@@ -1016,22 +1013,22 @@ function GetAccountSummary($ReturnMode = false, $where = "", $param = array()){
 			
 			left join (select TafsiliID2,sum(CreditorAmount-DebtorAmount) amount
 						from ACC_DocItems join ACC_docs using(DocID)
-						where TafsiliType2=".TAFSILITYPE_PERSON." AND CycleID=:c AND CostID=".COSTID_saving."
+						where CycleID=:c AND CostID=".COSTID_saving."
 						group by TafsiliID2
 			)pasandaz on(pasandaz.TafsiliID2=t.TafsiliID)
 			/*left join (select TafsiliID,sum(CreditorAmount-DebtorAmount) amount
 						from ACC_DocItems join ACC_docs using(DocID)
-						where TafsiliType=".TAFSILITYPE_PERSON." AND CycleID=:c AND CostID=".COSTID_ShortDeposite."
+						where CycleID=:c AND CostID=".COSTID_ShortDeposite."
 						group by TafsiliID
 			)kootah on(kootah.TafsiliID=t.TafsiliID)
 			left join (select TafsiliID,sum(CreditorAmount-DebtorAmount) amount
 						from ACC_DocItems join ACC_docs using(DocID)
-						where TafsiliType=".TAFSILITYPE_PERSON." AND CycleID=:c AND CostID=".COSTID_LongDeposite."
+						where CycleID=:c AND CostID=".COSTID_LongDeposite."
 						group by TafsiliID
 			)boland on(boland.TafsiliID=t.TafsiliID)
 			left join (select TafsiliID,sum(CreditorAmount-DebtorAmount) amount
 						from ACC_DocItems join ACC_docs using(DocID)
-						where TafsiliType=".TAFSILITYPE_PERSON." AND CycleID=:c AND CostID=".COSTID_current."
+						where CycleID=:c AND CostID=".COSTID_current."
 						group by TafsiliID
 			)jari on(jari.TafsiliID=t.TafsiliID)*/
 		where TafsiliType=" . TAFSILITYPE_PERSON . $where . dataReader::makeOrder(), $param);
@@ -1055,12 +1052,11 @@ function GetAccountFlow() {
 		from ACC_DocItems di
 			join ACC_docs d using(DocID)
 		where d.CycleID=:cycle
-			AND di.CostID=:cost AND di.TafsiliType2 = :ttype AND di.TafsiliID2=:tid " . dataReader::makeOrder();
+			AND di.CostID=:cost AND di.TafsiliID2=:tid " . dataReader::makeOrder();
 	
 	$param = array(
 		":cycle" => $_SESSION["accounting"]["CycleID"],
 		":cost" => $CostID,
-		":ttype" => TAFSILITYPE_PERSON,
 		":tid" => $TafsiliID
 	);
 	

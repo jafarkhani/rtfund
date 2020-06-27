@@ -101,13 +101,19 @@ class DMS_documents extends PdoDataAccess
 	 	if(!parent::insert("DMS_documents",$this))
 			return false;
 		$this->DocumentID = parent::InsertID();
+
+        //new added
+        $quering = "select max(DocumentID) from DMS_documents";
+        $result = PdoDataAccess::runquery_fetchMode($quering);
+        $resultant = $result->fetchAll();
+        //end new added
 		
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_add;
 		$daObj->MainObjectID = $this->DocumentID;
 		$daObj->TableName = "DMS_documents";
 		$daObj->execute();
-		return true;
+        return [true,$resultant[0]];	//new edited
 	}
 	
 	function EditDocument(){

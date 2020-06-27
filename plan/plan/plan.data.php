@@ -254,7 +254,31 @@ function SurveyGroup(){
 }
 
 //............................................
+//new added
+function SelectAllPlan(){
 
+    $param = array();
+    $where = "";
+    if(!empty($_REQUEST["FormType"]))
+    {
+        $where .= " AND p.FormType=:ft";
+        $param[":ft"] = $_REQUEST["FormType"];
+    }
+    if(!empty($_REQUEST["query"]))
+    {
+        $where .= " AND ( p.PlanID= :q or p.PlanDesc like :q2 )";
+        $param[":q"] = $_REQUEST["query"];
+        $param[":q2"] = "%" .  $_REQUEST["query"] . "%";
+    }
+
+    $dt = PLN_plans::SelectAll($where, $param, dataReader::makeOrder());
+    $count = $dt->rowCount();
+
+    $dt = PdoDataAccess::fetchAll($dt, $_GET["start"], $_GET["limit"]);
+    echo dataReader::getJsonData($dt, $count, $_GET["callback"]);
+    die();
+}
+//end new added
 function SelectAllPlans(){
 
     $param = array();
@@ -396,7 +420,18 @@ function SaveNewPlan(){
         /*$obj->RegDate = PDONOW;*/
         $obj->StepID = STEPID_RAW;
         /*echo $_POST["LetterID"];*/
-        if (PLN_plans::IsPlanExist($_POST["LetterID"])){
+
+        if (isset($_POST["LetterID"]) && !empty($_POST["LetterID"])){
+            $ParamType='Letter';
+            $ParamVal=$_POST["LetterID"];
+        }
+        if (isset($_POST["LoanID"]) && !empty($_POST["LoanID"])){
+            $ParamType='Loan';
+            $ParamVal=$_POST["LoanID"];
+        }
+
+        if (PLN_plans::IsPlanExist($ParamType,$ParamVal)){
+
             /*$message = "شماره نامه تکراری است";
             echo "<script type='text/javascript'>alert('$message');</script>";*/
             /*echo Response::createObjectiveResponse(true, "salam");
@@ -490,7 +525,7 @@ function ChangeStatus(){
         }
     }
 
-    $result = PLN_plans::ChangeStatus($obj->PlanID, $StepID, $ActDesc);
+    $result = PLN_plans::ChangeStatuses($obj->PlanID, $StepID, $ActDesc);
 
     /*if($StepID == STEPID_CONFIRM)
     {
@@ -594,7 +629,7 @@ function SavePlanEvents(){
 
     $obj = new PLN_PlanEvents();
     PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
-
+    $obj->PersonID = $_SESSION["USER"]["PersonID"]; //new added
     if(empty($obj->EventID))
         $result = $obj->Add();
     else

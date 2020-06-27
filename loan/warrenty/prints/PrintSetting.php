@@ -3,7 +3,7 @@
 // programmer:	Jafarkhani
 // Create Date:	94.12
 //-------------------------
-require_once('../../header.inc.php');
+require_once('../../../header.inc.php');
 require_once inc_dataGrid;
 
 //................  GET ACCESS  .....................
@@ -139,6 +139,7 @@ function WarrentyPrintSetting(){
 					["#address#" , "نشانی مشتری" ],
 					["#PhoneNo#" , "تلفن مشتری" ],
 					["#mobile#" , "تلفن همراه مشتری" ],
+                    ["#PostalCode#" , "کدپستی مشتری" ],/*new added*/
 					["#organization#" , "سازمان مربوطه" ],
 					["#LetterNo#" , "شماره نامه سازمان مربوطه" ],
 					["#LetterDate#" , "تاریخ نامه سازمان مربوطه" ],

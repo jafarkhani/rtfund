@@ -11,7 +11,7 @@ class sadaf_datagrid
 	private $divName;
 	private $Url;
 	private $Method;
-	private $buttons;
+	private $buttons = array();
 	
 	public $baseParams;
 	
@@ -243,8 +243,8 @@ class sadaf_datagrid
 	function addColumn($header,$dataIndex,$type="",$hidden=false)
 	{
 		$obj = new GridColumn($header,$dataIndex,$type,$hidden);
-
-		$this->columns[count($this->columns)] = $obj;
+		$no = isset($this->columns) ? count($this->columns) : 0;
+		$this->columns[$no] = $obj;
 
 		return $obj;
 	}

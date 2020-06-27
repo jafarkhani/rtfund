@@ -3,7 +3,6 @@
 // developer:	Sh.Jafarkhani
 // Date:		97.10
 //---------------------------
-ini_set("display_errors", "On");
 require_once '../header.inc.php';
 require_once(inc_response);
 require_once(inc_dataReader);
@@ -11,7 +10,7 @@ require_once './baseinfo/baseinfo.class.php';
 require_once '../loan/request/request.class.php';
 require_once './ComputeItems.class.php';
 require_once './ExecuteEvent.class.php';
-	
+	ini_set("display_errors", "On");
 $task = isset($_REQUEST['task']) ? $_REQUEST['task'] : '';
 
 switch ($task) {
@@ -23,8 +22,6 @@ switch ($task) {
 }
 
 function selectEventRows(){
-	
-	ini_set("display_errors", "On");
 	
 	$EventID = $_REQUEST["EventID"]*1;
 	$eObj = new ExecuteEvent($EventID);
@@ -46,7 +43,7 @@ function selectEventRows(){
 	$returnArr = array();
 	for($i=0; $i < count($list); $i++)
 	{
-		$result = EventComputeItems::SetSpecialTafsilis($eObj->EventID, $list[$i], $SourcesArr);
+		$result = EventComputeItems::SetSpecialTafsilis($list[$i], $SourcesArr);
 		$list[$i]["TafsiliID1"] = $result[0]["TafsiliID"];
 		$list[$i]["TafsiliDesc1"] = $result[0]["TafsiliDesc"];
 		$list[$i]["TafsiliID2"] = $result[1]["TafsiliID"];
@@ -66,7 +63,6 @@ function selectEventRows(){
 			
 			if(is_array($value))
 			{
-				continue;
 				if(isset($value["amount"]))
 				{
 					if($list[$i]["CostType"] == "DEBTOR")
@@ -135,6 +131,7 @@ function SetParamValues(&$list){
 
 function RegisterEventDoc(){
 	
+	
 	$EventID = (int)$_POST["EventID"];
 	$SourceIDs = isset($_POST["SourcesArr"]) ? $_POST["SourcesArr"] : array();
 	
@@ -146,8 +143,7 @@ function RegisterEventDoc(){
 	$result = $obj->RegisterEventDoc($pdo);
 	if(!$result)
 	{
-		$pdo->rollBack();
-		print_r(ExceptionHandler::PopAllExceptions());
+		//print_r(ExceptionHandler::PopAllExceptions());
 		Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 		die();
 	}

@@ -34,6 +34,7 @@ function SelectLetter() {
 	}
 
     $list = OFC_letters::GetAll($where, $param);
+	
     echo dataReader::getJsonData($list, count($list), $_GET['callback']);
     die();
 }
@@ -121,6 +122,13 @@ function SelectDraftLetters() {
     die();
 }
 
+function GetLetterContext(){
+	
+	$obj = new OFC_letters((int)$_POST["LetterID"]);
+    echo $obj->context;
+    die();
+}
+
 function CustomerLetters($returnMode = false){
 	
 	$list = PdoDataAccess::runquery("
@@ -180,7 +188,8 @@ function SelectReceivedLetters(){
 	}
 	
 	$dt = OFC_letters::SelectReceivedLetters($where, $param);
-	//echo PdoDataAccess::GetLatestQueryString();
+	//if($_SESSION["USER"]["UserName"] == "0943277744")
+	//	echo "/*". PdoDataAccess::GetLatestQueryString() . "*/";
 	//print_r(ExceptionHandler::PopAllExceptions());
 	$cnt = $dt->rowCount();
 	$dt = PdoDataAccess::fetchAll($dt, $_GET["start"], $_GET["limit"]);
@@ -266,11 +275,10 @@ function SelectArchiveLetters(){
 		echo dataReader::getJsonData(array(), 0, $_GET["callback"]);
 		die();
 	}
-	$query = "select l.*,a.FolderID,if(count(DocumentID) > 0,'YES','NO') hasAttach
+	$query = "select l.*,a.FolderID,l.hasAttach
 
 			from OFC_ArchiveItems a
 				join OFC_letters l using(LetterID)
-				left join DMS_documents on(ObjectType='letterAttach' AND ObjectID=l.LetterID)				
 			where FolderID=:fid";
 	
 	$param = array(":fid" => $FolderID);
@@ -569,6 +577,15 @@ function UnSeen(){
 	$result = $obj->EditSend();
 	echo Response::createObjectiveResponse($result, "");
 	die();
+}
+
+function Seen(){
+
+    $obj = new OFC_send($_POST["SendID"]);
+    $obj->IsSeen = "YES";
+    $result = $obj->EditSend();
+    echo Response::createObjectiveResponse($result, "");
+    die();
 }
 //.............................................
 

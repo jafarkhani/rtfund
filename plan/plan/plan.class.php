@@ -25,6 +25,16 @@ class PLN_plans extends PdoDataAccess
     public $AdderPersonID;
     public $EditDate;
     public $EditorPersonID;
+    public $technologyArea;
+    public $IsGetCost;
+    public $evaluationCost;
+    public $ApprovedAmount;
+    public $FinancialBroker;
+    public $EvaluationBroker;
+    public $RecordMeetingID;
+    public $RecordMeetingDate;
+    public $wage;
+    public $LoanType;
 
 
     function __construct($PlanID = "") {
@@ -47,13 +57,18 @@ class PLN_plans extends PdoDataAccess
 			left join OFC_letters ol on(p.LetterID=ol.LetterID)
 			where " . $where . " group by p.PlanID " . $order, $param);
     }
-    static function IsPlanExist($LetterID){
+    static function IsPlanExist($Type,$Val){
+        $param = $Val;
+        if($Type == 'Loan')
+            $where = "p.LoanID=?";
+        if($Type == 'Letter')
+            $where = "p.LetterID=?";
 
-        $param = $LetterID;
-        $where = "p.LetterID=?";
         /*echo 'param:'.$param;
         echo '<br>';
         echo 'where:'.$where;*/
+
+
         $dt = PLN_plans::SelectAll($where, $param, dataReader::makeOrder());
         $count = $dt->rowCount();
         if ($count > 0){
@@ -132,6 +147,20 @@ class PLN_plans extends PdoDataAccess
         }
 
         return WFM_FlowRows::AddOuterFlow(FLOWID, $PlanID, $StepID, $ActDesc, $pdo);
+    }
+
+    static function ChangeStatuses($PlanID, $StepID, $ActDesc = "", $LogOnly = false, $pdo = null){
+
+        if(!$LogOnly)
+        {
+            $obj = new PLN_plans();
+            $obj->PlanID = $PlanID;
+            $obj->StepID = $StepID;
+            if(!$obj->EditPlan($pdo))
+                return false;
+        }
+
+        return WFM_FlowRows::AddOuterFlows(FLOWID, $PlanID, $StepID, $ActDesc, $pdo);
     }
 
 }
@@ -303,6 +332,7 @@ class PLN_PlanEvents extends OperationClass {
 
     public $EventID;
     public $PlanID;
+    public $PersonID;  //new added
     public $EventTitle;
     public $EventDate;
 
@@ -312,6 +342,15 @@ class PLN_PlanEvents extends OperationClass {
 
         parent::__construct($id);
     }
+    //new added
+    public static function Get($where = '', $whereParams = array()) {
+        return parent::runquery_fetchMode("
+			select e.*, concat_ws(' ',fname, lname,CompanyName) fullname
+			from PLN_PlanEvents e
+			left join BSC_persons p using(PersonID) where 1=1 " . $where, $whereParams);
+    }
+    //end new added
+
 
 }
 ?>

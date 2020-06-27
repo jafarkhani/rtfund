@@ -3,7 +3,7 @@
 // programmer:	Mahdipour
 // create Date:	94.12
 //---------------------------
-require_once("../header.inc.php");
+require_once("../../header.inc.php");
 
 $object = isset($_REQUEST["PersonSign"]) ? "PersonSign" : "PersonPic";
 

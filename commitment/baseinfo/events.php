@@ -3,7 +3,7 @@
 // developer:	Sh.Jafarkhani
 // Date:		97.05
 //---------------------------
-require_once '../header.inc.php'; 
+require_once '../../header.inc.php'; 
 
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
@@ -32,29 +32,56 @@ function Event() {
 		bodyStyle: "text-align:right;padding:5px",
 		frame: true,
 		hidden: true,
-		width: 300,
+		width: 500,
+		defaults : {
+			width : 480,
+			labelWidth : 200
+		},
 		items: [{
 				xtype: "hidden",
 				name: "EventID",
-				itemId: "EventID",
-				fieldLabel: "کد",
-				labelWidth: 40,
-				hideTrigger: true
+				itemId: "EventID"
 			},{
-				xtype: "numberfield",
+				xtype: "textfield",
 				name: "ordering",
 				itemId: "ordering",
 				fieldLabel: "ترتیب",
-				labelWidth: 40,
 				hideTrigger: true
 			}, {
-				xtype: "textarea",
+				xtype: "textfield",
 				name: "EventTitle",
 				itemId: "EventTitle",
-				fieldLabel: "عنوان",
-				labelWidth: 40,
-				rows: 5,
-				width: 280
+				fieldLabel: "عنوان"
+			}, {
+				xtype: "textfield",
+				name: "EventType", 
+				itemId: "EventType",
+				fieldLabel: "نوع رویداد"
+			}, {
+				xtype: "textfield",
+				name: "EventType2",
+				itemId: "EventType2",
+				fieldLabel: "EventType2"
+			},{
+				xtype: "textfield",
+				name: "EventType3",
+				itemId: "EventType3",
+				fieldLabel: "EventType3"
+			},{
+				xtype: "textfield",
+				name: "EventFunction",
+				itemId: "EventFunction",
+				fieldLabel: "EventFunction"
+			},{
+				xtype: "textfield",
+				name: "TriggerFunction",
+				itemId: "TriggerFunction",
+				fieldLabel: "TriggerFunction"
+			},{
+				xtype: "textfield",
+				name: "AfterTriggerFunction",
+				itemId: "AfterTriggerFunction",
+				fieldLabel: "AfterTriggerFunction"
 			}, {
 				xtype: "hidden",
 				itemId: "ParentID",
@@ -118,7 +145,7 @@ function Event() {
 			iconCls: "cross",
 			text: "خطای ثبت های اتومات",
 			handler: function () {
-				window.open('../../storage/loanDaily.html');
+				window.open('../../process/loanDaily.html'); 
 			}
 		}
 	);
@@ -269,6 +296,12 @@ Event.prototype.BeforeSaveEvent = function (mode, obj){
 		this.infoPanel.getComponent("EventID").setValue(record.data.id);
 		this.infoPanel.getComponent("old_EventID").setValue(record.data.id);
 		this.infoPanel.getComponent("ordering").setValue(record.raw.ordering);
+		this.infoPanel.getComponent("EventType").setValue(record.raw.EventType);
+		this.infoPanel.getComponent("EventType2").setValue(record.raw.EventType2);
+		this.infoPanel.getComponent("EventType3").setValue(record.raw.EventType3);
+		this.infoPanel.getComponent("EventFunction").setValue(record.raw.EventFunction);
+		this.infoPanel.getComponent("TriggerFunction").setValue(record.raw.TriggerFunction);
+		this.infoPanel.getComponent("AfterTriggerFunction").setValue(record.raw.AfterTriggerFunction);
 	} else {
 		this.infoPanel.getComponent("ParentID").setValue(record.data.id == "source" ? 0 : record.data.id);
 	}

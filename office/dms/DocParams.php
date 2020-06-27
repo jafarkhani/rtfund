@@ -3,7 +3,7 @@
 //	Programmer	: Fatemipour
 //	Date		: 96.02
 //-----------------------------
-require_once 'header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
 
 $DocType = $_REQUEST['DocType'];

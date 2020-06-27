@@ -4,7 +4,7 @@
 //	Date		: 1394.07
 //-----------------------------
 
-require_once 'header.inc.php';
+require_once '../../header.inc.php';
 require_once inc_dataGrid;
 
 $ObjectType = $_POST["ObjectType"];
@@ -144,6 +144,9 @@ $col->renderer = "ManageDocument.ParamValueRender";
 $col->width = 130;
 
 $col = $dg->addColumn("عنوان مدرک ارسالی", "DocDesc", "");
+
+$col = $dg->addColumn("ثبت کننده", "regfullname", "");
+$col->width = 120;
 
 if($ObjectType == "package")
 {
