@@ -15,7 +15,7 @@
 class ReportGenerator {
 
 	//public $TempFolderAddress = "/tmp/temp.xls";
-	public $TempFolderAddress = "/home/sajakrrt/temp.xls";
+	public $TempFolderAddress = "temp.xls";
 	
 	public $fontFamily = "nazanin";
 	public $fontSize = "16px";
