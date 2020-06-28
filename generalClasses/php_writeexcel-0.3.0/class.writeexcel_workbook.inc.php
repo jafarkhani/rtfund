@@ -67,7 +67,7 @@ function writeexcel_workbook($filename) {
 
     $this->_filename          = $filename;
     $this->_parser            = $parser;
-//?    $this->_tempdir           = undef;
+    $this->_tempdir           = "undef";
     $this->_1904              = 0;
     $this->_activesheet       = 0;
     $this->_firstsheet        = 0;
