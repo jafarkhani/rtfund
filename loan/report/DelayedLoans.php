@@ -115,7 +115,7 @@ function GetData(){
 	$whereParam = array();
 	$userFields = ReportGenerator::UserDefinedFields();
 	MakeWhere($where, $whereParam);
-	
+			
 	$query = "select p.*,
 				r.EndingDate,
 				l.LoanDesc,
