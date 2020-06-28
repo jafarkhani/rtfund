@@ -23,6 +23,8 @@ $page_rpg->addColumn("شماره نامه معرفی", "LetterNo");
 $col = $page_rpg->addColumn("تاریخ نامه معرفی", "LetterDate");
 $col->type = "date";
 $page_rpg->addColumn("وضعیت", "StepDesc");
+$col = $page_rpg->addColumn("تاریخ ابطال", "CancelDate");
+$col->type = "date";
 $page_rpg->addColumn("نسخه", "version");
 $page_rpg->addColumn("مبلغ سپرده", "WAR_SepordeAmount");//new added
 $page_rpg->addColumn("مبلغ کارمزد", "WAR_WageAmount");//new adde
@@ -38,6 +40,9 @@ function MakeWhere(&$where, &$whereParam){
 		if($key == "excel" || 
 				$value === "" || strpos($key, "-inputEl") !== false || strpos($key, "rpcmp") !== false ||
 				strpos($key, "reportcolumn_fld") !== false || strpos($key, "reportcolumn_ord") !== false)
+			continue;
+		
+		if($key == "FromCancelDate" || $key == "ToCancelDate")
 			continue;
 		
 		if(strpos($key, "FILTERPERSON_") !== false)
@@ -77,6 +82,7 @@ function MakeWhere(&$where, &$whereParam){
 				$value = preg_replace('/,/', "", $value);
 				break;
 		}
+		
 		if(strpos($key, "From") === 0)
 			$where .= " AND " . $prefix . substr($key,4) . " >= :$key";
 		else if(strpos($key, "To") === 0)
@@ -84,6 +90,22 @@ function MakeWhere(&$where, &$whereParam){
 		else
 			$where .= " AND " . $prefix . $key . " = :$key";
 		$whereParam[":$key"] = $value;
+	}
+	
+	if(!empty($_POST["FromCancelDate"]) || !empty($_POST["ToCancelDate"]))
+	{
+		$where .= " AND (CancelDate is null or CancelDate='0000-00-00' ";
+		if(!empty($_POST["FromCancelDate"]))
+		{
+			$where .= " or CancelDate >= :FromCancelDate";
+			$whereParam[":FromCancelDate"] = DateModules::shamsi_to_miladi($_POST["FromCancelDate"], "-");
+		}
+		if(!empty($_POST["ToCancelDate"]))
+		{
+			$where .= " or CancelDate <= :ToCancelDate";
+			$whereParam[":ToCancelDate"] = DateModules::shamsi_to_miladi($_POST["FromCancelDate"], "-");				
+		}
+		$where .= " )";
 	}
 }	
 		
@@ -155,6 +177,7 @@ function ListDate($IsDashboard = false){
 	$rpg->addColumn("شماره نامه معرفی", "LetterNo");
 	$rpg->addColumn("تاریخ نامه معرفی", "LetterDate", "ReportDateRender");
 	$rpg->addColumn("وضعیت", "StepDesc");
+	$rpg->addColumn("تاریخ ابطال", "CancelDate", "ReportDateRender");
 	$rpg->addColumn("نسخه", "version", "RefReasonRender");
     $rpg->addColumn("مبلغ سپرده", "WAR_SepordeAmount", "ReportMoneyRender");//new added
     $rpg->addColumn("مبلغ کارمزد", "WAR_WageAmount", "ReportMoneyRender");//new adde
@@ -339,8 +362,15 @@ function WarrentyReport_total()
 		},{
 			xtype : "shdatefield",
 			name : "ToEndDate",
-			allowBlank : false,
 			fieldLabel : "تاریخ پایان تا"
+		},{
+			xtype : "shdatefield",
+			name : "FromCancelDate",
+			fieldLabel : "تاریخ ابطال از"
+		},{
+			xtype : "shdatefield",
+			name : "ToCancelDate",
+			fieldLabel : "تاریخ ابطال تا"
 		},{
 			xtype : "shdatefield",
 			fieldLabel : "تاریخ نامه معرفی از",
