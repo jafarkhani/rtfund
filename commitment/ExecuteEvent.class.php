@@ -99,7 +99,8 @@ class ExecuteEvent extends PdoDataAccess{
 			case EVENTTYPE_LoanPayment:
 			case EVENTTYPE_LoanBackPay:
 			case EVENTTYPE_LoanEnd:
-				$this->ExtraDescription = " شماره وام " . $this->Sources[0] . $this->ExtraDescription;
+				$this->ExtraDescription = 'شماره وام [ ' . $this->Sources[0] . ' ] ';
+					" شماره وام " . $this->Sources[0] . $this->ExtraDescription;
 		}
 		//---------------------------------------------------
 		if(!$this->DocObj) 

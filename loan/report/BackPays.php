@@ -261,8 +261,11 @@ function ListDate($IsDashboard = false){
 	$rpg->excel = !empty($_POST["excel"]);
 	$rpg->mysql_resource = GetData();
 	
-	//if($_SESSION["USER"]["UserName"] == "admin")
-	//	echo PdoDataAccess::GetLatestQueryString ();
+	if($_SESSION["USER"]["UserName"] == "admin")
+	{
+		if(ExceptionHandler::GetExceptionCount() > 0)
+			print_r(ExceptionHandler::PopAllExceptions ());
+	}
 		
 	function endedRender($row,$value){
 		return ($value == "YES") ? "خاتمه" : "جاری";

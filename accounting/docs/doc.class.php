@@ -39,9 +39,11 @@ class ACC_docs extends PdoDataAccess {
 				concat_ws(' ',fname,lname,CompanyName) as regPerson, 
 				b.InfoDesc SubjectDesc,b2.InfoDesc DocTypeDesc,
 				fs.StepID,
+				e.EventTitle,
 				fr.ActionType
 			
 			from ACC_docs sd
+			left join COM_events e using(EventID)
 			left join BSC_branches bch using(BranchID)
 			left join BaseInfo b on(b.TypeID=73 AND b.InfoID=SubjectID)
 			left join BaseInfo b2 on(b2.TypeID=9 AND b2.InfoID=DocType)

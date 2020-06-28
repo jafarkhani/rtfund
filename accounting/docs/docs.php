@@ -35,6 +35,9 @@ $dg->addColumn("", "StatusID", "", true);
 $dg->addColumn("", "StepID", "", true);
 $dg->addColumn("", "ActionType", "", true);
 
+$dg->addColumn("", "EventID", "", true);
+$dg->addColumn("", "EventTitle", "", true);
+
 $col = $dg->addColumn("اطلاعات سند","DocID");
 $col->renderer = "AccDocs.docRender";
 
