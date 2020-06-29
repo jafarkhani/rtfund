@@ -634,7 +634,7 @@ AccDocs.docRender = function(v,p,record){
 		"<tr>" +			
 			"<td>شعبه : <span class='blueText'>" + record.data.BranchName + "</td>" +
 			"<td>موضوع : <span class='blueText'>" + SubjectDesc + "</td>" +
-			"<td colspan=3>رویداد : <span class='blueText' colspan=4>[ " + record.data.EventID + " ] " + record.data.EventTitle + "</td>" +
+			"<td colspan=3>رویداد : <span class='blueText' colspan=4>[ " + (record.data.EventID == undefined ? "" : record.data.EventID) + " ] " + record.data.EventTitle + "</td>" +
 		"</tr>" +
 		"<tr>" +			
 			"<td colspan=5>توضیحات : <span class='blueText' colspan=4>" + description + "</td>" +
