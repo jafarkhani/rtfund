@@ -22,6 +22,8 @@ class ACC_docs extends PdoDataAccess {
 	public $description;
 	public $regPersonID;
 	public $EventID;
+	
+	public $_EventTitle;
 
 	function __construct($DocID = "", $pdo = null) {
 
@@ -29,7 +31,10 @@ class ACC_docs extends PdoDataAccess {
 		$this->DT_RegDate = DataMember::CreateDMA(InputValidation::Pattern_Date);
 
 		if ($DocID != "")
-			parent::FillObject($this, "select * from ACC_docs where DocID=?", array($DocID), $pdo);
+			parent::FillObject($this, "select d.*,ifnull(e.EventTitle,'') as _EventTitle 
+				from ACC_docs d
+				left join COM_events e using(EventID)
+				where DocID=?", array($DocID), $pdo);
 	}
 
 	static function GetAll($where = "", $whereParam = array()) {
@@ -39,7 +44,7 @@ class ACC_docs extends PdoDataAccess {
 				concat_ws(' ',fname,lname,CompanyName) as regPerson, 
 				b.InfoDesc SubjectDesc,b2.InfoDesc DocTypeDesc,
 				fs.StepID,
-				e.EventTitle,
+				ifnull(e.EventTitle,'') EventTitle,
 				fr.ActionType
 			
 			from ACC_docs sd
@@ -362,6 +367,10 @@ class ACC_docs extends PdoDataAccess {
 
 					<td>' . number_format($DSUM, 0, '.', ',') . '</td>
 					<td>' . number_format($CSUM, 0, '.', ',') . '</td>
+				</tr>
+				<tr>
+					<td colspan="11"> رویداد مالی : ' . $DocObject->_EventTitle . '
+					</td>
 				</tr>
 				<tr>
 					<td colspan="11">شرح سند : ' . $DocObject->description . '
