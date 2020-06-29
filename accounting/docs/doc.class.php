@@ -1344,7 +1344,8 @@ class ImportDoc extends PdoDataAccess{
 						p.staff_id = pit.staff_id AND p.payment_type = pit.payment_type)
 					JOIN HRM_salary_item_types sit using(salary_item_type_id)				
 					JOIN HRM_staff s ON s.staff_id = p.staff_id
-					left JOIN HRM_StaffPaidCostCode pc on(s.staff_id=pc.StaffID AND j2g(p.pay_year,p.pay_month,29) between StartDate AND EndDate)
+					left JOIN HRM_StaffPaidCostCode pc on(s.staff_id=pc.StaffID 
+						AND j2g(concat_ws('/',p.pay_year,p.pay_month,29)) between StartDate AND EndDate)
 					join HRM_persons p1 on(p1.PersonID=s.PersonID)
 					join BSC_persons p2 on(p1.RefPersonID=p2.PersonID)
 					JOIN ACC_tafsilis t on(t.TafsiliType=".TAFSILITYPE_PERSON." AND ObjectID=p2.PersonID)
