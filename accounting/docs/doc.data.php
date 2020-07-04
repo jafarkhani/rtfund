@@ -768,7 +768,7 @@ function RegisterCloseDoc(){
 		where CycleID=" . $_SESSION["accounting"]["CycleID"] . "
 			AND BranchID = ?
 			
-		group by i.CostID,i.TafsiliID,i.TafsiliID2	
+		group by i.CostID,i.TafsiliID,i.TafsiliID2,i.TafsiliID3		
 		having sum(CreditorAmount-DebtorAmount)<>0
 	", array($BranchID), $pdo);
 	
