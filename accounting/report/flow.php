@@ -28,6 +28,7 @@ $page_rpg->addColumn("آیتم2", "ParamValue2");
 $page_rpg->addColumn("آیتم3", "ParamValue3");
 $col = $page_rpg->addColumn("تاریخ سند", "DocDate");
 $col->type = "date";
+$page_rpg->addColumn("رویداد", "EventTitle");	
 $page_rpg->addColumn("شرح", "detail");	
 $page_rpg->addColumn("مبلغ بدهکار", "DebtorAmount");
 $page_rpg->addColumn("مبلغ بستانکار", "CreditorAmount");
@@ -221,6 +222,7 @@ function GetData(){
 		cc.CostCode,
 		concat_ws(' - ' , b1.BlockDesc,b2.BlockDesc,b3.BlockDesc,b4.BlockDesc) CostDesc,
 		b1.essence,
+		e.EventTitle,
 		t.TafsiliDesc TafsiliDesc,
 		t2.TafsiliDesc TafsiliDesc2,
 		t3.TafsiliDesc TafsiliDesc3,
@@ -230,6 +232,7 @@ function GetData(){
 		($userFields != "" ? "," . $userFields : "")."
 		
 		from ACC_DocItems di join ACC_docs d using(DocID)
+			left join COM_events e using(EventID)
 			join ACC_CostCodes cc using(CostID)
 			join ACC_blocks b1 on(level1=b1.BlockID)
 			left join ACC_blocks b2 on(level2=b2.BlockID)
@@ -328,6 +331,7 @@ function ListData($IsDashboard = false){
 	$rpg->addColumn("آیتم2", "ParamValue2");
 	$rpg->addColumn("آیتم3", "ParamValue3");
 	$rpg->addColumn("تاریخ سند", "DocDate","ReportDateRender");
+	$rpg->addColumn("رویداد", "EventTitle");	
 	$rpg->addColumn("شرح", "detail");	
 	
 	$col = $rpg->addColumn("مبلغ بدهکار", "DebtorAmount", "ReportMoneyRender");

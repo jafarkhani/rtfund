@@ -6,6 +6,8 @@
 
 require_once DOCUMENT_ROOT . '/accounting/docs/doc.class.php';
 require_once DOCUMENT_ROOT . "/commitment/ComputeItems.class.php";
+require_once DOCUMENT_ROOT . "/loan/request/request.class.php";
+require_once DOCUMENT_ROOT . "/loan/warrenty/request.class.php";
 
 class ExecuteEvent extends PdoDataAccess{
 	
@@ -71,27 +73,13 @@ class ExecuteEvent extends PdoDataAccess{
 			} 
 		//---------------------------------------------------
 
-        // new added for set description for warrenty event
-        $warPerson = '';
-        if(isset($eventRows[0]["EventType"]) && $eventRows[0]["EventType"]=='RegisterWarrenty'){
-            require_once DOCUMENT_ROOT . "/loan/warrenty/request.class.php";
-            $RequestID=$this->Sources[0];
-            $warrenty = new WAR_requests($RequestID);
-            $warPersonID = $warrenty->PersonID;
-            $dt1 = PdoDataAccess::runquery("select RequestID,concat_ws(' ',fname,lname,CompanyName) fullname
-		    from WAR_requests r 
-					left join BSC_persons using(PersonID)
-				where RequestID=?", array($RequestID));
-            $warPerson = $dt1[0]['fullname'];
-        }
-        // end new added for set description for warrenty event
-
-
 		switch($eventRows[0]["EventType"])
 		{
             // new added for set description for warrenty event
             case 'RegisterWarrenty':
-                $this->ExtraDescription = " شماره ضمانتنامه " . $this->Sources[0] . " " . $warPerson;
+				$warObj = new WAR_requests($this->Sources[0]);
+                $this->ExtraDescription = 'شماره ضمانتنامه [ ' . $this->Sources[0] . ' ] ' . 
+					$warObj->_fullname . " ". $this->ExtraDescription;
                 break;
             // end new added for set description for warrenty event
 
@@ -99,7 +87,9 @@ class ExecuteEvent extends PdoDataAccess{
 			case EVENTTYPE_LoanPayment:
 			case EVENTTYPE_LoanBackPay:
 			case EVENTTYPE_LoanEnd:
-				$this->ExtraDescription = " شماره وام " . $this->Sources[0] . $this->ExtraDescription;
+				$reqObj = new LON_requests($this->Sources[0]);
+				$this->ExtraDescription = 'شماره وام [ ' . $this->Sources[0] . ' ] ' . 
+					$reqObj->_LoanPersonFullname . " ". $this->ExtraDescription;
 		}
 		//---------------------------------------------------
 		if(!$this->DocObj) 
@@ -116,8 +106,7 @@ class ExecuteEvent extends PdoDataAccess{
 			$this->DocObj->BranchID = $this->BranchID;
 			$this->DocObj->DocType = DOCTYPE_EXECUTE_EVENT;
 			$this->DocObj->EventID = $this->EventID;
-			$this->DocObj->description = "اجرای رویداد[ " . $this->EventID . " ] " . 
-				$eventRows[0]["EventTitle"] . " " . $this->ExtraDescription;
+			$this->DocObj->description = $this->ExtraDescription;
 		}
 
 		//----------------------- add doc items -------------------

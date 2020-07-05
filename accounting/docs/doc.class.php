@@ -22,6 +22,8 @@ class ACC_docs extends PdoDataAccess {
 	public $description;
 	public $regPersonID;
 	public $EventID;
+	
+	public $_EventTitle;
 
 	function __construct($DocID = "", $pdo = null) {
 
@@ -29,7 +31,10 @@ class ACC_docs extends PdoDataAccess {
 		$this->DT_RegDate = DataMember::CreateDMA(InputValidation::Pattern_Date);
 
 		if ($DocID != "")
-			parent::FillObject($this, "select * from ACC_docs where DocID=?", array($DocID), $pdo);
+			parent::FillObject($this, "select d.*,ifnull(e.EventTitle,'') as _EventTitle 
+				from ACC_docs d
+				left join COM_events e using(EventID)
+				where DocID=?", array($DocID), $pdo);
 	}
 
 	static function GetAll($where = "", $whereParam = array()) {
@@ -39,9 +44,11 @@ class ACC_docs extends PdoDataAccess {
 				concat_ws(' ',fname,lname,CompanyName) as regPerson, 
 				b.InfoDesc SubjectDesc,b2.InfoDesc DocTypeDesc,
 				fs.StepID,
+				ifnull(e.EventTitle,'') EventTitle,
 				fr.ActionType
 			
 			from ACC_docs sd
+			left join COM_events e using(EventID)
 			left join BSC_branches bch using(BranchID)
 			left join BaseInfo b on(b.TypeID=73 AND b.InfoID=SubjectID)
 			left join BaseInfo b2 on(b2.TypeID=9 AND b2.InfoID=DocType)
@@ -360,6 +367,10 @@ class ACC_docs extends PdoDataAccess {
 
 					<td>' . number_format($DSUM, 0, '.', ',') . '</td>
 					<td>' . number_format($CSUM, 0, '.', ',') . '</td>
+				</tr>
+				<tr>
+					<td colspan="11"> رویداد مالی : ' . $DocObject->_EventTitle . '
+					</td>
 				</tr>
 				<tr>
 					<td colspan="11">شرح سند : ' . $DocObject->description . '
@@ -1342,7 +1353,8 @@ class ImportDoc extends PdoDataAccess{
 						p.staff_id = pit.staff_id AND p.payment_type = pit.payment_type)
 					JOIN HRM_salary_item_types sit using(salary_item_type_id)				
 					JOIN HRM_staff s ON s.staff_id = p.staff_id
-					left JOIN HRM_StaffPaidCostCode pc on(s.staff_id=pc.StaffID AND j2g(p.pay_year,p.pay_month,29) between StartDate AND EndDate)
+					left JOIN HRM_StaffPaidCostCode pc on(s.staff_id=pc.StaffID 
+						AND j2g(concat_ws('/',p.pay_year,p.pay_month,29)) between StartDate AND EndDate)
 					join HRM_persons p1 on(p1.PersonID=s.PersonID)
 					join BSC_persons p2 on(p1.RefPersonID=p2.PersonID)
 					JOIN ACC_tafsilis t on(t.TafsiliType=".TAFSILITYPE_PERSON." AND ObjectID=p2.PersonID)

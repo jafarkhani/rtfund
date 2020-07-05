@@ -129,3 +129,19 @@ hiddenName : "FILTERPERSON_DomainID"
 ****************************************************************
 listConfig: {width: 'auto'},
 matchFieldWidth : false,
+****************************************************************
+DELIMITER $$
+USE `krrtfir_rtfund`$$
+CREATE FUNCTION `g2j`(gdate_var date) RETURNS varchar(10) CHARSET utf8
+BEGIN
+	DECLARE jdate_var VARCHAR(10);
+    
+    SELECT jdate INTO jdate_var
+    FROM dates
+    WHERE Gdate = gdate_var;
+    
+RETURN jdate_var;
+END$$
+
+DELIMITER ;
+

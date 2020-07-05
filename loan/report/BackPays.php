@@ -186,7 +186,7 @@ function GetData(){
 				$MainRow["fund_wage"] = $FundWage;
 				$MainRow["agent_wage"] = $AgentWage;	
 				//.............................................
-				if($PartObj->LatePercent*1 == 0 || $MainRow["pay_late"]*1 < 0)
+				if($MainRow["LatePercent"]*1 == 0 || $MainRow["pay_late"]*1 < 0)
 				{
 					$FundLate = $AgentLate = 0;
 				}
@@ -199,7 +199,7 @@ function GetData(){
 				$MainRow["fund_late"] = $FundLate;
 				$MainRow["agent_late"] = $AgentLate;
 				//.............................................
-				if($PartObj->ForfeitPercent*1 == 0)
+				if($MainRow["ForfeitPercent"]*1 == 0)
 				{
 					$FundPnlt = $AgentPnlt = 0;
 				}
@@ -261,8 +261,11 @@ function ListDate($IsDashboard = false){
 	$rpg->excel = !empty($_POST["excel"]);
 	$rpg->mysql_resource = GetData();
 	
-	//if($_SESSION["USER"]["UserName"] == "admin")
-	//	echo PdoDataAccess::GetLatestQueryString ();
+	if($_SESSION["USER"]["UserName"] == "admin")
+	{
+		if(ExceptionHandler::GetExceptionCount() > 0)
+			print_r(ExceptionHandler::PopAllExceptions ());
+	}
 		
 	function endedRender($row,$value){
 		return ($value == "YES") ? "خاتمه" : "جاری";
@@ -333,28 +336,18 @@ function ListDate($IsDashboard = false){
 	
 	if(empty($_POST["IsInstallmentRowsInclude"]))
 	{
-		$col = $rpg->addColumn("پرداخت از اصل", "pay_pure", "ReportMoneyRender");
-		$col->EnableSummary();
-		$col = $rpg->addColumn("پرداخت از کارمزد", "pay_wage", "ReportMoneyRender");
-		$col->EnableSummary();
-		$col = $rpg->addColumn("پرداخت از کارمزد تاخیر", "pay_late", "ReportMoneyRender");
-		$col->EnableSummary();
-		$col = $rpg->addColumn("پرداخت از جریمه", "pay_pnlt", "ReportMoneyRender");
-		$col->EnableSummary();		
+		$col = $rpg->addColumn("پرداخت از اصل", "pay_pure", "ReportMoneyRender");$col->EnableSummary();
+		$col = $rpg->addColumn("پرداخت از کارمزد", "pay_wage", "ReportMoneyRender");$col->EnableSummary();
+		$col = $rpg->addColumn("پرداخت از کارمزد تاخیر", "pay_late", "ReportMoneyRender");$col->EnableSummary();
+		$col = $rpg->addColumn("پرداخت از جریمه", "pay_pnlt", "ReportMoneyRender");$col->EnableSummary();		
 		
-		$col = $rpg->addColumn("سهم صندوق از کارمزد", "fund_wage");
-		$col->EnableSummary();	
-		$col = $rpg->addColumn("سهم صندوق از کارمزد تاخیر", "fund_late");	
-		$col->EnableSummary();	
-		$col = $rpg->addColumn("سهم صندوق از جریمه", "fund_pnlt");	
-		$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم صندوق از کارمزد", "fund_wage", "ReportMoneyRender");$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم صندوق از کارمزد تاخیر", "fund_late", "ReportMoneyRender");$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم صندوق از جریمه", "fund_pnlt", "ReportMoneyRender");	$col->EnableSummary();	
 
-		$col = $rpg->addColumn("سهم سرمایه گذار از کارمزد", "agent_wage");	
-		$col->EnableSummary();	
-		$col = $rpg->addColumn("سهم سرمایه گذار از کارمزد تاخیر", "agent_late");	
-		$col->EnableSummary();	
-		$col = $rpg->addColumn("سهم سرمایه گذار از جریمه", "agent_pnlt");	
-		$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم سرمایه گذار از کارمزد", "agent_wage", "ReportMoneyRender");	$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم سرمایه گذار از کارمزد تاخیر", "agent_late", "ReportMoneyRender");$col->EnableSummary();	
+		$col = $rpg->addColumn("سهم سرمایه گذار از جریمه", "agent_pnlt", "ReportMoneyRender");$col->EnableSummary();	
 	}
 	else
 	{

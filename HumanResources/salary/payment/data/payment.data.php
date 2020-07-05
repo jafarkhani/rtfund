@@ -206,7 +206,7 @@ function confirmation() {
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
 			}
-			if (!ImportDoc::RegisterSalaryDoc($obj, $pdo)) {
+			if (!ImportDoc::RegisterSalaryDoc($obj, $pdo)) { 
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();

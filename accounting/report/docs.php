@@ -12,6 +12,7 @@ $page_rpg->addColumn("شماره سند", "LocalNo");
 $col = $page_rpg->addColumn("تاریخ سند", "DocDate");
 $col->type = "date";
 $page_rpg->addColumn("ثبت کننده سند", "regPerson");
+$page_rpg->addColumn("رویداد", "EventTitle");	
 $page_rpg->addColumn("شرح سند", "description");
 $page_rpg->addColumn("جمع بدهکار", "bdSum");
 $page_rpg->addColumn("جمع بسنانکار", "bsSum");
@@ -22,12 +23,13 @@ function GetData(){
 		$_SESSION["accounting"]["CycleID"] = DateModules::GetYear(DateModules::shNow());
 	
 	$userFields = ReportGenerator::UserDefinedFields();
-	$query = "select d.*, 
+	$query = "select d.*, e.EventTitle,
 					concat(fname,' ',lname) as regPerson, 
 					sum(CreditorAmount) bsSum,
 					sum(DebtorAmount) bdSum".
 					($userFields != "" ? "," . $userFields : "")."
 			from ACC_docs d
+			left join COM_events e using(EventID)
 			join ACC_DocItems di using(docID)
 			join ACC_CostCodes cc using(CostID)
 			left join ACC_tafsilis t on(di.TafsiliID=t.TafsiliID)
@@ -187,6 +189,7 @@ function ListData($IsDashboard = false){
 	$rpg->addColumn("تاریخ سند", "DocDate","ReportDateRender");
 	//$rpg->addColumn("تاریخ ثبت سند", "RegDate","dateRender");
 	$rpg->addColumn("ثبت کننده سند", "regPerson");
+	$rpg->addColumn("رویداد", "EventTitle");	
 	$rpg->addColumn("شرح سند", "description");
 	$rpg->addColumn("جمع بدهکار", "bdSum","ReportMoneyRender");
 	$rpg->addColumn("جمع بسنانکار", "bsSum","ReportMoneyRender");

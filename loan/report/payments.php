@@ -57,6 +57,9 @@ function MakeWhere(&$where, &$whereParam){
 			case "toRequestID":
 				$prefix = "py.";
 				break;
+			case "StatusID":
+				$prefix = "r.";
+				break;
 			case "fromPayDate":
 			case "toPayDate":
 				$value = DateModules::shamsi_to_miladi($value, "-");
@@ -119,11 +122,13 @@ function ListData($IsDashboard = false){
 	$rpg = new ReportGenerator();
 	$rpg->excel = !empty($_POST["excel"]);
 	$rpg->mysql_resource = GetData();
+	
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		//print_r(ExceptionHandler::PopAllExceptions());
-		//echo PdoDataAccess::GetLatestQueryString();die();
+		if(ExceptionHandler::GetExceptionCount() > 0)
+			print_r(ExceptionHandler::PopAllExceptions ());
 	}
+	
 	function endedRender($row,$value){
 		return ($value == "YES") ? "خاتمه" : "جاری";
 	}
