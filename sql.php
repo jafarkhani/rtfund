@@ -122,7 +122,9 @@ order by aa.DociD
 
 /* مرتب سازی شماره اسناد در انتهای هر سال
 insert into aa(DocID,regDoc) select DocID,@i:=@i+1 from (select a.* from ACC_docs a, 
-  (select @i:=0)t where cycleID=1398 AND DocDate>1 order by case DocType when 1 then 1 when 3 then 1000 else 2 end,DocDate)t
+  (select @i:=0)t where cycleID=1398 AND DocDate>1 
+  order by case DocType when 1 then 1 when 3 then 1000 else 2 end,DocDate)t;
+ * 
  * update aa join ACC_docs using(DocID) set LocalNo=regDoc
 
  * update ACC_DocItems join ACC_docs using(DocID) join LON_BackPays b on(IncomeChequeID=SourceID2)
