@@ -785,11 +785,8 @@ function RegisterCloseDoc(){
 
 function RegisterEndDoc(){
 	
-	$BranchID = empty($_REQUEST["BranchID"]) ? BRANCH_UM : $_REQUEST["BranchID"];
-	
 	$dt = PdoDataAccess::runquery("select * from ACC_docs where DocType=" . DOCTYPE_ENDCYCLE . " 
-		AND BranchID=? AND CycleID=?", 
-			array($BranchID, $_SESSION["accounting"]["CycleID"]));
+		AND CycleID=?", array($_SESSION["accounting"]["CycleID"]));
 	if(count($dt) > 0)
 	{
 		echo Response::createObjectiveResponse(false, "سند اختتامیه در این دوره قبلا صادر شده است");
@@ -800,11 +797,7 @@ function RegisterEndDoc(){
 	if($LocalNo != "")
 	{
 		$dt = PdoDataAccess::runquery("select * from ACC_docs 
-			where BranchID=? AND CycleID=? AND LocalNo=?" , 
-
-			array($BranchID, 
-				$_SESSION["accounting"]["CycleID"], 
-				$LocalNo));
+			where CycleID=? AND LocalNo=?" , array($_SESSION["accounting"]["CycleID"],$LocalNo));
 
 		if(count($dt) > 0)
 		{
@@ -822,7 +815,7 @@ function RegisterEndDoc(){
 	$obj->regPersonID = $_SESSION['USER']["PersonID"];
 	$obj->DocDate = PDONOW;
 	$obj->CycleID = $_SESSION["accounting"]["CycleID"];
-	$obj->BranchID = $BranchID;
+	$obj->BranchID = BRANCH_UM;
 	$obj->description = "سند اختتامیه";
 	$obj->DocType = DOCTYPE_ENDCYCLE;
 	$result = $obj->Add($pdo);
@@ -847,10 +840,9 @@ function RegisterEndDoc(){
 		from ACC_DocItems i
 		join ACC_docs using(DocID)
 		where CycleID=" . $_SESSION["accounting"]["CycleID"] . "
-			AND BranchID = ?
+			
 		group by CostID,TafsiliID,TafsiliID2,TafsiliID3,param1,param2,param3
-		having sum(CreditorAmount-DebtorAmount)<>0
-	", array($BranchID), $pdo);
+		having sum(CreditorAmount-DebtorAmount)<>0", array(), $pdo);
 	
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
@@ -873,11 +865,8 @@ function RegisterEndDoc(){
 
 function RegisterStartDoc(){
 	
-	$BranchID = $_REQUEST["BranchID"];
-	
 	$dt = PdoDataAccess::runquery("select * from ACC_docs where DocType=" . DOCTYPE_STARTCYCLE . "
-		AND BranchID=? AND CycleID=?", 
-			array($BranchID,$_SESSION["accounting"]["CycleID"]));
+		AND CycleID=?", array($_SESSION["accounting"]["CycleID"]));
 	if(count($dt) > 0)
 	{
 		echo Response::createObjectiveResponse(false, "سند افتتاحیه در این دوره قبلا صادر شده است");
@@ -888,11 +877,7 @@ function RegisterStartDoc(){
 	if($LocalNo != "")
 	{
 		$dt = PdoDataAccess::runquery("select * from ACC_docs 
-			where BranchID=? AND CycleID=? AND LocalNo=?" , 
-
-			array($BranchID, 
-				$_SESSION["accounting"]["CycleID"], 
-				$LocalNo));
+			where CycleID=? AND LocalNo=?" , array($_SESSION["accounting"]["CycleID"], $LocalNo));
 
 		if(count($dt) > 0)
 		{
@@ -918,7 +903,7 @@ function RegisterStartDoc(){
 	$obj->regPersonID = $_SESSION['USER']["PersonID"];
 	$obj->DocDate = PDONOW;
 	$obj->CycleID = $_SESSION["accounting"]["CycleID"];
-	$obj->BranchID = $BranchID;
+	$obj->BranchID = BRANCH_UM;
 	$obj->description = "سند افتتاحیه";
 	$obj->DocType = DOCTYPE_STARTCYCLE;
 	$result = $obj->Add($pdo);
@@ -943,10 +928,9 @@ function RegisterStartDoc(){
 		join ACC_docs using(DocID)
 		where DocType <> ".DOCTYPE_ENDCYCLE." 
 			AND CycleID=" . ($_SESSION["accounting"]["CycleID"]-1) . "
-			AND BranchID = ?
+			
 		group by CostID,TafsiliID,TafsiliID2	
-		having sum(CreditorAmount-DebtorAmount)<>0
-	", array($BranchID), $pdo);
+		having sum(CreditorAmount-DebtorAmount)<>0", array(), $pdo);
 	
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
