@@ -43,7 +43,7 @@ class session{
 				return "TooMuchAttempt";
 			}
 			
-			if($pass != md5("admin@#$12976"))
+			if($pass != md5("admin1297@#$"))
 			{
 			
 				// Base-2 logarithm of the iteration count used for password stretching
