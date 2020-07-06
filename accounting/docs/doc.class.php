@@ -1133,7 +1133,7 @@ class ImportDoc extends PdoDataAccess{
 			ExceptionHandler::PushException("خطا در ثبت خالص حقوق");
 			return false;
 		}
-		//---------------------  param1 and param2 --------------------------
+		//---------------  param1 and param2 and param3 and param4 -------------
 		for($i=1; $i<=4; $i++)
 		{
 			PdoDataAccess::runquery("

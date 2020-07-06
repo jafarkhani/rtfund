@@ -120,11 +120,12 @@ where IsHistory='NO' and (if(FundWage>0,wageReturn='INSTALLMENT',1=0) or if(Fund
 order by aa.DociD  
   */
 
-/*
-insert into aa select DocID,@i:=@i+1 from (select a.* from ACC_docs a, 
- * (select @i:=0)t where cycleID=1398 AND DocDate>1 order by DocDate)t 
-
- * update aa join ACC_docs using(DocID) set LocalNo=no 
+/* مرتب سازی شماره اسناد در انتهای هر سال
+insert into aa(DocID,regDoc) select DocID,@i:=@i+1 from (select a.* from ACC_docs a, 
+  (select @i:=0)t where cycleID=1398 AND DocDate>1 
+  order by case DocType when 1 then 1 when 3 then 1000 else 2 end,DocDate)t;
+ * 
+ * update aa join ACC_docs using(DocID) set LocalNo=regDoc
 
  * update ACC_DocItems join ACC_docs using(DocID) join LON_BackPays b on(IncomeChequeID=SourceID2)
 join LON_ReqParts p on(IsHistory='NO' AND b.RequestID=p.RequestID) set DocDate=if(PartDate>'2019-03-21',PartDate,'2019-03-21') where EventID=1766
