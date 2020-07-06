@@ -106,13 +106,13 @@ class manage_salary_params extends PdoDataAccess
 		$query .= " where 1=1";
 		if($person_type != "" && $param_type != "")
 		{
-			$query .= " AND param_type=:ptype AND person_type=:pt";
+			$query .= " AND param_type=:ptype AND ( person_type=:pt or person_type = 100 )";
 			$whereParam[":ptype"] = $param_type;
 			$whereParam[":pt"] = $person_type;
 		}
 
         $query .= ( !empty($where) ) ? $where : '' ;
-
+		
 		return PdoDataAccess::runquery($query ,$whereParam);
 	}
 
