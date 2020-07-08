@@ -3,7 +3,8 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 94.08
 //-----------------------------
-			
+// require_once '../letter/letter.class.php';
+
 class WFM_flows extends PdoDataAccess {
 
 	public $FlowID;
@@ -240,47 +241,47 @@ class WFM_FlowRows extends PdoDataAccess {
 				break;
 		}
 	}
-
-    function AddFlowRow($StepID , $pdo = null) {
-
-        PdoDataAccess::runquery("update WFM_FlowRows set IsLastRow='NO' "
-            . " where FlowID=? AND ObjectID=? AND ObjectID2=?",
-            array($this->FlowID, $this->ObjectID, $this->ObjectID2), $pdo);
-        /*var_dump($this->FlowID);var_dump($StepID);*/
-        //.......... get StepRowID ...................
-        $dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
+	
+	function AddFlowRow($StepID , $pdo = null) {
+		
+		PdoDataAccess::runquery("update WFM_FlowRows set IsLastRow='NO' "
+				. " where FlowID=? AND ObjectID=? AND ObjectID2=?", 
+				array($this->FlowID, $this->ObjectID, $this->ObjectID2), $pdo);
+		/*var_dump($this->FlowID);var_dump($StepID);*/
+		//.......... get StepRowID ...................
+		$dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
 			where IsActive='YES' AND FlowID=? AND StepID=?" , array($this->FlowID, $StepID));
-        if(count($dt) == 0)
-        {
-            ExceptionHandler::PushException("خطا در تعریف وضعیت ها");
-            return false;
-        }
-        $this->StepRowID = $dt[0]["StepRowID"];
-        $this->StepDesc = $dt[0]["StepDesc"];
-        //..............................................
+		if(count($dt) == 0)
+		{
+			ExceptionHandler::PushException("خطا در تعریف وضعیت ها");
+			return false;
+		}
+		$this->StepRowID = $dt[0]["StepRowID"];	
+		$this->StepDesc = $dt[0]["StepDesc"];	
+		//..............................................
+		
+		if (!parent::insert("WFM_FlowRows", $this, $pdo)) {
+			return false;
+		}
 
-        if (!parent::insert("WFM_FlowRows", $this, $pdo)) {
-            return false;
-        }
-
-        $this->UpdateSourceStatus($StepID);
-
-        $this->RowID = parent::InsertID($pdo);
-
-
-        /*$PersonID=$_SESSION["USER"]["PersonID"];
-    $queryString="select r.PersonID,r.RequestID,fr.ObjectID
-          from wfm_flowrows fr
-          left join wfm_requests r on (fr.ObjectID=r.RequestID)
-          where IsLastRow='YES' AND IsEnded='YES' AND r.PersonID=?";
-    $findEnd = PdoDataAccess::runquery_fetchMode($queryString, array($PersonID));*/
+		$this->UpdateSourceStatus($StepID);
+		
+		$this->RowID = parent::InsertID($pdo);
+		
+		
+			/*$PersonID=$_SESSION["USER"]["PersonID"];
+        $queryString="select r.PersonID,r.RequestID,fr.ObjectID 
+              from wfm_flowrows fr 
+              left join wfm_requests r on (fr.ObjectID=r.RequestID)
+              where IsLastRow='YES' AND IsEnded='YES' AND r.PersonID=?";
+        $findEnd = PdoDataAccess::runquery_fetchMode($queryString, array($PersonID));*/
         $queryString1="select *
               from WFM_FlowRows 
               where IsLastRow='YES' AND IsEnded='YES' AND ObjectID=?";
         $findEnd1 = PdoDataAccess::runquery_fetchMode($queryString1, array($this->ObjectID));
         if ($findEnd1->rowCount() >0){
-            $result = $findEnd1->fetchAll();
-            $RequestID=$result[0]['ObjectID'];
+           $result = $findEnd1->fetchAll();
+           $RequestID=$result[0]['ObjectID'];
             $queryString2="select RequestNo,PersonID,f.FormTitle
               from WFM_requests r
               join WFM_forms f using(FormID) 
@@ -295,14 +296,14 @@ class WFM_FlowRows extends PdoDataAccess {
                 $_POST['MsgDesc']="با سلام. فرم ".$FormTitle."  شما با شماره ".$RequestNo." مورد تایید قرار گرفت.";
                 $_POST['PersonID']=1000;
 
-
+                
                 $obj = new OFC_messages();
                 PdoDataAccess::FillObjectByArray($obj, $_POST);
                 /*$obj->PersonID = $_POST['PersonID'];*/
                 $obj->MsgDate = PDONOW;
                 $pdoobj = PdoDataAccess::getPdoObject();
                 /*$pdoobj->beginTransaction();*/
-
+                
                 if(!$obj->Add($pdoobj))
                 {
                     $pdoobj->rollBack();
@@ -313,7 +314,7 @@ class WFM_FlowRows extends PdoDataAccess {
                 $obj2->MessageID = $obj->MessageID;
                 $obj2->PersonID = $PersonID;
                 $obj2->Add($pdoobj);
-
+                
             }
         }
         /*if ($findEnd1){
@@ -328,88 +329,129 @@ class WFM_FlowRows extends PdoDataAccess {
         }*/
 
 
+		
+		$daObj = new DataAudit();
+		$daObj->ActionType = DataAudit::Action_add;
+		$daObj->MainObjectID = $this->RowID;
+		$daObj->TableName = "WFM_FlowRows";
+		$daObj->execute($pdo);
+		
+		return true;
+	}
 
-        $daObj = new DataAudit();
-        $daObj->ActionType = DataAudit::Action_add;
-        $daObj->MainObjectID = $this->RowID;
-        $daObj->TableName = "WFM_FlowRows";
-        $daObj->execute($pdo);
 
-        return true;
-    }
 
-    function AddFlowRows($StepID , $pdo = null) {
-
-        PdoDataAccess::runquery("update WFM_FlowRows set IsLastRow='NO' "
-            . " where FlowID=? AND ObjectID=? AND ObjectID2=?",
-            array($this->FlowID, $this->ObjectID, $this->ObjectID2), $pdo);
-        /*var_dump($this->FlowID);var_dump($StepID);*/
-        //.......... get StepRowID ...................
-        $dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
+function AddFlowRoww($StepID , $pdo = null) {
+	
+		PdoDataAccess::runquery("update WFM_FlowRows set IsLastRow='NO' "
+				. " where FlowID=? AND ObjectID=? AND ObjectID2=?", 
+				array($this->FlowID, $this->ObjectID, $this->ObjectID2), $pdo);
+		
+		//.......... get StepRowID ...................
+		$dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
 			where IsActive='YES' AND FlowID=? AND StepID=?" , array($this->FlowID, $StepID));
-        if(count($dt) == 0)
-        {
-            ExceptionHandler::PushException("خطا در تعریف وضعیت ها");
-            return false;
-        }
-        $this->StepRowID = $dt[0]["StepRowID"];
-        $this->StepDesc = $dt[0]["StepDesc"];
-        //..............................................
+		if(count($dt) == 0)
+		{
+			ExceptionHandler::PushException("&#1582;&#1591;&#1575; &#1583;&#1585; &#1578;&#1593;&#1585;&#1740;&#1601; &#1608;&#1590;&#1593;&#1740;&#1578; &#1607;&#1575;");
+			return false;
+		}
+		$this->StepRowID = $dt[0]["StepRowID"];	
+		$this->StepDesc = $dt[0]["StepDesc"];	
+		//..............................................
+		
+		if (!parent::insert("WFM_FlowRows", $this, $pdo)) {
+			return false;
+		}
 
-        if (!parent::insert("WFM_FlowRows", $this, $pdo)) {
-            return false;
-        }
+		$this->UpdateSourceStatus($StepID);
+		
+		$this->RowID = parent::InsertID($pdo);         
+            
+        
+	
+		$daObj = new DataAudit();
+		$daObj->ActionType = DataAudit::Action_add;
+		$daObj->MainObjectID = $this->RowID;
+		$daObj->TableName = "WFM_FlowRows";
+		$daObj->execute($pdo);
+		
+		return true;	
+	}
 
-        $this->UpdateSourceStatus($StepID);
 
-        $this->RowID = parent::InsertID($pdo);
+	
+	function AddFlowRows($StepID , $pdo = null) {
+		
+		PdoDataAccess::runquery("update WFM_FlowRows set IsLastRow='NO' "
+				. " where FlowID=? AND ObjectID=? AND ObjectID2=?", 
+				array($this->FlowID, $this->ObjectID, $this->ObjectID2), $pdo);
+		/*var_dump($this->FlowID);var_dump($StepID);*/
+		//.......... get StepRowID ...................
+		$dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
+			where IsActive='YES' AND FlowID=? AND StepID=?" , array($this->FlowID, $StepID));
+		if(count($dt) == 0)
+		{
+			ExceptionHandler::PushException("خطا در تعریف وضعیت ها");
+			return false;
+		}
+		$this->StepRowID = $dt[0]["StepRowID"];	
+		$this->StepDesc = $dt[0]["StepDesc"];	
+		//..............................................
+		
+		if (!parent::insert("WFM_FlowRows", $this, $pdo)) {
+			return false;
+		}
 
-        $daObj = new DataAudit();
-        $daObj->ActionType = DataAudit::Action_add;
-        $daObj->MainObjectID = $this->RowID;
-        $daObj->TableName = "WFM_FlowRows";
-        $daObj->execute($pdo);
+		$this->UpdateSourceStatus($StepID);
+		
+		$this->RowID = parent::InsertID($pdo);
 
-        return true;
-    }
+		$daObj = new DataAudit();
+		$daObj->ActionType = DataAudit::Action_add;
+		$daObj->MainObjectID = $this->RowID;
+		$daObj->TableName = "WFM_FlowRows";
+		$daObj->execute($pdo);
+		
+		return true;
+	}
 
-    static function AddOuterFlow($FlowID, $ObjectID, $StepID, $Comment = "", $pdo = null){
-
-        $dt = parent::runquery("select StepRowID from WFM_FlowSteps where FlowID=? AND StepID=?",
-            array($FlowID, $StepID));
-        /*var_dump(count($dt));*/
-        if(count($dt) == 0)
-            return false;
-
-        $obj = new self();
-        $obj->FlowID = $FlowID;
-        $obj->StepRowID = $dt[0]["StepRowID"];
-        $obj->ObjectID = $ObjectID;
-        $obj->PersonID = $_SESSION["USER"]["PersonID"];
-        $obj->ActionType = "DONE";
-        $obj->ActionDate = PDONOW;
-        $obj->ActionComment = $Comment;
-        return $obj->AddFlowRow($StepID, $pdo);
-    }
-
-    static function AddOuterFlows($FlowID, $ObjectID, $StepID, $Comment = "", $pdo = null){
-
-        $dt = parent::runquery("select StepRowID from WFM_FlowSteps where FlowID=? AND StepID=?",
-            array($FlowID, $StepID));
-        /*var_dump(count($dt));*/
-        if(count($dt) == 0)
-            return false;
-
-        $obj = new self();
-        $obj->FlowID = $FlowID;
-        $obj->StepRowID = $dt[0]["StepRowID"];
-        $obj->ObjectID = $ObjectID;
-        $obj->PersonID = $_SESSION["USER"]["PersonID"];
-        $obj->ActionType = "DONE";
-        $obj->ActionDate = PDONOW;
-        $obj->ActionComment = $Comment;
-        return $obj->AddFlowRows($StepID, $pdo);
-    }
+	static function AddOuterFlow($FlowID, $ObjectID, $StepID, $Comment = "", $pdo = null){
+		
+		$dt = parent::runquery("select StepRowID from WFM_FlowSteps where FlowID=? AND StepID=?", 
+			array($FlowID, $StepID));
+		/*var_dump(count($dt));*/
+		if(count($dt) == 0)
+			return false;
+		
+		$obj = new self();
+		$obj->FlowID = $FlowID;
+		$obj->StepRowID = $dt[0]["StepRowID"];
+		$obj->ObjectID = $ObjectID;
+		$obj->PersonID = $_SESSION["USER"]["PersonID"];
+		$obj->ActionType = "DONE";
+		$obj->ActionDate = PDONOW;
+		$obj->ActionComment = $Comment;
+		return $obj->AddFlowRow($StepID, $pdo);
+	}
+	
+	static function AddOuterFlows($FlowID, $ObjectID, $StepID, $Comment = "", $pdo = null){
+		
+		$dt = parent::runquery("select StepRowID from WFM_FlowSteps where FlowID=? AND StepID=?", 
+			array($FlowID, $StepID));
+		/*var_dump(count($dt));*/
+		if(count($dt) == 0)
+			return false;
+		
+		$obj = new self();
+		$obj->FlowID = $FlowID;
+		$obj->StepRowID = $dt[0]["StepRowID"];
+		$obj->ObjectID = $ObjectID;
+		$obj->PersonID = $_SESSION["USER"]["PersonID"];
+		$obj->ActionType = "DONE";
+		$obj->ActionDate = PDONOW;
+		$obj->ActionComment = $Comment;
+		return $obj->AddFlowRows($StepID, $pdo);
+	}
 	
 	static function EndObjectFlow($ObjectType, $ObjectID, $ObjectID2, $pdo = null){
 		
@@ -499,6 +541,18 @@ class WFM_FlowRows extends PdoDataAccess {
 		$obj->ActionDate = PDONOW;
 		$obj->ActionType = "CONFIRM";
 		return $obj->AddFlowRow(0);		
+	}
+static function StartFloww($FlowID, $ObjectID, $objectID2 = 0){
+		
+		$obj = new WFM_FlowRows();
+		$obj->FlowID = $FlowID;
+		$obj->StepRowID = PDONULL;
+		$obj->ObjectID = $ObjectID;
+		$obj->ObjectID2 = $objectID2;
+		$obj->PersonID = $_SESSION["USER"]["PersonID"];		
+		$obj->ActionDate = PDONOW;
+		$obj->ActionType = "CONFIRM";
+		return $obj->AddFlowRoww(0);		
 	}
 	
 	static function ReturnStartFlow($FlowID, $ObjectID, $objectID2 = 0, $pdo = null){

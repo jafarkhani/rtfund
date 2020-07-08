@@ -320,7 +320,10 @@ define("EVENT_WAR_SUB_other", 1831);
 
 //------------- CostCode params -----------
 define("CostCode_param_loan", "3");
+
 //------------- TypeIDs -----------
+define("TYPEID_DebitType", 102);
+define("TYPEID_DebitClass", 103);
 define("TYPEID_MeetingType", 88);
 define("TYPEID_MeetingStatusID", 89);
 define("TYPEID_ContractType", 18);

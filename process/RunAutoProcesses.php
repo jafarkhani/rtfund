@@ -7,13 +7,13 @@
 ini_set("display_errors", "On");
 ini_set('max_execution_time', 30000000);
 ini_set('memory_limit','4000M');
+set_time_limit(0); 
+ini_set("default_socket_timeout", 600);
 
 ob_start();
 
 require_once '../framework/configurations.inc.php';
 set_include_path(DOCUMENT_ROOT . "/generalClasses");
-
-$fp = fopen(DOCUMENT_ROOT . "/process/loanDaily.html", "w");
 
 require_once '../definitions.inc.php';
 require_once DOCUMENT_ROOT . '/generalClasses/InputValidation.class.php';
@@ -33,7 +33,7 @@ require_once '../commitment/ExecuteEvent.class.php';
 
 $query = " select * from LON_requests  r
 join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-where r.RequestID>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM;
+where r.RequestID>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM ;
 
 $reqs = PdoDataAccess::runquery_fetchMode($query);
 
@@ -108,8 +108,10 @@ $pdo->commit();
 //-----------------------------------------------------
 //-------------- fund wage of agent -------------------
 $ComputeDate = PDONOW;
-$reqs = PdoDataAccess::runquery_fetchMode(" select * from LON_installments join LON_requests using(RequestID)
-	where InstallmentDate=? AND PureFundWage>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM, array($ComputeDate));
+$reqs = PdoDataAccess::runquery_fetchMode(" 
+	select * from LON_installments join LON_requests using(RequestID)
+	where InstallmentDate=? AND PureFundWage>0 AND StatusID=" . LON_REQ_STATUS_CONFIRM, 
+	array($ComputeDate));
 $obj = new ExecuteEvent(1977);
 foreach($reqs as $row)
 {
@@ -127,7 +129,7 @@ foreach($reqs as $row)
 	}
 }
 //-----------------------------------------------------
-
+$fp = fopen(DOCUMENT_ROOT . "/process/loanDaily.html", "w");
 $htmlStr = ob_get_contents();
 ob_end_clean(); 
 $htmlStr = preg_replace('/\\n/', "<br>", $htmlStr);

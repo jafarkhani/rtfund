@@ -60,16 +60,15 @@ class ACC_IncomeCheques extends OperationClass{
 		return parent::runquery_fetchMode($query, $param, $pdo);
 	}
 	
-	static function AddToHistory($IncomeChequeID, $status, $DocID = "", $pdo = null, $details = ""){
+	static function AddToHistory($IncomeChequeID, $status, $pdo = null, $details = ""){
 		
 		PdoDataAccess::runquery("
-			insert into ACC_ChequeHistory(IncomeChequeID,StatusID,PersonID,ATS,details,DocID)
-			values(?,?,?,now(),?,?)", array(
+			insert into ACC_ChequeHistory(IncomeChequeID,StatusID,PersonID,ATS,details)
+			values(?,?,?,now(),?)", array(
 				$IncomeChequeID,
 				$status,
 				$_SESSION["USER"]["PersonID"],
-				$details,
-				$DocID
+				$details
 			),$pdo);
 	}
 

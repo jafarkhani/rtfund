@@ -1269,13 +1269,19 @@ class LON_requests extends PdoDataAccess{
 	
 	static function GetEventID($RequestID, $EventType, $EventType3 = ""){
 		
+		$ReqObj = new LON_requests($RequestID);
 		//----------------------------------------------------
 		$where = " AND EventType='".$EventType."'";
 		//----------------------------------------------------
-		if($RequestID > 0)
+		if($EventType == EVENTTYPE_IncomeCheque)
 		{
-			$ReqObj = new LON_requests($RequestID);
-			
+			if($ReqObj->ReqPersonID*1 == 0)
+				$where .= " AND EventType2='inner'";
+			else
+				$where .= " AND EventType2='agent'";
+		}
+		else if($RequestID > 0)
+		{
 			if($ReqObj->ReqPersonID*1 == 0)
 				$where .= " AND EventType2='inner'";
 			else if($ReqObj->ReqPersonID*1 == 1003) // صندوق نوآوری
@@ -1300,8 +1306,8 @@ class LON_requests extends PdoDataAccess{
 		$dt = PdoDataAccess::runquery("select * from COM_events where 1=1 " . $where);
 		
 		
-		if($_SESSION["USER"]["UserName"] == "admin")
-			echo PdoDataAccess::GetLatestQueryString ();
+		//if($_SESSION["USER"]["UserName"] == "admin")
+		//	echo PdoDataAccess::GetLatestQueryString ();
 		
 		if(count($dt) == 0)
 		{

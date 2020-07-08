@@ -20,68 +20,79 @@ $task = isset($_REQUEST['task']) ? $_REQUEST['task'] : '';
 if(!empty($task))
 	$task();
 
-function MakeWhere(&$where , &$param){
+function MakeWhere(&$where1 , &$where2 , &$param){
 	
 	//.........................................................
 	if(!empty($_POST["FromNo"]))
 	{
-		$where .= " AND ChequeNo >= :cfn";
+		$where1 .= " AND ChequeNo >= :cfn";
 		$param[":cfn"] = $_POST["FromNo"];
 	}
 	if(!empty($_POST["ToNo"]))
 	{
-		$where .= " AND ChequeNo <= :ctn";
+		$where1 .= " AND ChequeNo <= :ctn";
 		$param[":ctn"] = $_POST["ToNo"];
 	}
 	if(!empty($_POST["FromDate"]))
 	{
-		$where .= " AND ChequeDate >= :fd";
+		$where1 .= " AND ChequeDate >= :fd";
 		$param[":fd"] = DateModules::shamsi_to_miladi($_POST["FromDate"], "-");
 	}
 	if(!empty($_POST["ToDate"]))
 	{
-		$where .= " AND ChequeDate <= :td";
+		$where1 .= " AND ChequeDate <= :td";
 		$param[":td"] = DateModules::shamsi_to_miladi($_POST["ToDate"], "-");
 	}
 	if(!empty($_POST["FromAmount"]))
 	{
-		$where .= " AND ChequeAmount >= :fa";
+		$where1 .= " AND ChequeAmount >= :fa";
 		$param[":fa"] = preg_replace('/,/', "", $_POST["FromAmount"]);
 	}
 	if(!empty($_POST["ToAmount"]))
 	{
-		$where .= " AND ChequeAmount <= :ta";
+		$where1 .= " AND ChequeAmount <= :ta";
 		$param[":ta"] = preg_replace('/,/', "", $_POST["ToAmount"]);
 	}
 	if(!empty($_POST["ChequeBank"]))
 	{
-		$where .= " AND ChequeBank = :cb";
+		$where1 .= " AND ChequeBank = :cb";
 		$param[":cb"] = $_POST["ChequeBank"];
 	}
 	if(!empty($_POST["ChequeBranch"]))
 	{
-		$where .= " AND ChequeBranch like :cb";
+		$where1 .= " AND ChequeBranch like :cb";
 		$param[":cb"] = "%" . $_POST["ChequeBranch"] . "%";
 	}
 	if(!empty($_POST["ChequeStatus"]))
 	{
-		$where .= " AND ChequeStatus = :cst";
+		$where1 .= " AND ChequeStatus = :cst";
 		$param[":cst"] = $_POST["ChequeStatus"];
 	}
+	$where2 = $where1;
 	//.........................................................
 	if (isset($_GET["fields"]) && !empty($_GET["query"])) {
 		$field = $_GET["fields"];
-		$where .= " AND " . $field . " like :q";
+		if($field == "fullname")
+		{
+			$where1 .= " AND concat_ws(' ','[ وام ',r.RequestID,']',p.CompanyName,p.fname,p.lname) like :q";
+			$where2 .= " AND t1.TafsiliDesc like :q";
+		}
+		else
+		{
+			$where1 .= " AND " . $field . " like :q";
+			$where2 .= " AND " . $field . " like :q";
+		}
 		$param[":q"] = "%" . $_GET["query"] . "%"; 
 	}
 }
 
 function selectIncomeCheques() {
 	
-	$where = "1=1";
+	$where1 = "1=1";
+	$where2 = "1=1";
 	$param = array(); 
 			
-	MakeWhere($where, $param);
+	MakeWhere($where1, $where2, $param);
 			
 	$query = "
 		select t.*,b.BankDesc, bf.InfoDesc ChequeStatusDesc
@@ -98,7 +109,7 @@ function selectIncomeCheques() {
 			join BSC_persons p on(p.PersonID=r.LoanPersonID)
 			join LON_loans l using(LoanID)
 			join BSC_branches br on(r.BranchID=br.BranchID)
-			where $where
+			where $where1
 			group by i.IncomeChequeID
 
 		/*union all
@@ -112,7 +123,7 @@ function selectIncomeCheques() {
 			join BSC_persons p on(p.PersonID=r.LoanPersonID)
 			join LON_loans l using(LoanID)
 			join BSC_branches br on(r.BranchID=br.BranchID)
-			where $where
+			where $where1
 			group by i.IncomeChequeID*/
 
 		union all
@@ -127,7 +138,7 @@ function selectIncomeCheques() {
 			left join ACC_blocks b2 on(cc.level2=b2.BlockID)
 			left join ACC_blocks b3 on(cc.level3=b3.BlockID)
 			left join ACC_blocks b4 on(cc.level4=b4.BlockID)
-			where $where
+			where $where2
 			group by i.IncomeChequeID
 		)t
 
@@ -139,7 +150,7 @@ function selectIncomeCheques() {
 	$query .= dataReader::makeOrder();
 	$temp = PdoDataAccess::runquery_fetchMode($query, $param);
 	
-	//print_r(ExceptionHandler::PopAllExceptions());
+	print_r(ExceptionHandler::PopAllExceptions());
 	//echo "/*" . PdoDataAccess::GetLatestQueryString() . "*/";
 	
 	$no = $temp->rowCount();
@@ -466,7 +477,7 @@ function ChangeChequeStatus(){
 		}
 	}
 	//---------------------------------------------------------------
-	ACC_IncomeCheques::AddToHistory($IncomeChequeID, $Status, $RegDocID, $pdo);
+	ACC_IncomeCheques::AddToHistory($IncomeChequeID, $Status, $pdo);
 	
 	$pdo->commit();
 	echo Response::createObjectiveResponse($result, "");
@@ -558,7 +569,7 @@ function ReturnLatestOperation($returnMode = false){
 	$OuterObj->ChequeStatus = $dt[0]["StatusID"];
 	$OuterObj->Edit($pdo);
 	//..................................................
-	ACC_IncomeCheques::AddToHistory($OuterObj->IncomeChequeID, $OuterObj->ChequeStatus,0, $pdo, "برگشت عملیات");
+	ACC_IncomeCheques::AddToHistory($OuterObj->IncomeChequeID, $OuterObj->ChequeStatus,$pdo, "برگشت عملیات");
 	//..................................................
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
@@ -612,7 +623,7 @@ function SaveLoanCheque(){
 			$bobj->Add($pdo);		
 			
 			//--------------- execute event ----------------
-			$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
+			$EventID = LON_requests::GetEventID($_POST["RequestID"], EVENTTYPE_IncomeCheque , INCOMECHEQUE_NOTVOSUL);
 			if($EventID != 0)
 			{
 				$eventobj = new ExecuteEvent($EventID);
@@ -648,8 +659,7 @@ function SaveLoanCheque(){
 		}
 		
 		//--------------------------------------------
-		ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, $obj->ChequeStatus, 
-				$eventobj->DocObj->DocID, $pdo);
+		ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, $obj->ChequeStatus, $pdo);
 		
 	}
 	
@@ -695,7 +705,7 @@ function editCheque(){
 	$comment .= "دلیل تغییر : " . $_POST["reason"];
 	$DiffAmount = $_POST["newAmount"]*1 - $obj->ChequeAmount*1;
 	
-	ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, INCOMECHEQUE_EDIT, 0, $pdo,  $comment);
+	ACC_IncomeCheques::AddToHistory($obj->IncomeChequeID, INCOMECHEQUE_EDIT, $pdo,  $comment);
 	
 	$obj->ChequeAmount = $_POST["newAmount"];
 	$obj->ChequeDate = $_POST["newDate"];

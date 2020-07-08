@@ -10,12 +10,12 @@ $IncomeChequeID = $_POST["IncomeChequeID"];
 
 $query = "select h.*,
 				concat_ws(' ',fname, lname,CompanyName) fullname , 
-				bf.InfoDesc StatusDesc, t.LocalNo
+				bf.InfoDesc StatusDesc, t.LocalNo, t.DocID
 			from ACC_ChequeHistory h 
 				left join BaseInfo bf on(bf.TypeID=4 AND bf.InfoID=StatusID)
 				join BSC_persons using(PersonID) 
 				left join(
-					select SourceID4,EventType3, LocalNo
+					select SourceID4,EventType3, LocalNo, DocID
 					from ACC_docs join COM_events using(EventID)
 					join ACC_DocItems using(DocID)
 					where EventType in('".EVENTTYPE_IncomeCheque."','".EVENTTYPE_LoanBackPayCheque."')
@@ -42,7 +42,8 @@ else
 			<td  >" . $Logs[$i]["fullname"] . "</td>
 			<td >" . substr($Logs[$i]["ATS"], 11) . " " . 
 								DateModules::miladi_to_shamsi($Logs[$i]["ATS"]) . "</td>
-			<td>سند " . $Logs[$i]["LocalNo"] . "</td>
+			<td>سند " . "<a target=blank href='/accounting/docs/print_doc.php?DocID=" . $Logs[$i]["DocID"] . "' >"
+				. $Logs[$i]["LocalNo"] . "</a></td>
 			<td>".$Logs[$i]["details"]."</td>
 			
 		</tr>";

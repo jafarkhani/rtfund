@@ -16,6 +16,7 @@ $page_rpg = new ReportGenerator("mainForm","LoanReport_paymentsObj");
 $page_rpg->addColumn("شماره وام", "RequestID");
 $page_rpg->addColumn("نوع وام", "LoanDesc");
 $page_rpg->addColumn("منبع", "ReqFullname", "ReqPersonRender"); 
+$page_rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
 $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
 $col->type = "date";
 $page_rpg->addColumn("مبلغ درخواست", "ReqAmount");
@@ -95,6 +96,7 @@ function GetData(){
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
 				if(pd.DocID is not null, 'YES', 'NO') IsDocRegistered,
 				pd.LocalNo,
+				sb.SubDesc,
 				BranchName".
 				($userFields != "" ? "," . $userFields : "")."
 				
@@ -102,6 +104,7 @@ function GetData(){
 			join LON_requests r using(RequestID)
 			join LON_ReqParts p on(r.RequestID=p.RequestID AND p.IsHistory='NO')
 			left join LON_loans l using(LoanID)
+			left join BSC_SubAgents sb on(sb.SubID=SubAgentID)
 			join BSC_branches using(BranchID)
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
@@ -133,25 +136,39 @@ function ListData($IsDashboard = false){
 		return ($value == "YES") ? "خاتمه" : "جاری";
 	}
 	
-	$col = $rpg->addColumn("شماره وام", "RequestID");
+	function LoanReportRender($row,$value){
+		return "<a href=LoanPayment.php?show=true&RequestID=" . $value . " target=blank >" . $value . "</a>";
+	}
+
+	$col = $rpg->addColumn("شماره وام", "RequestID", "LoanReportRender");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
+	
 	$col = $rpg->addColumn("نوع وام", "LoanDesc");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
+	
 	$col = $rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
+	
+	$col = $rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
+	$col->rowspaning = true;
+	$col->rowspanByFields = array("RequestID");
+	
 	$col = $rpg->addColumn("تاریخ درخواست", "ReqDate", "ReportDateRender");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
+	
 	$col = $rpg->addColumn("مبلغ درخواست", "ReqAmount", "ReportMoneyRender");
 	$col->EnableSummary();
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
+	
 	$col = $rpg->addColumn("مشتری", "LoanFullname");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
+	
 	$col = $rpg->addColumn("شعبه", "BranchName");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
@@ -193,9 +210,88 @@ function ListData($IsDashboard = false){
 	die();
 }
 
+function p2(){
+	
+	$SubAgent = 15;
+	$minDate = '2019-06-27';
+	
+	$SubAgent = 16;
+	$minDate = '2019-03-11';
+	
+	$result = PdoDataAccess::runquery("
+		select GDate,JDate,totalPay,totalWage,0 totalPureBackPay, 0 totalWageBackPay 
+			, 0 totalLateBackPay , 0 totalPenaltyBackPay 
+		from dates
+			left join (select PayDate, sum(PayAmount) totalPay, sum(totalWage) totalWage from LON_payments p
+						join LON_requests r using(requestID) 
+						join (select sum(wage) totalWage,RequestID 
+								from LON_installments group by RequestID)i on(p.RequestID=i.RequestID)
+						where SubAgentID=$SubAgent group by PayDate)t  on(gdate=PayDate)
+		where  Gdate>='$minDate' ");
+	
+	$refArr = array();
+	for($i=0; $i<count($result); $i++)
+		$refArr[ $result[$i]["GDate"] ] = &$result[$i];
+	
+	
+	$ComputArrs = array();
+	$temp = PdoDataAccess::runquery("select substr(PayDate,1,10) PayDate,BackPayID ,RequestID
+		from LON_BackPays join LON_requests using(RequestID)
+		left join ACC_IncomeCheques i using(IncomeChequeID)
+		where SubAgentID=$SubAgent 
+			AND if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)");
+
+	foreach($temp as $row)
+	{
+		if(!isset($ComputArrs[ $row["RequestID"] ]))
+			$ComputArrs[ $row["RequestID"] ] = LON_Computes::ComputePayments ($row["RequestID"]);
+		
+		foreach($ComputArrs[ $row["RequestID"] ] as $record)
+		{
+			if($record["type"] == "pay" && $record["id"] == $row["BackPayID"])
+			{
+				$refArr[ $row["PayDate"] ]["totalPureBackPay"] += $record["pure"]*1;
+				$refArr[ $row["PayDate"] ]["totalWageBackPay"] += $record["wage"]*1;
+				$refArr[ $row["PayDate"] ]["totalLateBackPay"] += $record["late"]*1;
+				$refArr[ $row["PayDate"] ]["totalPenaltyBackPay"] += $record["pnlt"]*1;
+				
+				break;
+			}
+		}
+	}
+	
+	$rpg = new ReportGenerator();
+	$rpg->excel = true;
+	$rpg->mysql_resource = $result;
+	
+	if($_SESSION["USER"]["UserName"] == "admin")
+	{
+		if(ExceptionHandler::GetExceptionCount() > 0)
+			print_r(ExceptionHandler::PopAllExceptions ());
+	}
+	
+	$rpg->addColumn("تاریخ", "JDate");
+	$rpg->addColumn("پرداخت به مشتری", "totalPay","ReportMoneyRender");
+	$rpg->addColumn("مطالبات کارمزد", "totalWage","ReportMoneyRender");
+	$rpg->addColumn("پرداخت اصل توسط مشتری", "totalPureBackPay","ReportMoneyRender");
+	$rpg->addColumn("پرداخت کارمزد توسط مشتری", "totalWageBackPay","ReportMoneyRender");
+	$rpg->addColumn("پرداخت کارمزد تاخیر توسط مشتری", "totalLateBackPay","ReportMoneyRender");
+	$rpg->addColumn("پرداخت جریمه توسط مشتری", "totalPenaltyBackPay","ReportMoneyRender");
+	
+	if(!$rpg->excel)
+		BeginReport();
+	$rpg->generateReport();
+	die();
+}
+
+
 if(isset($_REQUEST["show"]))
 {	
 	ListData();
+}
+if(isset($_REQUEST["p2"]))
+{	
+	p2();
 }
 
 if(isset($_REQUEST["rpcmp_chart"]))
@@ -236,6 +332,17 @@ LoanReport_payments.prototype.showReport = function(btn, e)
 	return;
 }
 
+LoanReport_payments.prototype.showReport2 = function(btn, e)
+{
+	this.form = this.get("mainForm")
+	this.form.target = "_blank";
+	this.form.method = "POST";
+	this.form.action =  this.address_prefix + "payments.php?p2=true";
+	this.form.submit();
+	this.get("excel").value = "";
+	return;
+}
+
 function LoanReport_payments()
 {		
 	this.formPanel = new Ext.form.Panel({
@@ -254,7 +361,7 @@ function LoanReport_payments()
 				proxy: {
 					type: 'jsonp',
 					url: this.address_prefix + '../../framework/person/persons.data.php?' +
-						"task=selectPersons&UserTypes=IsAgent,IsSupporter",
+						"task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
 					reader: {root: 'rows',totalProperty: 'totalCount'}
 				},
 				fields : ['PersonID','fullname']
@@ -411,6 +518,10 @@ function LoanReport_payments()
 		},'->',{
 			text : "مشاهده گزارش",
 			handler : Ext.bind(this.showReport,this),
+			iconCls : "report"
+		},{
+			text : "گزارش2",
+			handler : Ext.bind(this.showReport2,this),
 			iconCls : "report"
 		},{
 			text : "خروجی excel",

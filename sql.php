@@ -204,3 +204,37 @@ union all
 select ParamID AS paramID,ItemID AS ItemID,ParamValue AS ParamValue 
 from ACC_CostCodeParamItems
  */
+
+/*گزارش روزانه وام های حمایتی برای حسابرس
+ * select * from dates
+left join (select PayAmount,PayDate from LON_payments join LON_requests using(requestID) where SubAgentID=15)t  on(gdate=PayDate)
+
+where  Gdate>='2019-06-27'
+ */
+
+
+
+/*اصلاح اسناد دریافت چک که اشتباه داخلی خورده 
+ * select d.CycleID,d.LocalNo,ChequeNo, di.CostID
+from ACC_docs d join ACC_DocItems di using(DociD) join ACC_IncomeCheques ic on(SourceID4=IncomeChequeId) join LON_BackPays b using(IncomeChequeId) join LON_BackPayDocs bd using(BackPayID)
+ join LON_requests r on(b.RequestID=r.RequestID)
+where d.EventID=1766 AND ReqPersonID>0 AND di.CostID=1052
+group by d.DocID
+ * 
+ * update ACC_docs d join ACC_DocItems di using(DociD) join ACC_IncomeCheques ic on(SourceID4=IncomeChequeId) join LON_BackPays b using(IncomeChequeId) join LON_BackPayDocs bd using(BackPayID)
+ join LON_requests r on(b.RequestID=r.RequestID)
+ set di.CostID=1024
+where d.CycleID=1399 AND d.EventID=1766 AND ReqPersonID>0 AND di.CostID=1020
+ * 
+ * 
+ * update ACC_docs d join ACC_DocItems di using(DociD) join ACC_IncomeCheques ic on(SourceID4=IncomeChequeId) join LON_BackPays b using(IncomeChequeId) join LON_BackPayDocs bd using(BackPayID)
+ join LON_requests r on(b.RequestID=r.RequestID)
+ set di.CostID=1057
+where d.CycleID=1399 AND d.EventID=1766 AND ReqPersonID>0 AND di.CostID=1052
+ * 
+ * چک های که سند وصول نشده ندارند
+ * select * from ACC_IncomeCheques i left join (select SourceID4 from ACC_DocItems join ACC_docs using(DociD) join COM_events using(eventID) 
+                                           where EventType='IncomeCheque'   group by SourceID4)t on(i.IncomeChequeID=t.SourceID4)
+                                           where t.SourceID4 is null
+                                           order by ChequeDate desc
+ */

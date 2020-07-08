@@ -918,18 +918,20 @@ function RegisterStartDoc(){
 	PdoDataAccess::runquery("
 		insert into ACC_DocItems(DocID,CostID,TafsiliType,TafsiliID,TafsiliType2,TafsiliID2,
 			TafsiliType3,TafsiliID3,
-			DebtorAmount,CreditorAmount,locked)
+			DebtorAmount,CreditorAmount,locked,
+			param1,param2,param3)
 		select $obj->DocID,CostID,TafsiliType,TafsiliID,TafsiliType2,TafsiliID2,
 			TafsiliType3,TafsiliID3,
 			if( sum(DebtorAmount-CreditorAmount)>0, sum(DebtorAmount-CreditorAmount), 0 ),
 			if( sum(CreditorAmount-DebtorAmount)>0, sum(CreditorAmount-DebtorAmount), 0 ),
-			1
+			1,
+			param1,param2,param3
 		from ACC_DocItems i
 		join ACC_docs using(DocID)
 		where DocType <> ".DOCTYPE_ENDCYCLE." 
 			AND CycleID=" . ($_SESSION["accounting"]["CycleID"]-1) . "
 			
-		group by CostID,TafsiliID,TafsiliID2	
+		group by CostID,TafsiliID,TafsiliID2,TafsiliID3,param1,param2,param3
 		having sum(CreditorAmount-DebtorAmount)<>0", array(), $pdo);
 	
 	if(ExceptionHandler::GetExceptionCount() > 0)

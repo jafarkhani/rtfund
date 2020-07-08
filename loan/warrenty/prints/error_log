@@ -1,0 +1,75 @@
+[24-Oct-2017 07:56:14 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[24-Oct-2017 07:56:14 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[24-Oct-2017 07:56:14 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 35
+[26-Oct-2017 07:10:14 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[26-Oct-2017 07:10:14 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[26-Oct-2017 07:10:14 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 35
+[24-Dec-2017 11:30:51 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[24-Dec-2017 11:30:51 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[24-Dec-2017 11:30:51 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 35
+[31-Dec-2017 08:03:18 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[31-Dec-2017 08:03:18 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[31-Dec-2017 08:03:18 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 35
+[16-Jan-2018 14:19:58 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[16-Jan-2018 14:19:58 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[16-Jan-2018 14:19:58 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 35
+[29-Jan-2018 08:28:41 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 08:28:41 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 08:28:41 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[29-Jan-2018 09:48:08 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 09:48:08 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 09:48:08 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[29-Jan-2018 09:52:13 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 09:52:13 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 09:52:13 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[29-Jan-2018 10:09:23 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 10:09:23 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 10:09:23 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[29-Jan-2018 10:17:35 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 10:17:35 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[29-Jan-2018 10:17:36 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[30-Jan-2018 07:02:48 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[30-Jan-2018 07:02:48 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[30-Jan-2018 07:02:48 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[30-Jan-2018 07:36:52 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[30-Jan-2018 07:36:52 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[30-Jan-2018 07:36:52 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[30-Jan-2018 07:56:42 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[30-Jan-2018 07:56:42 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[30-Jan-2018 07:56:42 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[30-Jan-2018 07:58:52 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[30-Jan-2018 07:58:52 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[30-Jan-2018 07:58:52 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[04-Feb-2018 08:40:33 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[04-Feb-2018 08:40:33 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[04-Feb-2018 08:40:33 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[04-Feb-2018 08:53:56 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[04-Feb-2018 08:53:56 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[04-Feb-2018 08:53:56 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[08-Feb-2018 07:50:35 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[08-Feb-2018 07:50:35 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[08-Feb-2018 07:50:35 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[12-Feb-2018 07:29:19 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[12-Feb-2018 07:29:19 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[12-Feb-2018 07:29:19 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[12-Feb-2018 07:30:43 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[12-Feb-2018 07:30:43 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[12-Feb-2018 07:30:43 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 36
+[12-Mar-2018 07:27:58 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Add() should be compatible with OperationClass::Add($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[12-Mar-2018 07:27:58 UTC] PHP Strict Standards:  Declaration of FRW_AccessGroupList::Remove() should be compatible with OperationClass::Remove($pdo = NULL) in /home/krrtfir/public_html/framework/management/framework.class.php on line 436
+[12-Mar-2018 07:27:58 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[17-Apr-2018 04:48:07 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[01-May-2018 09:44:57 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[08-May-2018 07:10:11 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[28-Jun-2018 07:13:05 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[07-Jul-2018 04:01:23 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[07-Jul-2018 04:14:42 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[29-Jul-2018 05:58:02 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[21-Aug-2018 10:18:06 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[23-Aug-2018 08:21:20 UTC] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 37
+[28-Jan-2019 12:47:38 Asia/Tehran] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 34
+[04-Feb-2019 11:24:47 Asia/Tehran] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 34
+[21-Feb-2019 10:27:57 Asia/Tehran] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 34
+[07-Mar-2019 08:47:29 Asia/Tehran] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 34
+[25-Mar-2019 09:07:16 Asia/Tehran] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 34
+[26-Mar-2019 13:39:38 Asia/Tehran] PHP Strict Standards:  Only variables should be passed by reference in /home/krrtfir/public_html/loan/header.inc.php on line 34

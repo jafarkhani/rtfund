@@ -359,6 +359,12 @@ LoanPay.RegDocRender = function(v,p,r){
 		"onclick='LoanPayObject.ExecuteEvent();' " +
 		"style='background-repeat:no-repeat;background-position:center;" +
 		"cursor:pointer;width:100%;height:16'></div>";	
+
+	if(<?= $_SESSION["USER"]["UserName"] == "admin" ? "true" : "false" ?>)
+		return "<div align='center' title='صدور سند' class='send' "+
+		"onclick='LoanPayObject.ExecuteEvent();' " +
+		"style='background-repeat:no-repeat;background-position:center;" +
+		"cursor:pointer;width:100%;height:16'></div>";	
 }
 
 var LoanPayObject = new LoanPay();
