@@ -212,8 +212,8 @@ function ListData($IsDashboard = false){
 
 function p2(){
 	
-	$SubAgent = 15;
-	$minDate = '2019-06-27';
+	//$SubAgent = 15;
+	//$minDate = '2019-06-27';
 	
 	$SubAgent = 16;
 	$minDate = '2019-03-11';
@@ -227,7 +227,7 @@ function p2(){
 						join (select sum(wage) totalWage,RequestID 
 								from LON_installments group by RequestID)i on(p.RequestID=i.RequestID)
 						where SubAgentID=$SubAgent group by PayDate)t  on(gdate=PayDate)
-		where  Gdate>='$minDate' ");
+		where  Gdate>='$minDate' AND GDate<='2020-06-20'");
 	
 	$refArr = array();
 	for($i=0; $i<count($result); $i++)
