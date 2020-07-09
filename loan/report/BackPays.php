@@ -455,7 +455,7 @@ function LoanReport_Backays()
 				proxy: {
 					type: 'jsonp',
 					url: this.address_prefix + '../../framework/person/persons.data.php?' +
-						"task=selectPersons&UserTypes=IsAgent,IsSupporter",
+						"task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
 					reader: {root: 'rows',totalProperty: 'totalCount'}
 				},
 				fields : ['PersonID','fullname']
