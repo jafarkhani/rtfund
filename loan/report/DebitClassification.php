@@ -252,14 +252,53 @@ function GetData(){
 			if($crecord["type"] != "installment" || $crecord["id"]*1 == 0)
 				continue;
 			
-			$totalRemain = $crecord["remain_pure"] + $crecord["remain_wage"] + $crecord["remain_pnlt"] + $crecord["remain_late"];
+			//............. pure and wage ................
+			$totalRemain = $crecord["remain_pure"] + $crecord["remain_wage"];
 			$diffDays = DateModules::GDateMinusGDate($ComputeDate,$crecord["RecordDate"]);
 			foreach($ClassArr as $cr)
+			{
 				if($diffDays >= $cr["minDay"] && $diffDays <= $cr["maxDay"])
 				{
 					$row[ "Debit_" . $cr["id"] ] += $totalRemain;
 					break;
 				}
+			}
+			
+			//............ late and penalty ..............
+			$remainLate = $crecord["remain_late"];
+			$remainPnlt = $crecord["remain_pnlt"];
+			for($i=count($crecord["pays"])-1; $i>=0; $i--)
+			{
+				$precord = $crecord["pays"][$i];
+				if($precord["PnltDays"]*1 == 0)
+					continue;
+				
+				$LateAmount = min($remainLate,$precord["cur_late"]);
+				$PnltAmount = min($remainPnlt,$precord["cur_pnlt"]);
+				
+				$remainDiffDays = DateModules::GDateMinusGDate($ComputeDate,$precord["PayedDate"]);
+				$remainDays = $precord["PnltDays"];
+				foreach($ClassArr as $cr)
+				{
+					if($remainDiffDays > $cr["maxDay"])
+					{
+						$remainDiffDays -= $cr["maxDay"];
+						continue;
+					}
+					$min = min($remainDays, $cr["maxDay"] - $remainDiffDays);
+					$row[ "Debit_" . $cr["id"] ] += round(($LateAmount/$precord["PnltDays"])*$min);
+					$row[ "Debit_" . $cr["id"] ] += round(($PnltAmount/$precord["PnltDays"])*$min);
+					
+					$remainDays -= $min;
+					$remainDiffDays = 0;
+					if($remainDays == 0)
+						break;
+				}
+				
+				$remainLate -= $LateAmount;
+				$remainPnlt -= $PnltAmount;
+			}
+				
 		}
 		
 		$result[] = $row;
