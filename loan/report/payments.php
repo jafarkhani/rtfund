@@ -222,8 +222,12 @@ function p2(){
 		select GDate,JDate,totalPay,totalWage,0 totalPureBackPay, 0 totalWageBackPay 
 			, 0 totalLateBackPay , 0 totalPenaltyBackPay 
 		from dates
-			left join (select PayDate, sum(PayAmount) totalPay, sum(totalWage) totalWage from LON_payments p
-						join LON_requests r using(requestID) 
+			left join (select PayDate, sum(PayAmount - ifnull(OldFundDelayAmount,0) 
+                        - ifnull(OldAgentDelayAmount,0)
+                        - ifnull(OldFundWage,0)
+                        - ifnull(OldAgentWage,0)) totalPay, sum(totalWage) totalWage from LON_payments p
+						join LON_requests r using(requestID)
+						join LON_PayDocs d on(p.PayID=d.PayID)
 						join (select sum(wage) totalWage,RequestID 
 								from LON_installments group by RequestID)i on(p.RequestID=i.RequestID)
 						where SubAgentID=$SubAgent group by PayDate)t  on(gdate=PayDate)
