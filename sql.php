@@ -132,7 +132,19 @@ join LON_ReqParts p on(IsHistory='NO' AND b.RequestID=p.RequestID) set DocDate=i
  * 
  *  */
 
-
+/*
+CREATE   VIEW LON_ContractDocs AS select di.SourceID1 RequestID, d.DocID ,d.LocalNo ,d.StatusID
+from COM_events e join ACC_docs d on(e.EventID = d.EventID)
+join ACC_DocItems di on(d.DocID = di.DocID)
+where e.EventType = 'LoanContract' AND di.SourceID1>0
+group by di.SourceID1
+ * 
+CREATE   VIEW LON_AllocateDocs AS select di.SourceID1 RequestID, d.DocID ,d.LocalNo ,d.StatusID
+from COM_events e join ACC_docs d on(e.EventID = d.EventID)
+join ACC_DocItems di on(d.DocID = di.DocID)
+where e.EventType = 'LoanAllocate' AND di.SourceID1>0
+group by di.SourceID1
+ *  */
 /*
 CREATE   VIEW LON_PayDocs AS
 

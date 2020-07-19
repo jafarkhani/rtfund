@@ -537,16 +537,16 @@ class EventComputeItems {
 				$t1 = array("TafsiliID" => $ChequeObj->AccountTafsiliID, "TafsiliDesc" => "");
 		}		
 		//......................................................................
-		if(	$EventRow["EventType"] == "LoanPayment" ||  
-			$EventRow["EventType"] == "LoanBackPay" ||
-			$EventRow["EventType"] == "LoanBackPayCheque" ||
-			$EventRow["EventType"] == "LoanContract" ||
-			$EventRow["EventType"] == "LoanDaily" ||
-			$EventRow["EventType"] == "LoanDailyIncome" ||
-			$EventRow["EventType"] == "LoanDailyLate" ||	
-			$EventRow["EventType"] == "LoanDailyPenalty" ||	
-			$EventRow["EventType"] == "IncomeCheque" ||
-			$EventRow["EventType"] == "LoanEnd" )
+		if(	$EventRow["EventType"] == EVENTTYPE_LoanPayment ||  
+			$EventRow["EventType"] == EVENTTYPE_LoanBackPay ||
+			$EventRow["EventType"] == EVENTTYPE_LoanBackPayCheque ||
+			$EventRow["EventType"] == EVENTTYPE_LoanContract ||
+			$EventRow["EventType"] == EVENTTYPE_LoanAllocate ||  
+			$EventRow["EventType"] == EVENTTYPE_LoanDailyIncome ||
+			$EventRow["EventType"] == EVENTTYPE_LoanDailyLate ||	
+			$EventRow["EventType"] == EVENTTYPE_LoanDailyPenalty ||	
+			$EventRow["EventType"] == EVENTTYPE_IncomeCheque ||
+			$EventRow["EventType"] == EVENTTYPE_LoanEnd)
 		{
 			$ReqObj = new LON_requests($params[0]);
 			/* @var $ReqObj LON_requests */

@@ -595,7 +595,7 @@ function SavePart(){
 		$DiffDoc = LON_difference::RegisterDiffernce($obj->RequestID, $pdo, (int)$OldDocID);
 		if($DiffDoc == false)
 		{
-			$pdo->rollBack();
+			$pdo->rollBack(); 
 			echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 			die();
 		}

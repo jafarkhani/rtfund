@@ -84,6 +84,7 @@ class ExecuteEvent extends PdoDataAccess{
             // end new added for set description for warrenty event
 
 			case EVENTTYPE_LoanContract:
+			case EVENTTYPE_LoanAllocate:
 			case EVENTTYPE_LoanPayment:
 			case EVENTTYPE_LoanBackPay:
 			case EVENTTYPE_LoanEnd:

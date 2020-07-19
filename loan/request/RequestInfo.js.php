@@ -17,6 +17,7 @@ RequestInfo.prototype = {
 	
 	EndEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanEnd) ?>,
 	ContractEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanContract) ?>,
+	AllocEventID : <?= LON_requests::GetEventID($RequestID, EVENTTYPE_LoanAllocate) ?>,
 	
 	
 	RequestRecord : null,
@@ -1012,6 +1013,12 @@ RequestInfo.prototype.BuildForms = function(){
 				text : 'اجرای رویداد عقد قرارداد با مشتری',
 				iconCls : "send",
 				handler : function(){ RequestInfoObject.ExecuteEvent(); }
+			},{
+				text : 'اجرای رویداد تخصیص وام به مشتری',
+				iconCls : "send",
+				handler : function(){ 
+					RequestInfoObject.AllocExecuteEvent();
+				}
 			}]
 		},{
 			text : 'ویرایش شرایط پرداخت',
@@ -2630,6 +2637,14 @@ RequestInfo.prototype.ExecuteEvent = function(){
 	
 	var eventID = "";
 	eventID = this.ContractEventID;
+
+	framework.ExecuteEvent(eventID, new Array(this.RequestRecord.data.RequestID,this.RequestRecord.data.PartID));
+}
+
+RequestInfo.prototype.AllocExecuteEvent = function(){
+	
+	var eventID = "";
+	eventID = this.AllocEventID;
 
 	framework.ExecuteEvent(eventID, new Array(this.RequestRecord.data.RequestID,this.RequestRecord.data.PartID));
 }

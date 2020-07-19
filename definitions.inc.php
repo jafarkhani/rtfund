@@ -197,6 +197,7 @@ define("STO_STEPID_DEPRICATE", "4");
 //------------ events ---------------
 
 define("EVENTTYPE_LoanContract", "LoanContract");
+define("EVENTTYPE_LoanAllocate", "LoanAllocate");
 define("EVENTTYPE_LoanPayment", "LoanPayment");
 define("EVENTTYPE_LoanBackPay", "LoanBackPay");
 define("EVENTTYPE_LoanBackPayCheque", "LoanBackPayCheque");
