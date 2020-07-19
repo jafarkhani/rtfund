@@ -18,6 +18,203 @@ ManageRequest.prototype = {
 	}
 };
 
+ManageRequest.OpenContractDoc = function(v,p,r){
+	
+	if(v == null)
+		return '';
+	return "<a target=blank href='/accounting/docs/print_doc.php?DocID=" + r.data.ContractDocID + "'>" 
+			+ v +"</a>";
+}
+ManageRequest.OpenAllocDoc = function(v,p,r){
+	
+	if(v == null)
+		return '';
+	return "<a target=blank href='/accounting/docs/print_doc.php?DocID=" + r.data.AllocDocID + "'>" 
+			+ v +"</a>";
+}
+
+ManageRequest.prototype.MakeFilterPanel = function(){
+	
+	this.formPanel = new Ext.form.Panel({
+		renderTo : this.get("div_form"),
+		width : 800,
+		frame : true,
+		titleCollapse : true,
+		collapsible : true,
+		collapsed : true,
+		title : "فیلتر لیست",
+		layout : {
+			type : "table",
+			columns : 2			
+		},
+		
+		items : [{
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../../framework/person/persons.data.php?' +
+						"task=selectPersons&UserTypes=IsAgent,IsSupporter&EmptyRow=true",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['PersonID','fullname']
+			}),
+			fieldLabel : "منبع",
+			pageSize : 25,
+			width : 370,
+			displayField : "fullname",
+			valueField : "PersonID",
+			hiddenName : "ReqPersonID",
+			listeners :{
+				select : function(record){
+					el = LoanReport_totalObj.formPanel.down("[itemId=cmp_subAgent]");
+					el.getStore().proxy.extraParams["PersonID"] = this.getValue();
+					el.getStore().load();
+				}
+			}
+		},{
+			xtype : "checkcombo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../../framework/person/persons.data.php?' +
+						"task=selectSubAgents",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['SubID','SubDesc']
+			}),
+			fieldLabel : "زیر واحد سرمایه گذار",
+			queryMode : "local",
+			width : 370,
+			displayField : "SubDesc",
+			valueField : "SubID",
+			hiddenName : "SubAgentID",
+			itemId : "cmp_subAgent"
+		},{
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../../framework/person/persons.data.php?' +
+						"task=selectPersons&UserType=IsCustomer",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['PersonID','fullname']
+			}),
+			fieldLabel : "مشتری",
+			displayField : "fullname",
+			pageSize : 20,
+			width : 370,
+			valueField : "PersonID",
+			hiddenName : "LoanPersonID"
+		},{
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../loan/loan.data.php?task=GetAllLoans',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['LoanID','LoanDesc'],
+				autoLoad : true					
+			}),
+			fieldLabel : "نوع وام",
+			queryMode : 'local',
+			width : 370,
+			displayField : "LoanDesc",
+			valueField : "LoanID",
+			hiddenName : "LoanID"
+		},{
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../../framework/baseInfo/baseInfo.data.php?' +
+						"task=SelectBranches",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['BranchID','BranchName'],
+				autoLoad : true					
+			}),
+			fieldLabel : "شعبه اخذ وام",
+			queryMode : 'local',
+			width : 370,
+			colspan : 2,
+			displayField : "BranchName",
+			valueField : "BranchID",
+			hiddenName : "BranchID"
+		},{
+			xtype : "shdatefield",
+			name : "fromReqDate",
+			fieldLabel : "تاریخ درخواست از"
+		},{
+			xtype : "shdatefield",
+			name : "toReqDate",
+			fieldLabel : "تا تاریخ"
+		},{
+			xtype : "currencyfield",
+			name : "fromReqAmount",
+			hideTrigger : true,
+			fieldLabel : "از مبلغ درخواست"
+		},{
+			xtype : "currencyfield",
+			name : "toReqAmount",
+			hideTrigger : true,
+			fieldLabel : "تا مبلغ درخواست"
+		},{
+			xtype : "checkcombo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../request/request.data.php?' +
+						"task=GetAllStatuses",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['InfoID','InfoDesc'],
+				autoLoad : true					
+			}),
+			fieldLabel : "وضعیت وام",
+			queryMode : 'local',
+			width : 370,
+			displayField : "InfoDesc",
+			valueField : "InfoID",
+			hiddenName : "StatusID"
+		},{
+			xtype : "container",
+			html : "سند عقد قرارداد &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
+				"<input name=HasContractDoc type=radio value='YES' > دارد &nbsp;&nbsp;" +
+				"<input name=HasContractDoc type=radio value='NO' > ندارد &nbsp;&nbsp;" +
+				"<input name=HasContractDoc type=radio value='' checked > هردو " 
+		},{
+			xtype : "container",
+			html : "سند تخصیص &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
+				"<input name=HasAllocDoc type=radio value='YES' > دارد &nbsp;&nbsp;" +
+				"<input name=HasAllocDoc type=radio value='NO' > ندارد &nbsp;&nbsp;" +
+				"<input name=HasAllocDoc type=radio value='' checked > هردو " 
+		}],
+		buttons :[{
+			text : "جستجو",
+			iconCls : "search",
+			handler : function(){
+				ManageRequestObject.grid.getStore().loadPage(1);
+			}
+		},{
+			text : "پاک کردن فرم",
+			iconCls : "clear",
+			handler : function(){
+				this.up('form').getForm().reset();
+			}
+		}]
+	});
+	
+	this.formPanel.getEl().addKeyListener(Ext.EventObject.ENTER, function(keynumber,e){
+		ManageRequestObject.grid.getStore().loadPage(1);
+		e.preventDefault();
+		e.stopEvent();
+		return false;
+	});
+}
+
 function ManageRequest(){
 	
 	this.FilterObj = Ext.button.Button({
@@ -76,7 +273,10 @@ function ManageRequest(){
 		}
 	});
 	
+	this.MakeFilterPanel();
+	
 	this.grid = <?= $grid ?>;
+	this.grid.getStore().proxy.form = this.get("MainForm");
 	this.grid.on("itemdblclick", function(view, record){
 		framework.OpenPage("../loan/request/RequestInfo.php", "اطلاعات درخواست", 
 		{
