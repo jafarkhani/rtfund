@@ -21,6 +21,8 @@ $dg->addColumn("", "BorrowerMobile", "", true);
 $dg->addColumn("", "LoanPersonID", "", true);
 $dg->addColumn("", "ReqPersonID", "", true);
 $dg->addColumn("", "IsEnded", "", true);
+$dg->addColumn("", "ContractDocID", "", true);
+$dg->addColumn("", "AllocDocID", "", true);
 $dg->addColumn("","IsConfirm","string", true);
 
 $col = $dg->addColumn("گیرنده وام", "LoanFullname");
@@ -48,6 +50,14 @@ $col->width = 100;
 $col = $dg->addColumn("وضعیت", "StatusDesc", "");
 $col->width = 100;
 
+$col = $dg->addColumn("سند عقد قرارداد", "ContractLocalNo", "");
+$col->renderer = "ManageRequest.OpenContractDoc";
+$col->width = 60;
+
+$col = $dg->addColumn("سند تخصیص", "AllocLocalNo", "");
+$col->renderer = "ManageRequest.OpenAllocDoc";
+$col->width = 60;
+
 $col = $dg->addColumn('عملیات', '', 'string');
 $col->renderer = "ManageRequest.OperationRender";
 $col->width = 50;
@@ -60,7 +70,6 @@ if($accessObj->EditFlag)
 
 $dg->emptyTextOfHiddenColumns = true;
 $dg->height = 500;
-$dg->width = 800;
 $dg->title = "درخواست های وام";
 $dg->DefaultSortField = "ReqDate";
 $dg->autoExpandColumn = "LoanFullname";
@@ -78,7 +87,12 @@ require_once 'ManageRequests.js.php';
 ?>
 <center><br>
 	<div id="rejectedDIV"></div>
-	<div id="DivGrid"></div>	
+	
+	<form id="MainForm">
+		<div id="div_form"></div>
+	</form>
+	<br>
+	<div id="DivGrid" style="width:98%"></div>	
 	ردیف های بنفش رنگ وام های تایید شده هستند
 	<br>
 	ردیف های سبز رنگ وام های خاتمه یافته می باشند
