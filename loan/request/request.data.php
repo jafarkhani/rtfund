@@ -270,6 +270,74 @@ function SelectAllRequests2(){
 	die();
 }
 
+function MakeWhere(&$where, &$whereParam){
+
+	foreach($_POST as $key => $value)
+	{
+		if($key == "excel" || $key == "OrderBy" || $key == "OrderByDirection" || 
+				$value === "" || 
+				
+				strpos($key, "combobox") !== false || 
+				strpos($key, "rpcmp") !== false ||
+				strpos($key, "checkcombo") !== false || 
+				strpos($key, "treecombo") !== false || 
+				strpos($key, "reportcolumn_fld") !== false || 
+				strpos($key, "reportcolumn_ord") !== false)
+			continue;
+		
+		if($key == "SubAgentID")
+		{
+			InputValidation::validate($value, InputValidation::Pattern_NumComma);
+			$where .= " AND SubAgentID in(" . $value . ")";
+			continue;
+		}
+		if($key == "StatusID")
+		{
+			InputValidation::validate($value, InputValidation::Pattern_NumComma);
+			$where .= " AND StatusID in(" . $value . ")";
+			continue;
+		}
+		if($key == "HasContractDoc")
+		{
+			$where .= " AND cd.DocID>0";
+			continue;
+		}
+		if($key == "HasAllocDoc")
+		{
+			$where .= " AND ad.DocID>0";
+			continue;
+		}
+		
+		$prefix = "";
+		switch($key)
+		{
+			case "fromReqDate":
+			case "toReqDate":
+			case "fromPartDate":
+			case "toPartDate":
+			case "fromEndDate":
+			case "toEndDate":
+				$value = DateModules::shamsi_to_miladi($value, "-");
+				break;
+			case "fromReqAmount":
+			case "toReqAmount":
+			case "fromPartAmount":
+			case "toPartAmount":
+				$value = preg_replace('/,/', "", $value);
+				break;
+		}
+		if(strpos($key, "from") === 0)
+			$where_temp = " AND " . $prefix . substr($key,4) . " >= :$key";
+		else if(strpos($key, "to") === 0)
+			$where_temp = " AND " . $prefix . substr($key,2) . " <= :$key";
+		else
+			$where_temp = " AND " . $prefix . $key . " = :$key";
+
+		$where .= $where_temp;
+		$whereParam[":$key"] = $value;
+	}
+}	
+
 function SelectAllRequests(){
 	
 	$param = array();
@@ -306,6 +374,10 @@ function SelectAllRequests(){
 		$where .= " AND r.IsConfirm = :e "; 
 		$param[":e"] = $_REQUEST["IsConfirm"];
 	}
+	
+	//---------------- filter -------------------
+	MakeWhere($where, $param);
+	//-------------------------------------------
 	
 	$where .= dataReader::makeOrder();
 	$dt = LON_requests::SelectAll($where, $param);
@@ -368,7 +440,7 @@ function selectFollowLevels(){
 	die();
 }
 
-function SelectContractType(){
+function SelectContractType(){ 
 	
 	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=101");
 	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
