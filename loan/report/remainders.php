@@ -37,6 +37,13 @@ function MakeWhere(&$where, &$whereParam){
 			$where .= " AND SubAgentID in(" . $value . ")";
 			continue;
 		}
+                if($key == "StatusID")
+		{
+			$where .= " AND StatusID in(" . $value . ")";
+			continue;
+		}
+                if($key == "fromEndReqDate" || $key == "toEndReqDate")
+			continue;
 	
 		$prefix = "";
 		switch($key)
@@ -73,6 +80,21 @@ function MakeWhere(&$where, &$whereParam){
 		$where .= $where_temp;
 		$whereParam[":$key"] = $value;
 	}
+        if(!empty($_POST["fromEndReqDate"]) || !empty($_POST["toEndReqDate"]))
+	{
+            $where .= " AND (EndDate is null or EndDate='0000-00-00' ";
+            if(!empty($_POST["fromEndReqDate"]))
+            {
+                    $where .= " or EndDate >= :fromEndReqDate";
+                    $whereParam[":fromEndReqDate"] = DateModules::shamsi_to_miladi($_POST["fromEndReqDate"], "-");
+            }
+            if(!empty($_POST["toEndReqDate"]))
+            {
+                    $where .= " or EndDate <= :toEndReqDate";
+                    $whereParam[":toEndReqDate"] = DateModules::shamsi_to_miladi($_POST["toEndReqDate"], "-");				
+            }
+            $where .= " )";
+	}
 	
 }	
 
@@ -84,13 +106,15 @@ function showReport(){
 	
 	$dt = PdoDataAccess::runquery("
 		select r.*,p.*,
+                        bi.InfoDesc StatusDesc,
 			concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
 			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
 		from LON_requests r
+                        left join BaseInfo bi on(bi.TypeID=5 AND bi.InfoID=StatusID)
 			join LON_ReqParts p on(r.RequestID=p.RequestID AND p.IsHistory='NO')
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
-		where 1=1 $where
+		where r.RequestID>0 $where
 		group by r.RequestID ,p.PartID
 		order by r.RequestID", $whereParam);
 	
@@ -115,6 +139,8 @@ function showReport(){
 		
 		$returnArr[] = array(
 			"RequestID" => $RequestID,
+                        "StatusDesc" =>  $row["StatusDesc"],
+                        "EndDate" =>  $row["EndDate"],
 			"ComputeMode" => $row["ComputeMode"],
 			"ReqFullname" => $row["ReqFullname"],
 			"LoanFullname" => $row["LoanFullname"],
@@ -153,6 +179,8 @@ function showReport(){
 	$rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 	$rpg->addColumn("مشتری", "LoanFullname");
 	$rpg->addColumn('مبنای محاسبه', "ComputeMode", "ComputeRender");
+        $rpg->addColumn("وضعیت", "StatusDesc");
+        $rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
 	$col = $rpg->addColumn("مبلغ وام", "PartAmount","ReportMoneyRender");
 	$col->EnableSummary();
 	$col = $rpg->addColumn("مانده قابل پرداخت معوقه", "CurrentRemain", "ReportMoneyRender");
@@ -403,7 +431,7 @@ function LoanReport_remainders()
 			hideTrigger : true,
 			fieldLabel : "کارمزد تنفس"
 		},{
-			xtype : "combo",
+			xtype : "checkcombo",
 			store : new Ext.data.SimpleStore({
 				proxy: {
 					type: 'jsonp',
