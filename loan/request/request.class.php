@@ -2315,6 +2315,7 @@ class LON_difference extends PdoDataAccess{
 
 		$eventobj = new ExecuteEvent($EventID);
 		$eventobj->DocObj = $this->DocObj;
+		$eventobj->ExtraDescription = "محاسبات کلیه رویدادها با شرایط جدید";
 		$eventobj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
 		$result = $eventobj->RegisterEventDoc($this->pdo);
 		if($result)
@@ -2329,7 +2330,9 @@ class LON_difference extends PdoDataAccess{
 	function Payments(){
 		
 		$result = true;
-		$pays = PdoDataAccess::runquery("select * from LON_payments where RequestID=?", 
+		$pays = PdoDataAccess::runquery("select * from LON_payments 
+			join LON_PayDocs using(PayID)
+			where RequestID=?", 
 				array($this->ReqObj->RequestID));
 		$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, EVENTTYPE_LoanPayment);
 		
@@ -2341,6 +2344,8 @@ class LON_difference extends PdoDataAccess{
 			$eventobj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID, $pay["PayID"]);
 			$eventobj->DocObj = $this->DocObj;
 			$result = $eventobj->RegisterEventDoc($this->pdo);
+			if($result)
+				$this->DocObj = $eventobj->DocObj;
 		}
 		if(ExceptionHandler::GetExceptionCount() > 0)
 			return false;
@@ -2405,7 +2410,9 @@ class LON_difference extends PdoDataAccess{
 			$ComputeDate = min($GToDate, $PureArr[$i]["InstallmentDate"]);
 		}
 		
-		$EventObj->RegisterEventDoc($this->pdo);
+		$result = $EventObj->RegisterEventDoc($this->pdo);
+		if($result)
+			$this->DocObj = $EventObj->DocObj;
 		if(ExceptionHandler::GetExceptionCount() > 0)
 			return false;
 		
@@ -2428,20 +2435,22 @@ class LON_difference extends PdoDataAccess{
 		$PenaltyEvent = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyPenalty");
 		
 		$EventObj1 = new ExecuteEvent($LateEvent);
-		$EventObj->DocObj = $this->DocObj;
+		$EventObj1->DocObj = $this->DocObj;
 		$EventObj1->ComputedItems[ 82 ] = round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$totalLate);
 		$EventObj1->ComputedItems[ 83 ] = $totalLate - round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$totalLate);
 		if($EventObj1->ComputedItems[ 82 ] > 0 || $EventObj1->ComputedItems[ 83 ] > 0)
 		{
 			$EventObj1->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
 			$result = $EventObj1->RegisterEventDoc($this->pdo);
+			if($result)
+				$this->DocObj = $EventObj1->DocObj;
 			if(ExceptionHandler::GetExceptionCount() > 0)
 				return false;
 		}
 		
 		
 		$EventObj2 = new ExecuteEvent($PenaltyEvent);
-		$EventObj->DocObj = $this->DocObj;
+		$EventObj2->DocObj = $this->DocObj;
 		$EventObj2->ComputedItems[ 84 ] = $this->PartObj->ForfeitPercent == 0? 0 :
 				round(($this->PartObj->FundForfeitPercent/$this->PartObj->ForfeitPercent)*$totalPenalty);
 		$EventObj2->ComputedItems[ 85 ] = $this->PartObj->ForfeitPercent == 0? 0 : 
@@ -2451,6 +2460,8 @@ class LON_difference extends PdoDataAccess{
 		{
 			$EventObj2->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
 			$result = $EventObj2->RegisterEventDoc($this->pdo);
+			if($result)
+				$this->DocObj = $EventObj2->DocObj;
 			if(ExceptionHandler::GetExceptionCount() > 0)
 				return false;
 		}
@@ -2472,6 +2483,20 @@ class LON_difference extends PdoDataAccess{
 		$ReqObj = new LON_requests($RequestID, $pdo);
 		$NewPartObj = LON_ReqParts::GetValidPartObj($RequestID, $pdo);
 
+		$process = new LON_difference();
+		$process->ReqObj = $ReqObj;
+		$process->PartObj = $NewPartObj;
+		$process->pdo = $pdo;
+
+		if(!$process->Contract())
+			return false;
+		if(!$process->Payments())
+			return false;
+		if(!$process->BackPay())
+			return false;
+		if(!$process->DailyDocs())
+			return false;
+		
 		if($DocID > 0)
 		{
 			$obj = new ACC_docs($DocID);
@@ -2494,17 +2519,8 @@ class LON_difference extends PdoDataAccess{
 			}
 		}
 
-		$process = new LON_difference();
-		$process->ReqObj = $ReqObj;
-		$process->PartObj = $NewPartObj;
-		$process->pdo = $pdo;
-
-		$process->Contract();
-		$process->Payments();
-		$process->BackPay();
-		$process->DailyDocs();
-
-		PdoDataAccess::runquery("update ACC_DocItems d join (select d.ItemID,DebtorAmount,CreditorAmount from ACC_DocItems d where DocID=?)t using(ItemID)
+		PdoDataAccess::runquery("update ACC_DocItems d join 
+			(select d.ItemID,DebtorAmount,CreditorAmount from ACC_DocItems d where DocID=?)t using(ItemID)
 			set d.DebtorAmount = t.CreditorAmount,d.CreditorAmount = t.DebtorAmount ", array($process->DocObj->DocID), $process->pdo);
 
 		PdoDataAccess::runquery("insert into ACC_DocItems(DocID, CostID, TafsiliID, TafsiliID2, TafsiliID3, 
@@ -2522,14 +2538,14 @@ class LON_difference extends PdoDataAccess{
 						when cc.param3=".CostCode_param_loan." then di.param3=:reqId
 					end
 			group by CostID, TafsiliID, TafsiliID2, TafsiliID3
-			having DebtorAmount>0 or CreditorAmount>0
+				having sum(DebtorAmount-CreditorAmount)<>0
 		", array(
 			":cycle" => $_SESSION["accounting"]["CycleID"],
 			":d" => $obj->DocID,
 			":reqId" => $process->ReqObj->RequestID
 		), $process->pdo);
 
-		ACC_docs::Remove($process->DocObj->DocID, $pdo);
+		//ACC_docs::Remove($process->DocObj->DocID, $pdo);
 			
 		return $obj;
 	}
@@ -3334,7 +3350,7 @@ class LON_payments extends OperationClass{
 		}
 		
 		$dt = LON_payments::Get(" AND p.RequestID=? ", $RequestID, "order by PayDate desc");
-		//print_r(ExceptionHandler::PopAllExceptions());
+		
 		$dt = $dt->fetchAll();
 		if(count($dt) == 0)
 		{
