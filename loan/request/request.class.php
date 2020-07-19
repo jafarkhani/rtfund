@@ -90,7 +90,12 @@ class LON_requests extends PdoDataAccess{
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
 				bi.InfoDesc StatusDesc,
 				BranchName,
-				DomainDesc
+				DomainDesc,
+				cd.DocID ContractDocID,
+				cd.LocalNo ContractLocalNo,
+				ad.DocID AllocDocID,
+				ad.LocalNo AllocLocalNo
+				
 			from LON_requests r
 			left join BSC_ActDomain using(DomainID)
 			left join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
@@ -99,6 +104,9 @@ class LON_requests extends PdoDataAccess{
 			left join BaseInfo bi on(bi.TypeID=5 AND bi.InfoID=StatusID)
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
+			left join LON_ContractDocs cd on(cd.RequestID=r.RequestID)
+			left join LON_AllocateDocs ad on(ad.RequestID=r.RequestID)
+			 
 			where " . $where, $param);
 	}
 	
