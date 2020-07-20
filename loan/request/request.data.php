@@ -270,7 +270,7 @@ function SelectAllRequests2(){
 	die();
 }
 
-function MakeWhere(&$where, &$whereParam){
+function MakeRequestsWhere(&$where, &$whereParam){
 
 	foreach($_POST as $key => $value)
 	{
@@ -376,7 +376,7 @@ function SelectAllRequests(){
 	}
 	
 	//---------------- filter -------------------
-	MakeWhere($where, $param);
+	MakeRequestsWhere($where, $param);
 	//-------------------------------------------
 	
 	$where .= dataReader::makeOrder();
