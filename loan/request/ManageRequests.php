@@ -10,6 +10,7 @@ require_once inc_dataGrid;
 //................  GET ACCESS  .....................
 $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
 //...................................................
+$accountMode = !empty($_REQUEST["accounting"]) ? true : false;
 
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "request.data.php?task=SelectAllRequests", "grid_div");
 
@@ -50,14 +51,16 @@ $col->width = 100;
 $col = $dg->addColumn("وضعیت", "StatusDesc", "");
 $col->width = 100;
 
-$col = $dg->addColumn("سند عقد قرارداد", "ContractLocalNo", "");
-$col->renderer = "ManageRequest.OpenContractDoc";
-$col->width = 60;
+if($accountMode)
+{
+    $col = $dg->addColumn("سند عقد قرارداد", "ContractLocalNo", "");
+    $col->renderer = "ManageRequest.OpenContractDoc";
+    $col->width = 60;
 
-$col = $dg->addColumn("سند تخصیص", "AllocLocalNo", "");
-$col->renderer = "ManageRequest.OpenAllocDoc";
-$col->width = 60;
-
+    $col = $dg->addColumn("سند تخصیص", "AllocLocalNo", "");
+    $col->renderer = "ManageRequest.OpenAllocDoc";
+    $col->width = 60;
+}
 $col = $dg->addColumn('عملیات', '', 'string');
 $col->renderer = "ManageRequest.OperationRender";
 $col->width = 50;

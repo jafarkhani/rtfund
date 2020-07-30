@@ -17,44 +17,39 @@ $dg->addColumn("", "IsActive", "", true);
 
 $col = $dg->addColumn("کد", "InfoID");
 $col->width = 50; 
-if($_SESSION["USER"]["UserName"] =="admin" )
-{
-	$col->editor = ColumnEditor::NumberField();
-}
+$col->editor = ColumnEditor::NumberField();
 
 $col = $dg->addColumn("شرح", "InfoDesc", "");
 $col->editor = ColumnEditor::TextField();
 
-if($_SESSION["USER"]["UserName"] =="admin" )
-{
-	$col = $dg->addColumn("param1", "param1", "");
-	$col->editor = ColumnEditor::TextField(true);
-	$col->width = 80;
-	
-	$col = $dg->addColumn("param2", "param2", "");
-	$col->editor = ColumnEditor::TextField(true);
-	$col->width = 80;
+$col = $dg->addColumn("param1", "param1", "");
+$col->editor = ColumnEditor::TextField(true);
+$col->width = 80;
 
-	$col = $dg->addColumn("param3", "param3", "");
-	$col->editor = ColumnEditor::TextField(true);
-	$col->width = 80;
-	
-	$col = $dg->addColumn("param4", "param4", "");
-	$col->editor = ColumnEditor::TextField(true);
-	$col->width = 80;
-	
-	$col = $dg->addColumn("param5", "param5", "");
-	$col->editor = ColumnEditor::TextField(true);
-	$col->width = 80;
-	
-	$col = $dg->addColumn("param6", "param6", "");
-	$col->editor = ColumnEditor::TextField(true);
-	$col->width = 80;
-	
-	$col = $dg->addColumn("param7", "param7", "");
-	$col->editor = ColumnEditor::TextField(true);
-	$col->width = 80;
-}
+$col = $dg->addColumn("param2", "param2", "");
+$col->editor = ColumnEditor::TextField(true);
+$col->width = 80;
+
+$col = $dg->addColumn("param3", "param3", "");
+$col->editor = ColumnEditor::TextField(true);
+$col->width = 80;
+
+$col = $dg->addColumn("param4", "param4", "");
+$col->editor = ColumnEditor::TextField(true);
+$col->width = 80;
+
+$col = $dg->addColumn("param5", "param5", "");
+$col->editor = ColumnEditor::TextField(true);
+$col->width = 80;
+
+$col = $dg->addColumn("param6", "param6", "");
+$col->editor = ColumnEditor::TextField(true);
+$col->width = 80;
+
+$col = $dg->addColumn("param7", "param7", "");
+$col->editor = ColumnEditor::TextField(true);
+$col->width = 80;
+
 if($accessObj->AddFlag)
 {
 	$dg->addButton = true;
@@ -72,8 +67,6 @@ $dg->rowEditOkHandler = "function(){return BaseInfoObject.SaveBaseInfo();}";
 
 $dg->title = "لیست اطلاعات";
 $dg->height = 460;
-if($_SESSION["USER"]["UserName"] != "admin")
-	$dg->width = 500;
 $dg->DefaultSortField = "InfoDesc";
 $dg->autoExpandColumn = "InfoDesc";
 $dg->emptyTextOfHiddenColumns = true;
@@ -172,9 +165,8 @@ function BaseInfo(){
 					url: this.address_prefix + 'baseInfo.data.php?task=SelectBaseTypes',
 					reader: {root: 'rows',totalProperty: 'totalCount'}
 				},				
-				fields : ['TypeID','TypeDesc',{
-						name : "title", convert(value,record){ 
-							return "[" + record.data.TypeID + "] " + record.data.TypeDesc;}
+				fields : ['TypeID','TypeDesc','param1','param2','param3','param4','param5','param6','param7',
+					{name : "title", convert(value,record){ return "[" + record.data.TypeID + "] " + record.data.TypeDesc;}
 				}]
 			}),
 			valueField : "TypeID",
@@ -193,6 +185,14 @@ function BaseInfo(){
 			BaseInfoObject.grid.getStore().load();
 		else
 			BaseInfoObject.grid.render(BaseInfoObject.get("div_grid"));
+		
+		BaseInfoObject.grid.getView().headerCt.child("[dataIndex=param1]").setText(record.data.param1 == null ? "param1" : record.data.param1);
+		BaseInfoObject.grid.getView().headerCt.child("[dataIndex=param2]").setText(record.data.param2 == null ? "param2" : record.data.param2);
+		BaseInfoObject.grid.getView().headerCt.child("[dataIndex=param3]").setText(record.data.param3 == null ? "param3" : record.data.param3);
+		BaseInfoObject.grid.getView().headerCt.child("[dataIndex=param4]").setText(record.data.param4 == null ? "param4" : record.data.param4);
+		BaseInfoObject.grid.getView().headerCt.child("[dataIndex=param5]").setText(record.data.param5 == null ? "param5" : record.data.param5);
+		BaseInfoObject.grid.getView().headerCt.child("[dataIndex=param6]").setText(record.data.param6 == null ? "param6" : record.data.param6);
+		BaseInfoObject.grid.getView().headerCt.child("[dataIndex=param7]").setText(record.data.param7 == null ? "param7" : record.data.param7);
 	});
 }
 

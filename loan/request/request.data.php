@@ -12,6 +12,7 @@ require_once DOCUMENT_ROOT . '/loan/loan/loan.class.php';
 require_once DOCUMENT_ROOT . "/office/workflow/wfm.class.php";
 require_once DOCUMENT_ROOT . '/accounting/docs/import.data.php';
 require_once DOCUMENT_ROOT . '/framework/person/persons.class.php';
+require_once DOCUMENT_ROOT . '/office/letter/letter.class.php';
 require_once 'compute.inc.php';
 require_once inc_CurrencyModule;
 
@@ -94,6 +95,9 @@ switch($task)
 	case "DeleteFollowTemplates":
 	case "RegisterLetter":
 	case "CustomerDefrayRequest":
+	case "GetFollowsToDo":	
+	case "DoFollow":
+		
 		$task();
 }
 
@@ -435,7 +439,7 @@ function GetTazminDocTypes(){
 
 function selectFollowLevels(){
 	
-	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=100");
+	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=98");
 	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
 	die();
 }
@@ -1976,104 +1980,145 @@ function DeleteFollowTemplates(){
 
 function RegisterLetter(){
 	
-	require_once DOCUMENT_ROOT . '/office/letter/letter.class.php';
-	
 	$FollowID = $_POST["FollowID"];
 	$TemplateID = $_POST["TemplateID"];
 	$RequestID = $_POST["RequestID"];
 	
-	$TemplateObj = new LON_FollowTemplates($TemplateID);
-	$FollowObj = new LON_follows($FollowID);
-	$LoanObj = new LON_requests($RequestID);
-	
-	$dt = PdoDataAccess::runquery("
-		select r.*,p.*,p2.*,
-			concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
-			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
-				
-		from LON_requests r 
-		left join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
-		left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
-		left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
-			
-		where r.RequestID=?", array($RequestID));
-	$LoanRecord = $dt[0];
-	//--------------- create letter content --------------------
-	
-	$LoanRecord["amount_char"] = CurrencyModulesclass::CurrencyToString($LoanRecord["PartAmount"]);
-	$LoanRecord["totalRemain"] = number_format(LON_Computes::GetCurrentRemainAmount($RequestID));
-	$LoanRecord["PartDate"] = DateModules::miladi_to_shamsi($LoanRecord["PartDate"]);
-	$LoanRecord["PartAmount"] = number_format($LoanRecord["PartAmount"]);
-			
-	$content = $TemplateObj->LetterContent;
-	$contentArr = explode("#", $content);
-	$content = "";
-	for ($i = 0; $i < count($contentArr); $i++) {
-		if ($i % 2 == 0) 
-		{
-			$content .= $contentArr[$i];
-			continue;
-		}
-
-		$content .=  $LoanRecord[ $contentArr[$i] ];
-	}
-	//----------------------------------------------------------
-	
-	$LetterObj = new OFC_letters();
-	$LetterObj->LetterType = "OUTCOME";
-	$LetterObj->LetterTitle = $TemplateObj->LetterSubject;
-	$LetterObj->LetterDate = PDONOW;
-	$LetterObj->RegDate = PDONOW;
-	$LetterObj->PersonID = $_SESSION["USER"]["PersonID"];
-	$LetterObj->context = $content;
-	$LetterObj->OuterCopies = $LoanObj->_ReqPersonFullname;
-	$LetterObj->organization = $LoanObj->_LoanPersonFullname;
-	if(!$LetterObj->AddLetter())
+	$LetterID = LON_FollowLetters::AddLetter($FollowID, $TemplateID);
+	if(!$LetterID)
 	{
-		echo Response::createObjectiveResponse(false, "خطا در ثبت  نامه");
+		echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 		die();
 	}
-
-	$Cobj = new OFC_LetterCustomers();
-	$Cobj->LetterID = $LetterObj->LetterID;
-	$Cobj->PersonID = $LoanObj->LoanPersonID;
-	$Cobj->IsHide = "NO";
-	$Cobj->LetterTitle = $TemplateObj->LetterSubject;
-	if(!$Cobj->Add())
-	{
-		echo Response::createObjectiveResponse(false, "خطا در ثبت ذینفع نامه");
-		die();
-	}
-	if($LoanObj->ReqPersonID*1 > 0)
-	{
-		$Cobj = new OFC_LetterCustomers();
-		$Cobj->LetterID = $LetterObj->LetterID;
-		$Cobj->PersonID = $LoanObj->ReqPersonID;
-		$Cobj->IsHide = "NO";
-		$Cobj->LetterTitle = $TemplateObj->LetterSubject;
-		if(!$Cobj->Add())
-		{
-			echo Response::createObjectiveResponse(false, "خطا در ثبت ذینفع نامه");
-			die();
-		}
-	}
-	
-	$obj = new LON_FollowLetters();
-	$obj->FollowID = $FollowID;
-	$obj->LetterID = $LetterObj->LetterID;
-	$obj->Add();
-	
-	$obj = new LON_events();
-	$obj->RequestID = $LoanObj->RequestID;
-	$obj->RegPersonID = $_SESSION["USER"]["PersonID"];
-	$obj->EventDate = PDONOW;
-	$obj->EventTitle = $TemplateObj->LetterSubject;
-	$obj->Add();
-	
-	echo Response::createObjectiveResponse(true, $LetterObj->LetterID);
+	echo Response::createObjectiveResponse(true, $LetterID);
 	die();
 }
 
+function GetFollowsToDo(){
+	
+	$loans = PdoDataAccess::runquery("
+		select r.RequestID,f.FollowID,f.StatusID,f.RegDate,f.InstallmentID,f.CurrentStatusDesc,
+			concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanPersonName,
+			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqPersonName
+			
+		from LON_requests r
+		join BSC_persons p1 on(LoanPersonID=p1.PersonID)
+		left join BSC_persons p2 on(ReqPersonID=p2.PersonID)
+		left join(
+			select f1.*,InfoDesc CurrentStatusDesc from LON_follows f1 
+			join (select max(FollowID)FollowID,RequestID from LON_follows group by RequestID )t using(FollowID,RequestID)
+			join BaseInfo on(TypeID=" . TYPEID_LoanFollowStatusID . " AND InfoID=StatusID)
+		)f on(r.RequestID=f.RequestID)
+		where r.StatusID=" . LON_REQ_STATUS_CONFIRM .
+		" order by f.StatusID desc");
+	
+	$result = array();
+	foreach($loans as $record)
+	{
+		$RequestID = $record["RequestID"];
+		$computeArr = LON_Computes::ComputePayments($RequestID);
+		$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID, $computeArr);
+		$debtClass = LON_Computes::GetDebtClassificationInfo($RequestID, $computeArr);
+		
+		$record["CurrentRemain"] = LON_Computes::GetCurrentRemainAmount($RequestID,$computeArr);
+		$record["totalAmount"] = LON_Computes::GetTotalRemainAmount($RequestID,$computeArr);
+		
+		if($record["CurrentRemain"] == 0)
+			continue;
+		
+		$record["DebtClass"] = $debtClass["title"];
+		
+		$followSteps = PdoDataAccess::runquery("select * from BaseInfo where InfoID>=10 AND typeID=" . 
+			TYPEID_LoanFollowStatusID . " AND if(param2<>'',param2=?,1=1) order by InfoID", array($debtClass["id"]));
+		
+		//------------- first alert --------------
+		if($instalmentRecord["id"] != $record["InstallmentID"])
+		{
+			$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $instalmentRecord["RecordDate"]);
+			if($diffDays <= $followSteps[0]["param1"]*1)
+				continue;
+			
+			$record["DiffDays"] = $diffDays;
+			$record["ToDoStatusID"] = $followSteps[0]["InfoID"];
+			$record["ToDoDesc"] = $followSteps[0]["InfoDesc"];
+			$result[] = $record;
+			continue;
+		}
+		//-------------- find next alert ------------
+		$nextAlertRow = null;
+		for($i=1; $i<count($followSteps); $i++)
+		{
+			if($followSteps[$i-1]["InfoID"] == $record["StatusID"])
+			{
+				$nextAlertRow = $followSteps[$i];
+				break;
+			}
+		}
+		if($nextAlertRow == null)
+			continue;
+		
+		$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $record["RegDate"]);
+		if($diffDays <= $nextAlertRow["param1"]*1)
+			continue;
+		
+		if($nextAlertRow["param2"] == "")
+		{
+			$record["DiffDays"] = $diffDays;
+			$record["ToDoStatusID"] = $nextAlertRow["InfoID"];
+			$record["ToDoDesc"] = $nextAlertRow["InfoDesc"];
+			$result[] = $record;
+			continue;
+		}	
+		
+		if($debtClass["classes"]["2"]["amount"]*1 >= $nextAlertRow["param4"]*1000000 ||
+			$debtClass["classes"]["3"]["amount"]*1 >= $nextAlertRow["param5"]*1000000 ||
+			$debtClass["classes"]["4"]["amount"]*1 >= $nextAlertRow["param6"]*1000000)
+		{
+			$record["DiffDays"] = $diffDays;
+			$record["ToDoStatusID"] = $nextAlertRow["InfoID"];
+			$record["ToDoDesc"] = $nextAlertRow["InfoDesc"];
+			$result[] = $record;
+			continue;
+		}
+	}
+	
+	echo dataReader::getJsonData($result, count($result), $_GET["callback"]);
+	die();
+}
+
+function DoFollow(){
+	
+	$RequestID = (int)$_POST["RequestID"];
+	$ToDoStatusID = (int)$_POST["ToDoStatusID"];
+	$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID);
+	
+	$followObj = new LON_follows();
+	$followObj->RequestID = $RequestID;
+	$followObj->InstallmentID = $instalmentRecord["id"];
+	$followObj->RegDate = PDONOW;
+	$followObj->RegPersonID = $_SESSION["USER"]["PersonID"];
+	$followObj->StatusID = $ToDoStatusID;
+	$followObj->Add();
+	
+	$dt = LON_FollowTemplates::Get(" AND StatusID=?", array($ToDoStatusID));
+	if($dt->rowCount() > 0)
+	{
+		$row = $dt->fetch();
+		$LetterID = LON_FollowLetters::AddLetter($followObj->FollowID, $row["TemplateID"]);
+		if(!$LetterID)
+		{
+			echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+			die();
+		}
+		
+		echo Response::createObjectiveResponse(true, $LetterID);
+		die();
+	}
+	
+	echo Response::createObjectiveResponse(true, "");
+	die();
+	
+}
 //------------------------------------------------
 
 function GetPureAmount(){

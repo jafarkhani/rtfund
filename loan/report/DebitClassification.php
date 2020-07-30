@@ -9,56 +9,46 @@ require_once "../request/request.class.php";
 require_once "../request/request.data.php";
 require_once "ReportGenerator.class.php";
 
-function ReqPersonRender($row,$value){
-	return $value == "" ? "منابع داخلی" : $value;
+/*$temp = PdoDataAccess::runquery("select * from LON_follows where StatusID=2");
+foreach($temp as $row)
+{
+	$debtClass = LON_Computes::GetDebtClassificationInfo($row["RequestID"]);
+	if(isset($debtClass["id"]))
+	{
+		switch($debtClass["id"])
+		{
+			case "1" : $StatusID = 30;break;
+			case "2" : $StatusID = 31;break;
+			case "3" : $StatusID = 32;break;
+		}
+		PdoDataAccess::runquery("update LON_follows set StatusID=? where FollowID=?", array(
+		$StatusID,
+		$row["FollowID"]
+		));	
+	}
+	else 
+		echo $row["RequestID"] . "<br>";
 }
-function intervslRender($row, $value){
-	return $value . ($row["IntervalType"] == "DAY" ? " روز" : " ماه");
+die();*/
+
+$temp = PdoDataAccess::runquery("select * from LON_follows f
+	join (select RequestID,max(FollowID) FollowID from LON_follows group by RequestID)t 
+	using(RequestID,FollowID)");
+foreach($temp as $row)
+{
+	$instalmentRecord = LON_requests::GetMinNotPayedInstallment($row["RequestID"]);
+	
+	if(isset($instalmentRecord["id"]))
+	{
+		PdoDataAccess::runquery("update LON_follows set InstallmentID=? where FollowID=?", array(
+		$instalmentRecord["id"],
+		$row["FollowID"]
+		));	
+	}
+	else 
+		echo $row["RequestID"] . "<br>";
 }
-	
-$page_rpg = new ReportGenerator("mainForm","LoanReport_DebitClassifyObj");
-
-$page_rpg->addColumn("شماره وام", "RequestID");
-$page_rpg->addColumn("شعبه وام", "BranchName");
-$page_rpg->addColumn("نوع وام", "LoanDesc");
-$page_rpg->addColumn("تضامین", "tazamin");
-$page_rpg->addColumn("معرف", "ReqPersonName");
-$page_rpg->addColumn("وام گیرنده", "LoanPersonName");
-$page_rpg->addColumn("موبایل", "mobile");
-$page_rpg->addColumn("وضعیت", "StatusDesc");
-$col = $page_rpg->addColumn("تاریخ خاتمه", "EndingDate");
-$col->type = "date";
-$page_rpg->addColumn("مبلغ وام", "PartAmount");
-$page_rpg->addColumn("جمع وام و کارمزد", "TotalLoanAmount");
-$page_rpg->addColumn("شرح", "PartDesc");
-$page_rpg->addColumn("ماه تنفس", "DelayMonths");
-$page_rpg->addColumn("روز تنفس", "DelayDays");
-$page_rpg->addColumn("فاصله اقساط", "PayInterval", "intervslRender");
-$page_rpg->addColumn("تعداد اقساط", "InstallmentCount");
-$page_rpg->addColumn("کارمزد مشتری", "CustomerWage");
-$page_rpg->addColumn("کارمزد صندوق", "FundWage");
-$page_rpg->addColumn("درصد دیرکرد", "ForfeitPercent");
-
-$col = $page_rpg->addColumn("سررسید اولین قسط", "FirstInstallmentDate"); $col->type = "date";
-$col = $page_rpg->addColumn("سررسید آخرین قسط", "LastInstallmentDate"); $col->type = "date";
-$col = $page_rpg->addColumn("مبلغ قسط", "InstallmentAmount","ReportMoneyRender");
-$col = $page_rpg->addColumn("تاریخ آخرین پرداخت مشتری", "MaxPayDate"); $col->type = "date";
-$col = $page_rpg->addColumn("جمع کل پرداختی تاکنون", "TotalPayAmount", "ReportMoneyRender");
-$col = $page_rpg->addColumn("تعداد اقساط معوق", "delayedInstallmentsCount"); $col->IsQueryField = false;
-
-$col = $page_rpg->addColumn("مانده کل تا انتها", "TotalRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
-$col = $page_rpg->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
-$col = $page_rpg->addColumn("طبقه وام", "LoanLevel"); $col->IsQueryField = false;
-$col = $page_rpg->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
-$col = $page_rpg->addColumn("تاریخ آخرین وضعیت پیگیری", "RegDate"); $col->type = "date";
-
-$col = $page_rpg->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	$col->IsQueryField = false;
-$col = $page_rpg->addColumn("مانده اصل وام تا انتها", "remain_pure","ReportMoneyRender"); $col->IsQueryField = false;
-$col = $page_rpg->addColumn("کارمزد معوقه", "remain_wage","ReportMoneyRender"); $col->IsQueryField = false;
-$col = $page_rpg->addColumn("مانده اصل و کارمزد", "remain_loan","ReportMoneyRender"); $col->IsQueryField = false;
-$col = $page_rpg->addColumn("کارمزد تاخیر معوقه", "remain_late","ReportMoneyRender"); $col->IsQueryField = false;
-$col = $page_rpg->addColumn("جریمه معوقه", "remain_pnlt","ReportMoneyRender"); $col->IsQueryField = false;
-	
+die();
 
 function MakeWhere(&$where, &$whereParam){
 
@@ -70,9 +60,9 @@ function MakeWhere(&$where, &$whereParam){
 			$where .= " AND LoanPersonID=" . $_SESSION["USER"]["PersonID"];
 	}
 	
-	foreach($_POST as $key => $value)
+	foreach($_REQUEST as $key => $value)
 	{
-		if($key == "excel" || $key == "OrderBy" || $key == "OrderByDirection" || 
+		if($key == "excel" || $key == "show" || $key == "OrderBy" || $key == "OrderByDirection" || 
 				$value === "" || strpos($key, "combobox") !== false || strpos($key, "rpcmp") !== false ||
 				strpos($key, "reportcolumn_fld") !== false || strpos($key, "reportcolumn_ord") !== false)
 			continue;
@@ -183,7 +173,7 @@ function GetData(){
 				group by RequestID			
 			)t4 on(r.RequestID=t4.RequestID)
 			
-			where 1=1 " . $where . "
+			where r.StatusID=" . LON_REQ_STATUS_CONFIRM . " " . $where . "
 		
 			group by r.RequestID
 			order by r.RequestID,p.PartID";
@@ -202,6 +192,7 @@ function GetData(){
 	foreach($temp as $row)
 	{
 		$DebitClassify[ $row["InfoID"] ] = array(
+			"title" => $row["InfoDesc"],
 			"min" => $row["param1"],
 			"max" => $row["param2"],
 			"classes" => array()
@@ -211,7 +202,7 @@ function GetData(){
 	foreach($temp as $row)
 	{
 		$DebitClassify[ $row["param1"] ]["classes"][] = array(
-			"id" => $row["InfoID"],
+			"id" => $row["param4"],
 			"minDay" => $row["param2"],
 			"maxDay" => $row["param3"]
 		);
@@ -221,84 +212,24 @@ function GetData(){
 	{
 		$computeArr = LON_Computes::ComputePayments($row["RequestID"], $ComputeDate);
 		$remain = LON_Computes::GetCurrentRemainAmount($row["RequestID"],$computeArr, $ComputeDate);
-		$RemainArr = LON_Computes::GetRemainAmounts($row["RequestID"],$computeArr, $ComputeDate);
 		$totalRemain = LON_Computes::GetTotalRemainAmount($row["RequestID"],$computeArr);
 
-		if($remain == 0)
+		if($remain <= 0)
 			continue;
 		
 		$row["TotalRemainder"] = $totalRemain;
 		$row["CurrentRemainder"] = $remain;
 		
-		// initial all classes
-		foreach($DebitClassify as $record)
-			foreach($record["classes"] as $r2)
-				$row[ "Debit_" . $r2["id"] ] = 0;
-		
-		// find the related class group
-		$ClassArr = array();
-		foreach($DebitClassify as $record)
+		$returnArr = LON_Computes::GetDebtClassificationInfo($row["RequestID"], $computeArr, $ComputeDate);
+		if(!isset($returnArr["title"]))
 		{
-			if($record["min"] <= $totalRemain && $totalRemain <= $record["max"])
-			{
-				$ClassArr = $record["classes"];
-				break;
-			}
+			echo $row["RequestID"];
+			print_r($returnArr); die();
 		}
+		$row["DebitClassify"] = $returnArr["title"];
 		
-		// fill the related class
-		foreach($computeArr as $crecord)
-		{
-			if($crecord["type"] != "installment" || $crecord["id"]*1 == 0)
-				continue;
-			
-			//............. pure and wage ................
-			$totalRemain = $crecord["remain_pure"] + $crecord["remain_wage"];
-			$diffDays = DateModules::GDateMinusGDate($ComputeDate,$crecord["RecordDate"]);
-			foreach($ClassArr as $cr)
-			{
-				if($diffDays >= $cr["minDay"] && $diffDays <= $cr["maxDay"])
-				{
-					$row[ "Debit_" . $cr["id"] ] += $totalRemain;
-					break;
-				}
-			}
-			
-			//............ late and penalty ..............
-			$remainLate = $crecord["remain_late"];
-			$remainPnlt = $crecord["remain_pnlt"];
-			for($i=count($crecord["pays"])-1; $i>=0; $i--)
-			{
-				$precord = $crecord["pays"][$i];
-				if($precord["PnltDays"]*1 == 0)
-					continue;
-				
-				$LateAmount = min($remainLate,$precord["cur_late"]);
-				$PnltAmount = min($remainPnlt,$precord["cur_pnlt"]);
-				
-				$remainDiffDays = DateModules::GDateMinusGDate($ComputeDate,$precord["PayedDate"]);
-				$remainDays = $precord["PnltDays"];
-				foreach($ClassArr as $cr)
-				{
-					if($remainDiffDays > $cr["maxDay"])
-					{
-						$remainDiffDays -= $cr["maxDay"];
-						continue;
-					}
-					$min = min($remainDays, $cr["maxDay"] - $remainDiffDays);
-					$row[ "Debit_" . $cr["id"] ] += round(($LateAmount/$precord["PnltDays"])*$min);
-					$row[ "Debit_" . $cr["id"] ] += round(($PnltAmount/$precord["PnltDays"])*$min);
-					
-					$remainDays -= $min;
-					$remainDiffDays = 0;
-					if($remainDays == 0)
-						break;
-				}
-				
-				$remainLate -= $LateAmount;
-				$remainPnlt -= $PnltAmount;
-			}
-				
+		foreach($returnArr["classes"] as $record){
+			$row[ "Debit_" . $record["code"] ] = $record["amount"];
 		}
 		
 		$result[] = $row;
@@ -326,13 +257,12 @@ function ListData($IsDashboard = false){
 	$rpt->addColumn("وام گیرنده", "LoanPersonName");
 	$rpt->addColumn("موبایل", "mobile");
 	$rpt->addColumn("وضعیت", "StatusDesc");
-	$rpt->addColumn("تاریخ خاتمه", "EndingDate", "ReportDateRender");
+	//$rpt->addColumn("تاریخ خاتمه", "EndingDate", "ReportDateRender");
 	
 	$rpt->addColumn("مبلغ وام", "PartAmount", "ReportMoneyRender");
 	$rpt->addColumn("شرح", "PartDesc");
-	$rpt->addColumn("ماه تنفس", "DelayMonths");
-	$rpt->addColumn("روز تنفس", "DelayDays");
-	$rpt->addColumn("فاصله اقساط", "PayInterval", "intervslRender");
+	/*$rpt->addColumn("ماه تنفس", "DelayMonths");
+	$rpt->addColumn("روز تنفس", "DelayDays");*/
 	$rpt->addColumn("تعداد اقساط", "InstallmentCount");
 	$rpt->addColumn("کارمزد مشتری", "CustomerWage");
 	$rpt->addColumn("کارمزد صندوق", "FundWage");
@@ -352,18 +282,19 @@ function ListData($IsDashboard = false){
 				" target=blank >" . number_format($value) . "</a>";
 	}
 	$col = $rpt->addColumn("مانده کل تا انتها", "TotalRemainder","TotalRemainderRender");	
+	$col->ExcelRender =false;
 	$col->EnableSummary();
 	
 	$col = $rpt->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	
 	$col->EnableSummary();
 		
-	$dt = PdoDataAccess::runquery("select b1.*,b2.InfoDesc as GroupDesc from BaseInfo b1 
-		join BaseInfo b2 on(b1.param1=b2.InfoID and b2.TypeID=" . TYPEID_DebitType . ") 
-		where b1.TypeID=" . TYPEID_DebitClass);
+	$rpt->addColumn("نوع بدهی", "DebitClassify");	
+	
+	$dt = PdoDataAccess::runquery("select param4,InfoDesc from BaseInfo b1 
+		where b1.TypeID=" . TYPEID_DebitClass . " group by param4");
 	foreach($dt as $row)
 	{
-		$col = $rpt->addColumn($row["InfoDesc"], "Debit_" . $row["InfoID"],"ReportMoneyRender");
-		$col->GroupHeader = $row["GroupDesc"];
+		$col = $rpt->addColumn("بدهی " . $row["InfoDesc"], "Debit_" . $row["param4"],"ReportMoneyRender");
 		$col->EnableSummary();
 	}
 	
@@ -545,24 +476,10 @@ function LoanReport_DebitClassify()
 			valueField : "BranchID",
 			hiddenName : "BranchID"
 		},{
-			xtype : "combo",
-			store : new Ext.data.SimpleStore({
-				proxy: {
-					type: 'jsonp',
-					url: this.address_prefix + '../request/request.data.php?' +
-						"task=GetAllStatuses",
-					reader: {root: 'rows',totalProperty: 'totalCount'}
-				},
-				fields : ['InfoID','InfoDesc'],
-				autoLoad : true					
-			}),
-			fieldLabel : "وضعیت وام",
-			queryMode : 'local',
-			width : 370,
-			displayField : "InfoDesc",
-			valueField : "InfoID",
-			value : "70",
-			hiddenName : "StatusID"
+			xtype : "shdatefield",
+			name : "ComputeDate",
+			labelWidth : 120,
+			fieldLabel : "محاسبه معوقات تا تاریخ"
 		},{
 			xtype : "numberfield",
 			name : "fromRequestID",
@@ -573,56 +490,6 @@ function LoanReport_DebitClassify()
 			name : "toRequestID",
 			hideTrigger : true,
 			fieldLabel : "تا شماره"
-		},{
-			xtype : "shdatefield",
-			name : "ComputeDate",
-			labelWidth : 120,
-			fieldLabel : "محاسبه معوقات تا تاریخ"
-		},{
-			xtype : "container",
-			html : "وضعیت خاتمه&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
-				"<input name=IsEnded type=radio value='YES' > خاتمه یافته &nbsp;&nbsp;" +
-				"<input name=IsEnded type=radio value='NO' checked> جاری &nbsp;&nbsp;" +
-				"<input name=IsEnded type=radio value=''  > هردو " 
-		},{
-			xtype : "combo",
-			store : new Ext.data.SimpleStore({
-				proxy: {
-					type: 'jsonp',
-					url: this.address_prefix + '../request/request.data.php?' +
-						"task=selectFollowLevels",
-					reader: {root: 'rows',totalProperty: 'totalCount'}
-				},
-				fields : ['InfoID','InfoDesc'],
-				autoLoad : true					
-			}),
-			fieldLabel : "سطح پیگیری وام",
-			queryMode : 'local',
-			width : 370,
-			displayField : "InfoDesc",
-			valueField : "InfoID",
-			hiddenName : "FollowLevelID"
-		},{
-			xtype : "numberfield",
-			maxValue : 100,
-			minValue : 0,
-			value : 0,
-			colspan : 2,
-			hideTrigger : true,
-			fieldLabel : "درصدی از مبلغ قسط که اگر مانده باشد، وام معوق در نظر گرفته نشود",
-			labelWidth : 320,
-			width : 360,
-			name : "RemainPercent"
-		},{
-			xtype : "fieldset",
-			title : "ستونهای گزارش",
-			colspan :2,
-			items :[<?= $page_rpg->ReportColumns() ?>]
-		},{
-			xtype : "fieldset",
-			colspan :2,
-			title : "رسم نمودار",
-			items : [<?= $page_rpg->GetChartItems("LoanReport_DebitClassifyObj","mainForm","installments.php") ?>]
 		}],
 		buttons : [{
 			text : "گزارش ساز",

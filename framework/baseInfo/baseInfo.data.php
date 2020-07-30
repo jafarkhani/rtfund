@@ -235,7 +235,7 @@ function SelectBaseTypes(){
 	$where = "editable='YES'";
 	if($_SESSION["USER"]["UserName"] =="admin")
 		$where = "1=1";
-	$temp = PdoDataAccess::runquery("select * from BaseTypes where GroupID=? AND " . $where, 
+	$temp = PdoDataAccess::runquery("select * from BaseTypes where IsActive='YES' AND GroupID=? AND " . $where, 
 			array($_REQUEST["GroupID"]));
 	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
 	die();

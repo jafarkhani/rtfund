@@ -21,7 +21,6 @@ switch ($task) {
 	case "SaveCostCode":
 	case "DeleteCostCode":
 	case "ActiveCostCode":
-	case "SelectCostGroups":
 	case "AddGroup":
 	case "SelectTafsiliGroups":
 	case "DeleteGroup":
@@ -346,12 +345,6 @@ function ActiveCostCode(){
     die();
 }
 
-function SelectCostGroups(){
-	
-	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=80 AND IsActive='YES'");
-	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
-	die();
-}
 //-------------------------------------------
 
 function AddGroup(){

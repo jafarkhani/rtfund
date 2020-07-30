@@ -280,9 +280,13 @@ if(isset($_REQUEST["show"]))
 		</tr>
 	</table>	
 	<?
-	
 	$rpg->generateReport();
-	echo "<br>" . $report2;	
+	
+	if(!empty($_POST["commitment"]))
+	{
+		echo "<br>" . $report2;	
+	}
+	
 	die();
 }
 ?>
@@ -388,6 +392,9 @@ function LoanReport_payments()
 			xtype : "shdatefield",
 			name : "ComputeDate",
 			fieldLabel : "محاسبه تا تاریخ"
+		},{
+			xtype : "container",
+			html : "<input type=checkbox name=commitment > نمایش جدول محاسبات تعهدی"
 		}],
 		buttons : [{
 			text : "مشاهده گزارش",

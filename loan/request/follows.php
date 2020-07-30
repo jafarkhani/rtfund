@@ -24,7 +24,7 @@ $col->width = 80;
 if($RequestID == 0)
 {
 	$col->renderer = "LoanFollow.LoanRender";
-	$col->editor = "this.LoanCombo";
+//	$col->editor = "this.LoanCombo";
 	
 	$col = $dg->addColumn("مشتری", "LoanFullname");
 	$col->width = 80;
@@ -33,12 +33,12 @@ if($RequestID == 0)
 	$col->width = 80;
 }
 
-$col = $dg->addColumn("مرحله پیگیری", "StatusID");
-$col->editor = ColumnEditor::ComboBox(PdoDataAccess::runquery("select * from BaseInfo where TypeID=98"),"InfoID","InfoDesc");
+$col = $dg->addColumn("مرحله پیگیری", "StatusDesc");
+//$col->editor = ColumnEditor::ComboBox(PdoDataAccess::runquery("select * from BaseInfo where TypeID=98"),"InfoID","InfoDesc");
 $col->width = 150;
 
 $col = $dg->addColumn("تاریخ", "RegDate", GridColumn::ColumnType_date);
-$col->editor = ColumnEditor::SHDateField();
+//$col->editor = ColumnEditor::SHDateField();
 $col->width = 80;
 
 $col = $dg->addColumn("ثبت کننده", "RegPersonName");
@@ -67,7 +67,7 @@ if($accessObj->AddFlag)
 {
 	$dg->enableRowEdit = true;
 	$dg->rowEditOkHandler = "function(store,record){return LoanFollowObject.SaveFollow(record);}";
-	$dg->addButton("AddBtn", "ایجاد ردیف", "add", "function(){LoanFollowObject.AddFollow();}");
+//	$dg->addButton("AddBtn", "ایجاد ردیف", "add", "function(){LoanFollowObject.AddFollow();}");
 }
 $col = $dg->addColumn('عملیات', '', 'string');
 $col->renderer = "LoanFollow.OperationRender";
@@ -76,7 +76,7 @@ $col->align = "center";
 
 if($RequestID == 0)
 	$dg->title = "لیست پیگیری های معوقات تسهیلات";
-$dg->height = 336;
+$dg->height = 500;
 $dg->emptyTextOfHiddenColumns = true;
 $dg->DefaultSortField = "RegDate";
 $dg->DefaultSortDir = "DESC";

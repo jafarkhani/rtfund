@@ -48,7 +48,6 @@ $col = $page_rpg->addColumn("تعداد اقساط معوق", "delayedInstallmen
 
 $col = $page_rpg->addColumn("مانده کل تا انتها", "TotalRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
 $col = $page_rpg->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","ReportMoneyRender");	 $col->IsQueryField = false;
-$col = $page_rpg->addColumn("طبقه وام", "LoanLevel"); $col->IsQueryField = false;
 $col = $page_rpg->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
 $col = $page_rpg->addColumn("تاریخ آخرین وضعیت پیگیری", "RegDate"); $col->type = "date";
 
@@ -74,11 +73,18 @@ function MakeWhere(&$where, &$whereParam){
 	{
 		if($key == "excel" || $key == "OrderBy" || $key == "OrderByDirection" || 
 				$value === "" || strpos($key, "combobox") !== false || strpos($key, "rpcmp") !== false ||
-				strpos($key, "reportcolumn_fld") !== false || strpos($key, "reportcolumn_ord") !== false)
+				strpos($key, "reportcolumn_fld") !== false || strpos($key, "reportcolumn_ord") !== false ||
+				strpos($key, "checkcombo") !== false )
 			continue;
 
 		if($key == "ForfeitDays" || $key == "ComputeDate" || $key == "RemainPercent" || $key == "FollowLevelID")
 			continue;
+		
+		if($key == "FollowStatusID")
+		{
+			$where .= " AND FollowStatusID in(" . $value . ")";
+			continue;
+		}
 		
 		$prefix = "";
 		switch($key)
@@ -143,7 +149,9 @@ function GetData(){
 			join LON_ReqParts p on(p.RequestID=r.RequestID AND p.IsHistory='NO')
 			join BSC_branches using(BranchID)
 			left join (
-				select RequestID,max(StatusID) FollowStatusID,RegDate from LON_follows group by RequestID
+				select RequestID,StatusID FollowStatusID,RegDate from LON_follows
+				join(select RequestID,max(FollowID) FollowID from LON_follows group by RequestID)t 
+				using(RequestID,FollowID)
 			)t5 on(r.RequestID=t5.RequestID)
 			left join BaseInfo bif on(bif.TypeID=98 AND bif.InfoID=t5.FollowStatusID)
 			left join (
@@ -242,14 +250,6 @@ function GetData(){
 		$row["TotalNonPenaltyRemainder"] = $remain;
 		//-----------------
 		
-		$record = LON_requests::GetRequestFollowLevel($row["RequestID"], $computeArr);
-		$row["LoanLevel"] = $record["InfoDesc"];
-		if(!empty($_POST["FollowLevelID"]))
-		{
-			if($record["InfoID"] != $_POST["FollowLevelID"])
-				continue;
-		}
-		
 		$result[] = $row;
 	}
 	
@@ -316,7 +316,6 @@ function ListData($IsDashboard = false){
 	$col = $rpt->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","TotalNonPenaltyRemainderRender");
 	$col->EnableSummary();
 	
-	$col = $rpt->addColumn("طبقه وام", "LoanLevel");
 	$col = $rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
     $rpt->addColumn(" تاریخ آخرین وضعیت پیگیری", "RegDate","ReportDateRender");
 	
@@ -552,7 +551,7 @@ function LoanReport_DelayedInstalls()
 				"<input name=IsEnded type=radio value='NO' checked> جاری &nbsp;&nbsp;" +
 				"<input name=IsEnded type=radio value=''  > هردو " 
 		},{
-			xtype : "combo",
+			xtype : "checkcombo",
 			store : new Ext.data.SimpleStore({
 				proxy: {
 					type: 'jsonp',
@@ -563,12 +562,12 @@ function LoanReport_DelayedInstalls()
 				fields : ['InfoID','InfoDesc'],
 				autoLoad : true					
 			}),
-			fieldLabel : "سطح پیگیری وام",
+			fieldLabel : "وضعیت پیگیری وام",
 			queryMode : 'local',
 			width : 370,
 			displayField : "InfoDesc",
 			valueField : "InfoID",
-			hiddenName : "FollowLevelID"
+			hiddenName : "FollowStatusID"
 		},{
 			xtype : "numberfield",
 			maxValue : 100,

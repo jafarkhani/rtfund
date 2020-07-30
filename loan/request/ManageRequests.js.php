@@ -13,6 +13,8 @@ ManageRequest.prototype = {
 	EditAccess : <?= $accessObj->EditFlag ? "true" : "false" ?>,
 	RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
 
+	accountMode : <?= $accountMode ? "true" : "false"?>,
+
 	get : function(elementID){
 		return findChild(this.TabID, elementID);
 	}
@@ -181,12 +183,14 @@ ManageRequest.prototype.MakeFilterPanel = function(){
 			hiddenName : "StatusID"
 		},{
 			xtype : "container",
+			hidden : !this.accountMode,
 			html : "سند عقد قرارداد &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
 				"<input name=HasContractDoc type=radio value='YES' > دارد &nbsp;&nbsp;" +
 				"<input name=HasContractDoc type=radio value='NO' > ندارد &nbsp;&nbsp;" +
 				"<input name=HasContractDoc type=radio value='' checked > هردو " 
 		},{
 			xtype : "container",
+			hidden : !this.accountMode,
 			html : "سند تخصیص &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
 				"<input name=HasAllocDoc type=radio value='YES' > دارد &nbsp;&nbsp;" +
 				"<input name=HasAllocDoc type=radio value='NO' > ندارد &nbsp;&nbsp;" +

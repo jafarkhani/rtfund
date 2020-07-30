@@ -1178,25 +1178,25 @@ class LON_requests extends PdoDataAccess{
 	}
 	
     /**
-	 * تاریخ اولین قسطی که کامل پرداخت نشده است
+	 * اطلاعات اولین قسطی که کامل پرداخت نشده است
 	 * @param type $RequestID
 	 * @param type $computeArr
 	 * @return gdate 
 	 */
-	static function GetMinNotPayedInstallmentDate($RequestID, $computeArr=null){
+	static function GetMinNotPayedInstallment($RequestID, $computeArr=null){
 		
 		if($computeArr == null)
 			$computeArr = LON_Computes::ComputePayments($RequestID);
 	
 		foreach($computeArr as $row)
-			if($row["type"] == "installment")
+			if($row["type"] == "installment" && $row["id"]*1 > 0)
 			{
 				if( $row["remain_pure"]*1 != 0 || 
 					$row["remain_wage"]*1 != 0 || 
 					$row["remain_late"]*1 != 0 || 
 					$row["remain_pnlt"]*1 != 0 )
 					
-					return $row["RecordDate"];
+					return $row;
 			}
 		return null;
 	}
@@ -1250,27 +1250,6 @@ class LON_requests extends PdoDataAccess{
 		foreach($levels as $row)
 		{
 			if($diffInMonth >= $row["f1"]*1 && $diffInMonth <= $row["f2"]*1)
-				return $row;
-		}
-	}
-	
-	/**
-	 * طبقه پیگیری تسهیلات را برمی گرداند
-	 * @param int $RequestID
-	 */
-	static function GetRequestFollowLevel($RequestID, $computeArr = null){
-		
-		$ComputeDate = self::GetMinNotPayedInstallmentDate($RequestID, $computeArr);
-		$diff = 0;
-		if($ComputeDate != null)
-			$diff = DateModules::GDateMinusGDate(DateModules::Now(), $ComputeDate);
-		if($diff < 0)
-			$diff = 0;
-		
-		$levels = PdoDataAccess::runquery("select * from BaseInfo where TypeID=100");
-		foreach($levels as $row)
-		{
-			if($diff >= $row["param1"]*1 && $diff <= $row["param2"]*1)
 				return $row;
 		}
 	}
@@ -1656,7 +1635,7 @@ class LON_Computes extends PdoDataAccess{
 				from LON_costs 
 				where RequestID=:r AND CostAmount<0 AND substr(CostDate,1,10) <= :tdate
 			)t
-			order by substr(RecordDate,1,10),type, RecordAmount desc" , 
+			order by substr(RecordDate,1,10),type,id, RecordAmount desc" , 
 				
 				array(":r" => $RequestID, ":tdate" => $ComputeDate), $pdo);
 		
@@ -2291,6 +2270,130 @@ class LON_Computes extends PdoDataAccess{
 				$total += $row["totalearly"]*1;
 		
 		return $total;		
+	}
+	
+	//..................................................................
+	static $DebitClassify = array();
+	static function FillDebitClassify(){
+		if(count(self::$DebitClassify) == 0)
+		{
+			$temp = PdoDataAccess::runquery("select * from BaseInfo where typeID=" . TYPEID_DebitType);
+			foreach($temp as $row)
+			{
+				self::$DebitClassify[ $row["InfoID"] ] = array(
+					"id" => $row["InfoID"],
+					"title" => $row["InfoDesc"],
+					"min" => $row["param1"],
+					"max" => $row["param2"],
+					"classes" => array()
+				);
+			}
+			$temp = PdoDataAccess::runquery("select * from BaseInfo where typeID=" . TYPEID_DebitClass);
+			foreach($temp as $row)
+			{
+				self::$DebitClassify[ $row["param1"] ]["classes"][] = array(
+					"code" => $row["param4"],
+					"title" => $row["InfoDesc"],
+					"minDay" => $row["param2"],
+					"maxDay" => $row["param3"]
+				);
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 * @param type $RequestID
+	 * @param type $ComputeArr
+	 * @return array(id,title,classes:array(code,title,amount))
+	 */
+	static function GetDebtClassificationInfo($RequestID, $ComputeArr = null, $ComputeDate = null){
+		
+		$ComputeDate = $ComputeDate == null ? DateModules::now() : DateModules::shamsi_to_miladi($ComputeDate,"-");
+		$computeArr = $ComputeArr == null ? LON_Computes::ComputePayments($RequestID, $ComputeDate) : $ComputeArr;
+		$totalRemain = LON_Computes::GetTotalRemainAmount($RequestID,$computeArr);
+		
+		self::FillDebitClassify();
+		
+		$returnArr = array();
+		$ClassArr = array();
+		foreach(self::$DebitClassify as $record)
+		{
+			if($record["min"] <= $totalRemain && $totalRemain <= $record["max"])
+			{
+				$ClassArr = $record["classes"];
+				
+				$returnArr["id"] = $record["id"];
+				$returnArr["title"] = $record["title"];
+				$returnArr["classes"] = array();
+				
+				foreach($ClassArr as $row)
+				{
+					$returnArr["classes"][$row["code"]] = array(
+						"code" => $row["code"],
+						"title" => $row["title"],
+						"amount" => 0
+					);
+				}
+				break;
+			}
+		}
+		
+		// fill the related class
+		foreach($computeArr as $crecord)
+		{
+			if($crecord["type"] != "installment" || $crecord["id"]*1 == 0)
+				continue;
+			
+			//............. pure and wage ................
+			$totalRemain = $crecord["remain_pure"] + $crecord["remain_wage"];
+			$diffDays = DateModules::GDateMinusGDate($ComputeDate,$crecord["RecordDate"]);
+			foreach($ClassArr as $cr)
+			{
+				if($diffDays >= $cr["minDay"] && $diffDays <= $cr["maxDay"])
+				{
+					$returnArr["classes"][$cr["code"]]["amount"] += $totalRemain;
+					break;
+				}
+			}
+			
+			//............ late and penalty ..............
+			$remainLate = $crecord["remain_late"];
+			$remainPnlt = $crecord["remain_pnlt"];
+			for($i=count($crecord["pays"])-1; $i>=0; $i--)
+			{
+				$precord = $crecord["pays"][$i];
+				if($precord["PnltDays"]*1 == 0)
+					continue;
+				
+				$LateAmount = min($remainLate,$precord["cur_late"]);
+				$PnltAmount = min($remainPnlt,$precord["cur_pnlt"]);
+				
+				$remainDiffDays = DateModules::GDateMinusGDate($ComputeDate,$precord["PayedDate"]);
+				$remainDays = $precord["PnltDays"];
+				foreach($ClassArr as $cr)
+				{
+					if($remainDiffDays > $cr["maxDay"])
+					{
+						$remainDiffDays -= $cr["maxDay"];
+						continue;
+					}
+					$min = min($remainDays, $cr["maxDay"] - $remainDiffDays);
+					$returnArr["classes"][$cr["code"]]["amount"] += round(($LateAmount/$precord["PnltDays"])*$min);
+					$returnArr["classes"][$cr["code"]]["amount"] += round(($PnltAmount/$precord["PnltDays"])*$min);
+					
+					$remainDays -= $min;
+					$remainDiffDays = 0;
+					if($remainDays == 0)
+						break;
+				}
+				
+				$remainLate -= $LateAmount;
+				$remainPnlt -= $PnltAmount;
+			}				
+		}
+		
+		return $returnArr;
 	}
 }
 
@@ -3534,6 +3637,7 @@ class LON_follows extends OperationClass{
 	
 	public $FollowID;
 	public $RequestID;
+	public $InstallmentID;
 	public $RegDate;
 	public $RegPersonID;
 	public $StatusID;
@@ -3553,13 +3657,14 @@ class LON_follows extends OperationClass{
 	static function Get($where = '', $whereParams = array(), $pdo = null) {
 		
 		return PdoDataAccess::runquery_fetchMode("
-			select f.*,concat_ws(' ',p.fname,p.lname) RegPersonName , t.letters,
+			select f.*,bf.InfoDesc StatusDesc,
+				concat_ws(' ',p.fname,p.lname) RegPersonName , t.letters,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
 			from LON_follows f
 			join LON_requests r using(RequestID)
 			join BSC_persons p on(f.RegPersonID=p.PersonID)
-			join BaseInfo bf on(bf.TypeID=98 AND bf.InfoID=f.StatusID)
+			join BaseInfo bf on(bf.TypeID=" . TYPEID_LoanFollowStatusID . " AND bf.InfoID=f.StatusID)
 			left join ( select FollowID,group_concat(LetterID) letters 
 						from LON_FollowLetters join OFC_letters l using(LetterID) group by FollowID )t
 				on(t.FollowID=f.FollowID)
@@ -3583,6 +3688,107 @@ class LON_FollowLetters extends OperationClass{
 		$this->DT_RefDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		
 		parent::__construct($id);
+	}
+	
+	static function AddLetter($FollowID, $TemplateID){
+		
+		$pdo = PdoDataAccess::getPdoObject();
+		$pdo->beginTransaction();
+		
+		$TemplateObj = new LON_FollowTemplates($TemplateID);
+		$FollowObj = new LON_follows($FollowID);
+		$RequestID = $FollowObj->RequestID;
+		$LoanObj = new LON_requests($RequestID);
+	
+		$dt = PdoDataAccess::runquery("
+			select r.*,p.*,p2.*,
+				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
+				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
+
+			from LON_requests r 
+			left join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
+			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
+			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
+
+			where r.RequestID=?", array($RequestID));
+		$LoanRecord = $dt[0];
+		//--------------- create letter content --------------------
+
+		$LoanRecord["amount_char"] = CurrencyModulesclass::CurrencyToString($LoanRecord["PartAmount"]);
+		$LoanRecord["totalRemain"] = number_format(LON_Computes::GetCurrentRemainAmount($RequestID));
+		$LoanRecord["PartDate"] = DateModules::miladi_to_shamsi($LoanRecord["PartDate"]);
+		$LoanRecord["PartAmount"] = number_format($LoanRecord["PartAmount"]);
+
+		$content = $TemplateObj->LetterContent;
+		$contentArr = explode("#", $content);
+		$content = "";
+		for ($i = 0; $i < count($contentArr); $i++) {
+			if ($i % 2 == 0) 
+			{
+				$content .= $contentArr[$i];
+				continue;
+			}
+
+			$content .=  $LoanRecord[ $contentArr[$i] ];
+		}
+		//----------------------------------------------------------
+
+		$LetterObj = new OFC_letters();
+		$LetterObj->LetterType = "OUTCOME";
+		$LetterObj->LetterTitle = $TemplateObj->LetterSubject;
+		$LetterObj->LetterDate = PDONOW;
+		$LetterObj->RegDate = PDONOW;
+		$LetterObj->PersonID = $_SESSION["USER"]["PersonID"];
+		$LetterObj->context = $content;
+		$LetterObj->OuterCopies = $LoanObj->_ReqPersonFullname;
+		$LetterObj->organization = $LoanObj->_LoanPersonFullname;
+		if(!$LetterObj->AddLetter($pdo))
+		{
+			ExceptionHandler::PushException("خطا در ثبت  نامه");
+			$pdo->rollBack();
+			return false;
+		}
+
+		$Cobj = new OFC_LetterCustomers();
+		$Cobj->LetterID = $LetterObj->LetterID;
+		$Cobj->PersonID = $LoanObj->LoanPersonID;
+		$Cobj->IsHide = "NO";
+		$Cobj->LetterTitle = $TemplateObj->LetterSubject;
+		if(!$Cobj->Add($pdo))
+		{
+			ExceptionHandler::PushException("خطا در ثبت ذینفع نامه");
+			$pdo->rollBack();
+			return false;
+		}
+		if($LoanObj->ReqPersonID*1 > 0)
+		{
+			$Cobj = new OFC_LetterCustomers();
+			$Cobj->LetterID = $LetterObj->LetterID;
+			$Cobj->PersonID = $LoanObj->ReqPersonID;
+			$Cobj->IsHide = "NO";
+			$Cobj->LetterTitle = $TemplateObj->LetterSubject;
+			if(!$Cobj->Add($pdo))
+			{
+				ExceptionHandler::PushException("خطا در ثبت ذینفع نامه");
+				$pdo->rollBack();
+				return false;
+			}
+		}
+
+		$obj = new LON_FollowLetters();
+		$obj->FollowID = $FollowID;
+		$obj->LetterID = $LetterObj->LetterID;
+		$obj->Add($pdo);
+
+		$obj = new LON_events();
+		$obj->RequestID = $LoanObj->RequestID;
+		$obj->RegPersonID = $_SESSION["USER"]["PersonID"];
+		$obj->EventDate = PDONOW;
+		$obj->EventTitle = $TemplateObj->LetterSubject;
+		$obj->Add($pdo);
+		
+		$pdo->commit();
+		return $LetterObj->LetterID;
 	}
 }
 

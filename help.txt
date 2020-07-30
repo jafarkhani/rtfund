@@ -39,7 +39,7 @@ p.tdAttr = "data-qtip='text'"
 store.getProxy().getReader().jsonData.message;
 this.grid.getStore().proxy.form = this.get("MainForm");
 
-
+grid.getView().headerCt.child("[dataIndex=InfoID]").setText("newHeaderTitle");
 grid.columns.findObject('dataIndex','CreditID')
 
 --------------------------------------------------------------------------------
