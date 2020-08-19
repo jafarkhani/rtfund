@@ -52,7 +52,13 @@ class ReportGenerator {
 	
 	public $excel = false;
 	public $rowNumber = true;
+	
+	/**
+	 *
+	 * @var function_name($row) 
+	 */
 	public $rowColorRender = "";
+	
 	public $headerContent = "";
 	public $footerContent = "";
 	public $footerExplicit = false;

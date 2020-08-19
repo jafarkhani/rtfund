@@ -85,7 +85,6 @@ switch($task)
 	case "GetPureAmount":
 	case "emptyDataTable":
 	case "ComputeManualInstallments":
-	case "selectBackPayComputes":
 	case "GetFollows":
 	case "SaveFollows":
 	case "DeleteFollows":
@@ -456,7 +455,6 @@ function SelectContractType(){
 
 function GetRequestParts(){
 	
-	ini_set("display_errors", "On");
 	if(!isset($_REQUEST["RequestID"] ))
 	{
 		echo dataReader::getJsonData(array(), 0, $_GET["callback"]);
@@ -1997,7 +1995,7 @@ function RegisterLetter(){
 function GetFollowsToDo(){
 	
 	$loans = PdoDataAccess::runquery("
-		select r.RequestID,f.FollowID,f.StatusID,f.RegDate,f.InstallmentID,f.CurrentStatusDesc,
+		select r.RequestID,f.FollowID,f.StatusID,f.RegDate,f.CurrentStatusDesc,
 			concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanPersonName,
 			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqPersonName
 			
@@ -2012,27 +2010,32 @@ function GetFollowsToDo(){
 		where r.StatusID=" . LON_REQ_STATUS_CONFIRM .
 		" order by f.StatusID desc");
 	
+	$followSteps = PdoDataAccess::runquery("select * from BaseInfo where typeID=" . 
+			TYPEID_LoanFollowStatusID . " order by InfoID");
+	
 	$result = array();
 	foreach($loans as $record)
 	{
 		$RequestID = $record["RequestID"];
 		$computeArr = LON_Computes::ComputePayments($RequestID);
 		$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID, $computeArr);
-		$debtClass = LON_Computes::GetDebtClassificationInfo($RequestID, $computeArr);
 		
 		$record["CurrentRemain"] = LON_Computes::GetCurrentRemainAmount($RequestID,$computeArr);
 		$record["totalAmount"] = LON_Computes::GetTotalRemainAmount($RequestID,$computeArr);
 		
-		if($record["CurrentRemain"] == 0)
+		if($record["CurrentRemain"] <= 0) 
 			continue;
 		
+		$debtClass = LON_Computes::GetDebtClassificationInfo($RequestID, $computeArr);
 		$record["DebtClass"] = $debtClass["title"];
 		
-		$followSteps = PdoDataAccess::runquery("select * from BaseInfo where InfoID>=10 AND typeID=" . 
-			TYPEID_LoanFollowStatusID . " AND if(param2<>'',param2=?,1=1) order by InfoID", array($debtClass["id"]));
+		if(	$debtClass["classes"]["2"]["amount"]*1 < $debtClass["FollowAmount2"] &&
+			$debtClass["classes"]["3"]["amount"]*1 < $debtClass["FollowAmount3"] &&
+			$debtClass["classes"]["4"]["amount"]*1 < $debtClass["FollowAmount4"])
+			continue;
 		
 		//------------- first alert --------------
-		if($instalmentRecord["id"] != $record["InstallmentID"])
+		if($record["StatusID"] == "")
 		{
 			$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $instalmentRecord["RecordDate"]);
 			if($diffDays <= $followSteps[0]["param1"]*1)
@@ -2055,31 +2058,19 @@ function GetFollowsToDo(){
 			}
 		}
 		if($nextAlertRow == null)
-			continue;
+		{
+			$nextAlertRow = $followSteps[ count($followSteps)-1 ];
+		}
 		
 		$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $record["RegDate"]);
 		if($diffDays <= $nextAlertRow["param1"]*1)
 			continue;
 		
-		if($nextAlertRow["param2"] == "")
-		{
-			$record["DiffDays"] = $diffDays;
-			$record["ToDoStatusID"] = $nextAlertRow["InfoID"];
-			$record["ToDoDesc"] = $nextAlertRow["InfoDesc"];
-			$result[] = $record;
-			continue;
-		}	
+		$record["DiffDays"] = $diffDays;
+		$record["ToDoStatusID"] = $nextAlertRow["InfoID"];
+		$record["ToDoDesc"] = $nextAlertRow["InfoDesc"];
+		$result[] = $record;
 		
-		if($debtClass["classes"]["2"]["amount"]*1 >= $nextAlertRow["param4"]*1000000 ||
-			$debtClass["classes"]["3"]["amount"]*1 >= $nextAlertRow["param5"]*1000000 ||
-			$debtClass["classes"]["4"]["amount"]*1 >= $nextAlertRow["param6"]*1000000)
-		{
-			$record["DiffDays"] = $diffDays;
-			$record["ToDoStatusID"] = $nextAlertRow["InfoID"];
-			$record["ToDoDesc"] = $nextAlertRow["InfoDesc"];
-			$result[] = $record;
-			continue;
-		}
 	}
 	
 	echo dataReader::getJsonData($result, count($result), $_GET["callback"]);
@@ -2090,11 +2081,11 @@ function DoFollow(){
 	
 	$RequestID = (int)$_POST["RequestID"];
 	$ToDoStatusID = (int)$_POST["ToDoStatusID"];
-	$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID);
+	//$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID);
 	
 	$followObj = new LON_follows();
 	$followObj->RequestID = $RequestID;
-	$followObj->InstallmentID = $instalmentRecord["id"];
+	//$followObj->InstallmentID = $instalmentRecord["id"];
 	$followObj->RegDate = PDONOW;
 	$followObj->RegPersonID = $_SESSION["USER"]["PersonID"];
 	$followObj->StatusID = $ToDoStatusID;
@@ -2191,11 +2182,7 @@ function ComputeManualInstallments(){
 
 //------------------------------------------------
 
-function selectBackPayComputes(){
-	$dt = PdoDataAccess::runquery("select * from BaseInfo where typeID=81 AND IsActive='YES'");
-	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
-	die();
-}
+
 
 //------------------------------------------------
 	

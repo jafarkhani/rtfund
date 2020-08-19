@@ -219,6 +219,15 @@ function GetData(){
 		if($remain < $row["InstallmentAmount"]*$_POST["RemainPercent"]/100)
 			continue;
 		
+		$debtClass = LON_Computes::GetDebtClassificationInfo($row["RequestID"], $computeArr);
+		$row["DebtClass"] = $debtClass["title"];
+		
+		$row["IsDelayedInDebitClass"] = false;
+		if(	$debtClass["classes"]["2"]["amount"]*1 > $debtClass["FollowAmount2"] ||
+			$debtClass["classes"]["3"]["amount"]*1 > $debtClass["FollowAmount3"] ||
+			$debtClass["classes"]["4"]["amount"]*1 > $debtClass["FollowAmount4"])
+			$row["IsDelayedInDebitClass"] = true;
+		
 		/*$delayedInstallmentsCount = 0;
 		foreach($computeArr as $irow)
 		{
@@ -319,6 +328,16 @@ function ListData($IsDashboard = false){
 	$col = $rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
     $rpt->addColumn(" تاریخ آخرین وضعیت پیگیری", "RegDate","ReportDateRender");
 	
+	$col = $rpt->addColumn("نوع بدهی", "DebtClass");
+	$col = $rpt->addColumn("وام با شرایط طبقه بندی معوق می باشد", "IsDelayedInDebitClass","IsDelayedInDebitClassRender");
+	$col->align = "center";
+	function IsDelayedInDebitClassRender($row,$value){
+		return ($value) ? "*" : "";
+	}
+	function ColorRender($row){
+		return $row["IsDelayedInDebitClass"] ? "violet" : "";
+	}
+	$rpt->rowColorRender = "ColorRender";
 	
 	$col = $rpt->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	
 	$col->EnableSummary();

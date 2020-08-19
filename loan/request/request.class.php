@@ -648,24 +648,7 @@ class LON_requests extends PdoDataAccess{
 		$returnArr["totalLateWage"] -= $share_LateWage;//min($share_LateWage,$returnArr["totalLateWage"]);
 		$returnArr["totalLateForfeit"] -= $share_LateForfeit;//min($share_LateForfeit,$returnArr["totalLateForfeit"]);
 		return;
-		
-		//------ base on pure/wage/forfeit order
-		for($i=1; $i<=4; $i++)
-		{
-			$min = min($returnArr["total" . $partObj->{"_param" . $i}], $curRecord["RecordAmount"]*1);
-			$curRecord["RecordAmount"] -= $min;
-			$returnArr["total" . $partObj->{"_param" . $i}] -= $min;
-			if($curRecord["RecordAmount"] == 0)
-				return;
-			if($partObj->{"_param" . $i} == "pure")
-			{
-				for($j=$index+1; $j<count($records); $j++)
-				{
-					if($records[$j]["type"] == "installment")
-						return;
-				}
-			}
-		}
+	
 	}
 	
 	static function ComputePayments2($RequestID, &$installments, $ComputeDate = null, $pdo = null){
@@ -2274,7 +2257,7 @@ class LON_Computes extends PdoDataAccess{
 	
 	//..................................................................
 	static $DebitClassify = array();
-	static function FillDebitClassify(){
+	static function FillDebitClassify(){ 
 		if(count(self::$DebitClassify) == 0)
 		{
 			$temp = PdoDataAccess::runquery("select * from BaseInfo where typeID=" . TYPEID_DebitType);
@@ -2285,6 +2268,10 @@ class LON_Computes extends PdoDataAccess{
 					"title" => $row["InfoDesc"],
 					"min" => $row["param1"],
 					"max" => $row["param2"],
+					"FollowAmount1" => $row["param3"]*1000000,
+					"FollowAmount2" => $row["param4"]*1000000,
+					"FollowAmount3" => $row["param5"]*1000000,
+					"FollowAmount4" => $row["param6"]*1000000,
 					"classes" => array()
 				);
 			}
@@ -2305,7 +2292,7 @@ class LON_Computes extends PdoDataAccess{
 	 * 
 	 * @param type $RequestID
 	 * @param type $ComputeArr
-	 * @return array(id,title,classes:array(code,title,amount))
+	 * @return array(id,titleFollowAmount1,FollowAmount2,FollowAmount3,FollowAmount4,classes:array(code,title,amount))
 	 */
 	static function GetDebtClassificationInfo($RequestID, $ComputeArr = null, $ComputeDate = null){
 		
@@ -2325,6 +2312,11 @@ class LON_Computes extends PdoDataAccess{
 				
 				$returnArr["id"] = $record["id"];
 				$returnArr["title"] = $record["title"];
+				$returnArr["FollowAmount1"] = $record["FollowAmount1"];
+				$returnArr["FollowAmount2"] = $record["FollowAmount2"];
+				$returnArr["FollowAmount3"] = $record["FollowAmount3"];
+				$returnArr["FollowAmount4"] = $record["FollowAmount4"];
+				
 				$returnArr["classes"] = array();
 				
 				foreach($ClassArr as $row)
@@ -2345,6 +2337,12 @@ class LON_Computes extends PdoDataAccess{
 			if($crecord["type"] != "installment" || $crecord["id"]*1 == 0)
 				continue;
 			
+			if($crecord["remain_pure"] + $crecord["remain_wage"] + 
+				$crecord["remain_late"] + $crecord["remain_pnlt"] == 0)
+				continue;
+			
+			if($crecord["RecordDate"] > $ComputeDate)
+				continue;
 			//............. pure and wage ................
 			$totalRemain = $crecord["remain_pure"] + $crecord["remain_wage"];
 			$diffDays = DateModules::GDateMinusGDate($ComputeDate,$crecord["RecordDate"]);
@@ -2360,6 +2358,9 @@ class LON_Computes extends PdoDataAccess{
 			//............ late and penalty ..............
 			$remainLate = $crecord["remain_late"];
 			$remainPnlt = $crecord["remain_pnlt"];
+			$PreDays = 0;
+			$preRemainDays = 0;
+			$Days = 0;
 			for($i=count($crecord["pays"])-1; $i>=0; $i--)
 			{
 				$precord = $crecord["pays"][$i];
@@ -2369,27 +2370,35 @@ class LON_Computes extends PdoDataAccess{
 				$LateAmount = min($remainLate,$precord["cur_late"]);
 				$PnltAmount = min($remainPnlt,$precord["cur_pnlt"]);
 				
-				$remainDiffDays = DateModules::GDateMinusGDate($ComputeDate,$precord["PayedDate"]);
-				$remainDays = $precord["PnltDays"];
+				$Days += $precord["PnltDays"];
 				foreach($ClassArr as $cr)
 				{
-					if($remainDiffDays > $cr["maxDay"])
+					if($PreDays > $cr["maxDay"])
 					{
-						$remainDiffDays -= $cr["maxDay"];
 						continue;
 					}
-					$min = min($remainDays, $cr["maxDay"] - $remainDiffDays);
-					$returnArr["classes"][$cr["code"]]["amount"] += round(($LateAmount/$precord["PnltDays"])*$min);
-					$returnArr["classes"][$cr["code"]]["amount"] += round(($PnltAmount/$precord["PnltDays"])*$min);
 					
-					$remainDays -= $min;
-					$remainDiffDays = 0;
-					if($remainDays == 0)
+					$min = min($Days, $cr["maxDay"]);
+					$min -= $cr["minDay"];
+					if($cr["minDay"] > 0)
+						$min++;
+					if($min <= 0)
 						break;
+					
+					$min -= $preRemainDays;
+					$preRemainDays = 0;
+					
+					if($Days < $cr["maxDay"])
+						$preRemainDays = $Days - $cr["minDay"] + ($cr["minDay"] > 0 ? 1 : 0);
+					if($LateAmount > 0)
+						$returnArr["classes"][$cr["code"]]["amount"] += round(($LateAmount/$precord["PnltDays"])*$min);
+					if($PnltAmount > 0)
+						$returnArr["classes"][$cr["code"]]["amount"] += round(($PnltAmount/$precord["PnltDays"])*$min);
 				}
 				
 				$remainLate -= $LateAmount;
 				$remainPnlt -= $PnltAmount;
+				$PreDays = $Days;
 			}				
 		}
 		
@@ -2438,7 +2447,11 @@ class LON_difference extends PdoDataAccess{
 			where RequestID=?", 
 				array($this->ReqObj->RequestID));
 		$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, EVENTTYPE_LoanPayment);
-		
+		if($EventID == 0)
+		{
+			ExceptionHandler::PushException("رویداد پرداخت وام یافت نشد");
+			return false;
+		}
 		foreach($pays as $pay)
 		{
 			$eventobj = new ExecuteEvent($EventID);
@@ -2471,6 +2484,12 @@ class LON_difference extends PdoDataAccess{
 			else
 				$EventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanBackPay");
 			
+			if($EventID == 0)
+			{
+				ExceptionHandler::PushException("رویداد بازپرداخت وام یافت نشد");
+				return false;
+			}
+			
 			$eventobj = new ExecuteEvent($EventID);
 			$eventobj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID, $bpay["BackPayID"]);
 			$eventobj->DocObj = $this->DocObj;
@@ -2486,39 +2505,40 @@ class LON_difference extends PdoDataAccess{
 	function DailyDocs(){
 
 		$eventID = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyIncome");
-		
-		$GToDate = DateModules::Now();
-		
-		$EventObj = new ExecuteEvent($eventID);
-		$EventObj->DocObj = $this->DocObj;
-		$EventObj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
-		
-		$EventObj->ComputedItems[ "80" ] = 0;
-		$EventObj->ComputedItems[ "81" ] = 0;
-		unset($EventObj->EventFunction);
-		$PureArr = LON_requests::ComputePures($this->ReqObj->RequestID);
-		$ComputeDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
-		$days = 0;
-		for($i=1; $i < count($PureArr);$i++)
+		if($EventID > 0)
 		{
-			if($ComputeDate >= $GToDate)
-				break;
-			$days = DateModules::GDateMinusGDate(min($GToDate, $PureArr[$i]["InstallmentDate"]),$ComputeDate);
-			$totalDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$ComputeDate);
-			$wage = round(($PureArr[$i]["wage"]/$totalDays)*$days);
-			$FundWage = round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$wage);
-			$AgentWage = $wage - $FundWage;
-			$EventObj->ComputedItems[ "80" ] += $FundWage;
-			$EventObj->ComputedItems[ "81" ] += $AgentWage;
-			$ComputeDate = min($GToDate, $PureArr[$i]["InstallmentDate"]);
+			$GToDate = DateModules::Now();
+
+			$EventObj = new ExecuteEvent($eventID);
+			$EventObj->DocObj = $this->DocObj;
+			$EventObj->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
+
+			$EventObj->ComputedItems[ "80" ] = 0;
+			$EventObj->ComputedItems[ "81" ] = 0;
+			unset($EventObj->EventFunction);
+			$PureArr = LON_requests::ComputePures($this->ReqObj->RequestID);
+			$ComputeDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
+			$days = 0;
+			for($i=1; $i < count($PureArr);$i++)
+			{
+				if($ComputeDate >= $GToDate)
+					break;
+				$days = DateModules::GDateMinusGDate(min($GToDate, $PureArr[$i]["InstallmentDate"]),$ComputeDate);
+				$totalDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$ComputeDate);
+				$wage = round(($PureArr[$i]["wage"]/$totalDays)*$days);
+				$FundWage = round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$wage);
+				$AgentWage = $wage - $FundWage;
+				$EventObj->ComputedItems[ "80" ] += $FundWage;
+				$EventObj->ComputedItems[ "81" ] += $AgentWage;
+				$ComputeDate = min($GToDate, $PureArr[$i]["InstallmentDate"]);
+			}
+
+			$result = $EventObj->RegisterEventDoc($this->pdo);
+			if($result)
+				$this->DocObj = $EventObj->DocObj;
+			if(ExceptionHandler::GetExceptionCount() > 0)
+				return false;
 		}
-		
-		$result = $EventObj->RegisterEventDoc($this->pdo);
-		if($result)
-			$this->DocObj = $EventObj->DocObj;
-		if(ExceptionHandler::GetExceptionCount() > 0)
-			return false;
-		
 		//....................................................
 		
 		$computeArr = LON_Computes::ComputePayments($this->ReqObj->RequestID);
@@ -2537,38 +2557,43 @@ class LON_difference extends PdoDataAccess{
 		$LateEvent = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyLate");
 		$PenaltyEvent = LON_requests::GetEventID($this->ReqObj->RequestID, "LoanDailyPenalty");
 		
-		$EventObj1 = new ExecuteEvent($LateEvent);
-		$EventObj1->DocObj = $this->DocObj;
-		$EventObj1->ComputedItems[ 82 ] = round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$totalLate);
-		$EventObj1->ComputedItems[ 83 ] = $totalLate - round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$totalLate);
-		if($EventObj1->ComputedItems[ 82 ] > 0 || $EventObj1->ComputedItems[ 83 ] > 0)
+		if($LateEvent > 0)
 		{
-			$EventObj1->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
-			$result = $EventObj1->RegisterEventDoc($this->pdo);
-			if($result)
-				$this->DocObj = $EventObj1->DocObj;
-			if(ExceptionHandler::GetExceptionCount() > 0)
-				return false;
+			$EventObj1 = new ExecuteEvent($LateEvent);
+			$EventObj1->DocObj = $this->DocObj;
+			$EventObj1->ComputedItems[ 82 ] = round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$totalLate);
+			$EventObj1->ComputedItems[ 83 ] = $totalLate - round(($this->PartObj->FundWage/$this->PartObj->CustomerWage)*$totalLate);
+			if($EventObj1->ComputedItems[ 82 ] > 0 || $EventObj1->ComputedItems[ 83 ] > 0)
+			{
+				$EventObj1->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
+				$result = $EventObj1->RegisterEventDoc($this->pdo);
+				if($result)
+					$this->DocObj = $EventObj1->DocObj;
+				if(ExceptionHandler::GetExceptionCount() > 0)
+					return false;
+			}
 		}
 		
-		
-		$EventObj2 = new ExecuteEvent($PenaltyEvent);
-		$EventObj2->DocObj = $this->DocObj;
-		$EventObj2->ComputedItems[ 84 ] = $this->PartObj->ForfeitPercent == 0? 0 :
-				round(($this->PartObj->FundForfeitPercent/$this->PartObj->ForfeitPercent)*$totalPenalty);
-		$EventObj2->ComputedItems[ 85 ] = $this->PartObj->ForfeitPercent == 0? 0 : 
-				$totalPenalty - round(($this->PartObj->FundForfeitPercent/$this->PartObj->ForfeitPercent)*$totalPenalty);
-
-		if($EventObj2->ComputedItems[ 84 ] > 0 || $EventObj2->ComputedItems[ 85 ] > 0)
+		if($PenaltyEvent > 0)
 		{
-			$EventObj2->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
-			$result = $EventObj2->RegisterEventDoc($this->pdo);
-			if($result)
-				$this->DocObj = $EventObj2->DocObj;
-			if(ExceptionHandler::GetExceptionCount() > 0)
-				return false;
-		}
+			$EventObj2 = new ExecuteEvent($PenaltyEvent);
+			$EventObj2->DocObj = $this->DocObj;
+			$EventObj2->ComputedItems[ 84 ] = $this->PartObj->ForfeitPercent == 0? 0 :
+					round(($this->PartObj->FundForfeitPercent/$this->PartObj->ForfeitPercent)*$totalPenalty);
+			$EventObj2->ComputedItems[ 85 ] = $this->PartObj->ForfeitPercent == 0? 0 : 
+					$totalPenalty - round(($this->PartObj->FundForfeitPercent/$this->PartObj->ForfeitPercent)*$totalPenalty);
 
+			if($EventObj2->ComputedItems[ 84 ] > 0 || $EventObj2->ComputedItems[ 85 ] > 0)
+			{
+				$EventObj2->Sources = array($this->ReqObj->RequestID, $this->PartObj->PartID);
+				$result = $EventObj2->RegisterEventDoc($this->pdo);
+				if($result)
+					$this->DocObj = $EventObj2->DocObj;
+				if(ExceptionHandler::GetExceptionCount() > 0)
+					return false;
+			}
+		}
+		
 		return true;
    }
    
@@ -2687,12 +2712,6 @@ class LON_ReqParts extends PdoDataAccess{
 	public $ComputeMode;
 	public $BackPayCompute;
 	
-	public $_BackPayComputeDesc;
-	public $_param1;
-	public $_param2;
-	public $_param3;
-	public $_param4;
-	
 	function __construct($PartID = "", $pdo = null) {
 		
 		$this->DT_PartDate = DataMember::CreateDMA(DataMember::DT_DATE);
@@ -2700,14 +2719,7 @@ class LON_ReqParts extends PdoDataAccess{
 		$this->DT_MaxFundWage = DataMember::CreateDMA(DataMember::DT_INT, 0);
 		
 		if($PartID != "")
-			PdoDataAccess::FillObject ($this, "select p.*, 
-					bf.InfoDesc _BackPayComputeDesc,
-					bf.param1 _param1,
-					bf.param2 _param2,
-					bf.param3 _param3,
-					bf.param4 _param4
-				from LON_ReqParts p
-				join BaseInfo bf on(TypeID=81 AND InfoID=BackPayCompute)
+			PdoDataAccess::FillObject ($this, "select * from LON_ReqParts
 				where PartID=?", array($PartID), $pdo);
 	}
 	
@@ -2715,10 +2727,9 @@ class LON_ReqParts extends PdoDataAccess{
 		
 		return PdoDataAccess::runquery("
 			select rp.*,r.StatusID,r.LoanPersonID,r.ReqPersonID, r.imp_VamCode,
-				bf.InfoDesc BackPayComputeDesc,t.LocalNo,t.DocDate				
+				t.LocalNo,t.DocDate				
 				
 			from LON_ReqParts rp join LON_requests r using(RequestID)
-			join BaseInfo bf on(TypeID=81 AND InfoID=BackPayCompute)
 			left join (
 				select SourceID2,LocalNo, DocDate from ACC_DocItems join ACC_docs using(DocID)
 				where SourceType=".DOCTYPE_LOAN_DIFFERENCE."

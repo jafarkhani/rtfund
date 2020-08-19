@@ -9,29 +9,7 @@ require_once "../request/request.class.php";
 require_once "../request/request.data.php";
 require_once "ReportGenerator.class.php";
 
-/*$temp = PdoDataAccess::runquery("select * from LON_follows where StatusID=2");
-foreach($temp as $row)
-{
-	$debtClass = LON_Computes::GetDebtClassificationInfo($row["RequestID"]);
-	if(isset($debtClass["id"]))
-	{
-		switch($debtClass["id"])
-		{
-			case "1" : $StatusID = 30;break;
-			case "2" : $StatusID = 31;break;
-			case "3" : $StatusID = 32;break;
-		}
-		PdoDataAccess::runquery("update LON_follows set StatusID=? where FollowID=?", array(
-		$StatusID,
-		$row["FollowID"]
-		));	
-	}
-	else 
-		echo $row["RequestID"] . "<br>";
-}
-die();*/
-
-$temp = PdoDataAccess::runquery("select * from LON_follows f
+/*$temp = PdoDataAccess::runquery("select * from LON_follows f
 	join (select RequestID,max(FollowID) FollowID from LON_follows group by RequestID)t 
 	using(RequestID,FollowID)");
 foreach($temp as $row)
@@ -48,7 +26,7 @@ foreach($temp as $row)
 	else 
 		echo $row["RequestID"] . "<br>";
 }
-die();
+die();*/
 
 function MakeWhere(&$where, &$whereParam){
 
@@ -187,26 +165,6 @@ function GetData(){
 	$ComputeDate = !empty($_POST["ComputeDate"]) ? 
 			DateModules::shamsi_to_miladi($_POST["ComputeDate"],"-") : DateModules::now();
 	
-	$DebitClassify = array();
-	$temp = PdoDataAccess::runquery("select * from BaseInfo where typeID=" . TYPEID_DebitType);
-	foreach($temp as $row)
-	{
-		$DebitClassify[ $row["InfoID"] ] = array(
-			"title" => $row["InfoDesc"],
-			"min" => $row["param1"],
-			"max" => $row["param2"],
-			"classes" => array()
-		);
-	}
-	$temp = PdoDataAccess::runquery("select * from BaseInfo where typeID=" . TYPEID_DebitClass);
-	foreach($temp as $row)
-	{
-		$DebitClassify[ $row["param1"] ]["classes"][] = array(
-			"id" => $row["param4"],
-			"minDay" => $row["param2"],
-			"maxDay" => $row["param3"]
-		);
-	}
 	$result = array();
 	while($row = $dt->fetch())
 	{
@@ -220,15 +178,16 @@ function GetData(){
 		$row["TotalRemainder"] = $totalRemain;
 		$row["CurrentRemainder"] = $remain;
 		
-		$returnArr = LON_Computes::GetDebtClassificationInfo($row["RequestID"], $computeArr, $ComputeDate);
-		if(!isset($returnArr["title"]))
-		{
-			echo $row["RequestID"];
-			print_r($returnArr); die();
-		}
-		$row["DebitClassify"] = $returnArr["title"];
+		$debtClass = LON_Computes::GetDebtClassificationInfo($row["RequestID"], $computeArr, $ComputeDate);
+		$row["DebitClassify"] = $debtClass["title"];
 		
-		foreach($returnArr["classes"] as $record){
+		$row["IsDelayedInDebitClass"] = false;
+		if(	$debtClass["classes"]["2"]["amount"]*1 > $debtClass["FollowAmount2"] ||
+			$debtClass["classes"]["3"]["amount"]*1 > $debtClass["FollowAmount3"] ||
+			$debtClass["classes"]["4"]["amount"]*1 > $debtClass["FollowAmount4"])
+			$row["IsDelayedInDebitClass"] = true;
+		
+		foreach($debtClass["classes"] as $record){
 			$row[ "Debit_" . $record["code"] ] = $record["amount"];
 		}
 		
@@ -289,6 +248,16 @@ function ListData($IsDashboard = false){
 	$col->EnableSummary();
 		
 	$rpt->addColumn("نوع بدهی", "DebitClassify");	
+	
+	$col = $rpt->addColumn("وام با شرایط طبقه بندی معوق می باشد", "IsDelayedInDebitClass","IsDelayedInDebitClassRender");
+	$col->align = "center";
+	function IsDelayedInDebitClassRender($row,$value){
+		return ($value) ? "*" : "";
+	}
+	function ColorRender($row){
+		return $row["IsDelayedInDebitClass"] ? "violet" : "";
+	}
+	$rpt->rowColorRender = "ColorRender";
 	
 	$dt = PdoDataAccess::runquery("select param4,InfoDesc from BaseInfo b1 
 		where b1.TypeID=" . TYPEID_DebitClass . " group by param4");
