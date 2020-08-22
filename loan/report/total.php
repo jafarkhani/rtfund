@@ -757,7 +757,7 @@ function LoanReport_total()
 		},{
 			xtype : "shdatefield",
 			name : "fromPartDate",
-			fieldLabel : "تاریخ پرداخت از"
+			fieldLabel : "تاریخ قرارداد از"
 		},{
 			xtype : "shdatefield",
 			name : "toPartDate",
