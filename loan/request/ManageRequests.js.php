@@ -41,6 +41,7 @@ ManageRequest.prototype.MakeFilterPanel = function(){
 		renderTo : this.get("div_form"),
 		width : 800,
 		frame : true,
+		hidden : !this.accountMode,
 		titleCollapse : true,
 		collapsible : true,
 		collapsed : true,
