@@ -174,7 +174,7 @@ function GetData(){
 	{
 		ini_set("display_errors", "On");
 		//print_r(ExceptionHandler::PopAllExceptions());
-		echo PdoDataAccess::GetLatestQueryString();
+		//echo PdoDataAccess::GetLatestQueryString();
 	}
 	//.....................................
 	$payColumns = array("pure","wage","PayedDate","PayedAmount","EarlyDays","EarlyAmount","PnltDays",
@@ -220,21 +220,12 @@ function GetData(){
 			$MainRow["remain"] =  count($row["pays"])>0 ? $row["pays"][ count($row["pays"])-1 ]["remain"]*1 : 
 									$MainRow["InstallmentAmount"];
 
-			switch($_POST["RemainStatus"])
-			{
-				case "paid":
-					if(count($row["pays"]) == 0)
-						continue;
-					break;
-				case "notPaid":
-					if(count($row["pays"]) > 0)
-						continue;
-					break;
-				case "fullPaid":
-					if( $row["pays"][ count($row["pays"])-1 ]["remain"]*1 > 0)
-						continue;
-					break;
-			}
+			if($_POST["RemainStatus"] == "paid" && count($row["pays"]) == 0)
+				continue;
+			if($_POST["RemainStatus"] == "notPaid" && count($row["pays"]) > 0)
+				continue;
+			if($_POST["RemainStatus"] == "fullPaid" && $row["pays"][ count($row["pays"])-1 ]["remain"]*1 > 0)
+				continue;
 
 			//........................................................
 			$MainRow["SumPayedAmount"] = 0;
