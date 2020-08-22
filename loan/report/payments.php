@@ -13,7 +13,8 @@ function IsDocRegisteredRender($row,$value){
 }
 		
 $page_rpg = new ReportGenerator("mainForm","LoanReport_paymentsObj");
-$page_rpg->addColumn("شماره وام", "RequestID");
+$page_rpg->addColumn("شماره وام", "RRequestID");
+$col->queryField = "r.RequestID";
 $page_rpg->addColumn("نوع وام", "LoanDesc");
 $page_rpg->addColumn("منبع", "ReqFullname", "ReqPersonRender"); 
 $page_rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
@@ -88,6 +89,7 @@ function GetData(){
 	MakeWhere($where, $whereParam);
 	
 	$query = "select py.*,r.*,l.*,p.*,
+				r.RequestID as RRequestID,
 				PayAmount - ifnull(OldFundDelayAmount,0) 
 						- ifnull(OldAgentDelayAmount,0)
 						- ifnull(OldFundWage,0)
@@ -140,7 +142,7 @@ function ListData($IsDashboard = false){
 		return "<a href=LoanPayment.php?show=true&RequestID=" . $value . " target=blank >" . $value . "</a>";
 	}
 
-	$col = $rpg->addColumn("شماره وام", "RequestID", "LoanReportRender");
+	$col = $rpg->addColumn("شماره وام", "RRequestID", "LoanReportRender");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
 	
@@ -522,10 +524,6 @@ function LoanReport_payments()
 		},'->',{
 			text : "مشاهده گزارش",
 			handler : Ext.bind(this.showReport,this),
-			iconCls : "report"
-		},{
-			text : "گزارش2",
-			handler : Ext.bind(this.showReport2,this),
 			iconCls : "report"
 		},{
 			text : "خروجی excel",
