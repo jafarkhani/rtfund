@@ -1,0 +1,18 @@
+{
+    "name": "vendor/rtfund",
+    "description": "Description of project rtfund.",
+    "authors": [
+        {
+            "name": "jafarkhani",
+            "email": "your@email.here"
+        }
+    ],
+    "require": {
+        "slim/slim": "3.*"
+    },
+    "autoload": {
+        "classmap": [
+            "api/controllers"
+        ]   
+    }
+}

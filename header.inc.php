@@ -48,9 +48,6 @@ if(isset($_REQUEST["framework"]))
 		die();
 	}
 }
-
-
 define("SHEKOOFAI", 1003);
-
 
 ?>
