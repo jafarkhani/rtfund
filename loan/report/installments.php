@@ -217,10 +217,9 @@ function GetData(){
 			$MainRow["remain_late"] = $row["remain_late"];
 			$MainRow["remain_pnlt"] = $row["remain_pnlt"];
 
-			$MainRow["remain"] = count($row["pays"])>0 ? 
-					$row["pays"][ count($row["pays"])-1 ]["remain"]*1 : 
-					$MainRow["InstallmentAmount"];
-print_r($row);
+			$MainRow["remain"] =  count($row["pays"])>0 ? $row["pays"][ count($row["pays"])-1 ]["remain"]*1 : 
+									$MainRow["InstallmentAmount"];
+
 			if($_POST["RemainStatus"] == "paid" && count($row["pays"]) == 0)
 				continue;
 			if($_POST["RemainStatus"] == "notPaid" && count($row["pays"]) > 0)
