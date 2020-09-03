@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../framework/configurations.inc.php';
 require_once __DIR__ . '/../generalClasses/PDODataAccess.class.php';
+//require_once __DIR__ . '/../generalClasses/Http/ResponseHelper.php';
 
 use Slim\Http\Request;
 use Slim\Http\Response;
