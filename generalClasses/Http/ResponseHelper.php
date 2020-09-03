@@ -3,8 +3,8 @@
 // programmer:	S.Soltani 
 // create Date:	97.05
 //---------------------------
-use \Psr\Http\Message\ResponseInterface as Response;
- 
+use Psr\Http\Message\ResponseInterface as Response;
+
 class ResponseHelper {
 
     public static function createSuccessfulResponse(Response $response, $data = null) {

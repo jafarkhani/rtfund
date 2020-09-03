@@ -6,7 +6,6 @@
 // create Date:	98.07
 //---------------------------
 
-require_once 'SharedModules/ComposerPacks/vendor/autoload.php';
 use GuzzleHttp\Client;
 
 class HttpResponse {
