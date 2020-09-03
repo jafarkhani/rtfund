@@ -15,6 +15,7 @@ require_once DOCUMENT_ROOT . '/framework/person/persons.class.php';
 require_once DOCUMENT_ROOT . '/office/letter/letter.class.php';
 require_once 'compute.inc.php';
 require_once inc_CurrencyModule;
+require_once 'sms.php';
 
 $task = isset($_REQUEST["task"]) ? $_REQUEST["task"] : "";
 switch($task)
@@ -1898,7 +1899,8 @@ function GetFollows(){
     }
 	
 	$temp = LON_follows::Get($where . dataReader::makeOrder(), $params);
-	$res = $temp->fetchAll();
+	$res = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);
+	
 	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
 	die();
 }
@@ -2090,6 +2092,61 @@ function DoFollow(){
 	$followObj->RegPersonID = $_SESSION["USER"]["PersonID"];
 	$followObj->StatusID = $ToDoStatusID;
 	$followObj->Add();
+	
+	//...........................................................
+	
+	if($ToDoStatusID == "10")
+	{
+		$dt = PdoDataAccess::runquery("select * from BaseInfo 
+			where TypeID=".TYPEID_LoanFollowStatusID." and InfoID=?", array($ToDoStatusID));
+		
+		$reqObj = new LON_requests($RequestID);
+		$personObj = new BSC_persons($reqObj->LoanPersonID);
+		if($personObj->mobile == "")
+		{
+			echo Response::createObjectiveResponse(false, "با توجه به عدم تکمیل شماره موبایل توسط مشتری پیامک مربوطه ارسال نگردید");
+			die();
+		}
+		$SendError = "";
+		$context = preg_replace("/#name/", $personObj->_fullname, $dt[0]["param2"]);
+		$result = ariana2_sendSMS($personObj->mobile, $context, "number", $SendError);
+		if(!$result)
+		{
+			echo Response::createObjectiveResponse(false, "ارسال پیامک به دلیل خطای زیر انجام نگردید" . "[" . $SendError . "]");
+			die();
+		}
+		echo Response::createObjectiveResponse(true, "");
+		die();
+	}
+	
+	//...........................................................
+	
+	if($ToDoStatusID == "20")
+	{
+		$reqObj = new LON_requests($RequestID);
+		$personObj = new BSC_persons($reqObj->LoanPersonID);
+		
+		$dt = PdoDataAccess::runquery("select * from BaseInfo 
+			where TypeID=".TYPEID_LoanFollowStatusID." and InfoID=?", array($ToDoStatusID));
+		
+		$guarantors = LON_guarantors::Get(" AND RequestID=? AND mobile <> ''", array($RequestID));
+		
+		$SendError = "";
+		foreach($guarantors as $row)
+		{
+			$mobile = $row["mobile"];
+			$context = preg_replace("/#name/", $personObj->_fullname, $dt[0]["param2"]);
+			$result = ariana2_sendSMS($mobile, $context, "number", $SendError);
+			if(!$result)
+			{
+				$SendError .= "ارسال پیامک به " . $context . $row["fullname"] . " انجام نگردید.<br>";
+			}
+		}
+		echo Response::createObjectiveResponse($SendError == "", $SendError);
+		die();
+	}
+	
+	//...........................................................
 	
 	$dt = LON_FollowTemplates::Get(" AND StatusID=?", array($ToDoStatusID));
 	if($dt->rowCount() > 0)
