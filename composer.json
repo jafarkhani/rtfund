@@ -12,7 +12,8 @@
     },
     "autoload": {
         "classmap": [
-            "api/controllers"
+            "api/controllers",
+			"generalClasses/Http"
         ]   
     }
 }

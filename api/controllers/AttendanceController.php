@@ -20,11 +20,14 @@ class AttendanceController {
 
 		$params = $request->getParsedBody();
 		
-		print_r($params);die();
-		
 		$PersonKey = isset($params["PersonKey"]) ? $params["PersonKey"] : "";
 		$TrafficDate = isset($params["TrafficDate"]) ? $params["TrafficDate"] : "";
 		$TrafficTime = isset($params["TrafficTime"]) ? $params["TrafficTime"] : "";
+		
+		if($PersonKey == "" || $TrafficDate == "" || $TrafficTime == "")
+		{
+			return ResponseHelper::createfailureResponseByException($response, "پارامترهای ورودی ناقص می باشد");
+		}
 		
 		$dt = PdoDataAccess::runquery("select PersonID from BSC_persons where AttCode=?", array($PersonKey));
 		if(count($dt) == 0)

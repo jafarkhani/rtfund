@@ -7,4 +7,9 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Api\\Controllers\\AttendanceController' => $baseDir . '/api/controllers/AttendanceController.php',
+    'HTTPStatusCodes' => $baseDir . '/generalClasses/Http/HTTPStatusCodes.php',
+    'HeaderControl' => $baseDir . '/generalClasses/Http/HeaderControl.php',
+    'HeaderKey' => $baseDir . '/generalClasses/Http/HeaderKey.php',
+    'HttpResponse' => $baseDir . '/generalClasses/Http/HttpResponse.php',
+    'ResponseHelper' => $baseDir . '/generalClasses/Http/ResponseHelper.php',
 );

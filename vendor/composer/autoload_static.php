@@ -57,6 +57,11 @@ class ComposerStaticInit161a137ee6a2906456dc28284c31aa1a
 
     public static $classMap = array (
         'Api\\Controllers\\AttendanceController' => __DIR__ . '/../..' . '/api/controllers/AttendanceController.php',
+        'HTTPStatusCodes' => __DIR__ . '/../..' . '/generalClasses/Http/HTTPStatusCodes.php',
+        'HeaderControl' => __DIR__ . '/../..' . '/generalClasses/Http/HeaderControl.php',
+        'HeaderKey' => __DIR__ . '/../..' . '/generalClasses/Http/HeaderKey.php',
+        'HttpResponse' => __DIR__ . '/../..' . '/generalClasses/Http/HttpResponse.php',
+        'ResponseHelper' => __DIR__ . '/../..' . '/generalClasses/Http/ResponseHelper.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
