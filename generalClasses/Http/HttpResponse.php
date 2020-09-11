@@ -109,7 +109,8 @@ class HttpResponse {
 
     private function GetHeader(){
 		
-		if(isset($GLOBALS["FUMHeaderInfo"]))
+		return array();
+		/*if(isset($GLOBALS["FUMHeaderInfo"]))
 		{
 			$headerInfo = $GLOBALS["FUMHeaderInfo"];
 			$ipAddress = isset($headerInfo[HeaderKey::IP_ADDRESS]) ? $headerInfo[HeaderKey::IP_ADDRESS] : "";
@@ -135,7 +136,7 @@ class HttpResponse {
             'SYS-KEY' => $sysCode,
             'IP-ADDRESS' => $ipAddress,
             'USER-ID' => $userId,
-            'H-TOKEN' => $hash) , $this->extraHeaders );
+            'H-TOKEN' => $hash) , $this->extraHeaders );*/
     }
 
     public function getHttpStatus() {

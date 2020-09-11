@@ -23,7 +23,7 @@ class AttendanceController {
 		$file = $request->getUploadedFiles();*/
 
 		$params = $request->getParsedBody();
-		
+		 
 		$PersonKey = isset($params["PersonKey"]) ? $params["PersonKey"] : "";
 		$TrafficDate = isset($params["TrafficDate"]) ? $params["TrafficDate"] : "";
 		$TrafficTime = isset($params["TrafficTime"]) ? $params["TrafficTime"] : "";
