@@ -445,7 +445,7 @@ function ChangeChequeStatus(){
 	//---------------------------------------------------------------
 	if($Status != INCOMECHEQUE_VOSUL)
 	{
-		$EventID = LON_requests::GetEventID(0, EVENTTYPE_IncomeCheque, $Status);
+		$EventID = LON_requests::GetEventID($ReqObj->RequestID, EVENTTYPE_IncomeCheque, $Status);
 		if($EventID != 0)
 		{
 			$eventobj = new ExecuteEvent($EventID);
