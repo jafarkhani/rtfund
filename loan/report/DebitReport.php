@@ -292,7 +292,7 @@ if(isset($_REQUEST["show"]))
 	$rpg->rowColorRender = "RowColorRender";
 	
 	$col = $rpg->addColumn("", "id", "");
-	$col->hidden = true;
+	//$col->hidden = true;
 	
 	function ActionRender($row, $value){
 		if($value == "installment")
