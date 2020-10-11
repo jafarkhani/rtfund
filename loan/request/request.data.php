@@ -2070,11 +2070,11 @@ function DoFollow(){
 	
 	$RequestID = (int)$_POST["RequestID"];
 	$ToDoStatusID = (int)$_POST["ToDoStatusID"];
-	//$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID);
+	$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID);
 	
 	$followObj = new LON_follows();
 	$followObj->RequestID = $RequestID;
-	//$followObj->InstallmentID = $instalmentRecord["id"];
+	$followObj->InstallmentID = $instalmentRecord["id"];  
 	$followObj->RegDate = PDONOW;
 	$followObj->RegPersonID = $_SESSION["USER"]["PersonID"];
 	$followObj->StatusID = $ToDoStatusID;
