@@ -77,12 +77,14 @@ class HttpResponse {
 
                 $response = $client->request($method, $url,  [
                     'multipart' => $multipartArr,
-                    'headers'=> $this->GetHeader()
+                    'headers'=> $this->GetHeader(),
+					'verify' => false
                 ]);
                 break;
         }
         $content = ($response->getBody()->getContents()); // added by S.Ehsani
         $arr = json_decode($response->getBody());
+		print_r($arr);
         //*******************added by S.Ehsani**************
         if(empty($arr)){
             $header = substr($content, 0, strpos($content,'}'));

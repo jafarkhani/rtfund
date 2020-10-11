@@ -359,8 +359,16 @@ function SelectAllRequests(){
 		$field = $field == "StatusDesc" ? "bi.InfoDesc" : $field;
 		$field = $field == "RequestID" ? "r.RequestID" : $field;
 		
-        $where .= ' and ' . $field . ' like :fld';
-        $param[':fld'] = '%' . $_REQUEST['query'] . '%';
+		if($field == "r.RequestID")
+		{
+			$where .= ' and ' . $field . ' = :fld';
+	        $param[':fld'] = $_REQUEST['query'];
+		}
+		else
+		{
+			$where .= ' and ' . $field . ' like :fld';
+	        $param[':fld'] = '%' . $_REQUEST['query'] . '%';
+		}
     }
 	if(!empty($_REQUEST['query']) && empty($_REQUEST["fields"]))
 	{
@@ -678,37 +686,7 @@ function EndRequest(){
 	
 	$RequestID = $_POST["RequestID"];
 	$ReqObj = new LON_requests($RequestID);
-	
-	/*$pdo = PdoDataAccess::getPdoObject();
-	$pdo->beginTransaction();
-	
-	$dt = array();
-	$computeArr = LON_Computes::ComputePayments($RequestID, $dt);
-	$pureAmount = LON_requests::GetDefrayAmount($RequestID, $computeArr);
-	if($pureAmount == 0)
-	{
-		$remain = LON_Computes::GetTotalRemainAmount($RequestID, $computeArr);
 		
-		$obj = new LON_costs();
-		$obj->CostDate = PDONOW;
-		$obj->RequestID = $RequestID;
-		$obj->CostDesc = "بابت تسویه حساب وام";
-		$obj->CostAmount = -1*$remain;
-		if(!$obj->Add($pdo))
-		{
-			ExceptionHandler::PushException("خطا در ایجاد هزینه");
-			return false;
-		}
-		//RegisterLoanCost($obj, $CostID, $TafsiliID, $TafsiliID2, $pdo)
-	}
-	
-	if(!RegisterEndRequestDoc($ReqObj, $pdo))
-	{
-		$pdo->rollback();
-		echo Response::createObjectiveResponse(false, "خطا در صدور سند");
-		die();
-	}*/
-	
 	$ReqObj->IsEnded = "YES";
 	$ReqObj->StatusID = LON_REQ_STATUS_ENDED;
 	$ReqObj->EndDate = PDONOW;
@@ -796,6 +774,13 @@ function DefrayRequest(){
 	if($remain > 0)
 	{		
 		echo Response::createObjectiveResponse(false, "مانده وام " . number_format($remain) . " ریال می باشد و تا زمانی که صفر نشود قادر به تسویه وام نمی باشید");
+		die();
+	}
+	
+	$ReqObj->DefrayDate = PDONOW;
+	if(!$ReqObj->EditRequest($pdo))
+	{
+		echo Response::createObjectiveResponse(false, "خطا در تغییر درخواست");
 		die();
 	}
 	
@@ -2031,11 +2016,6 @@ function GetFollowsToDo(){
 		$debtClass = LON_Computes::GetDebtClassificationInfo($RequestID, $computeArr);
 		$record["DebtClass"] = $debtClass["title"];
 		
-		if(	$debtClass["classes"]["2"]["amount"]*1 < $debtClass["FollowAmount2"] &&
-			$debtClass["classes"]["3"]["amount"]*1 < $debtClass["FollowAmount3"] &&
-			$debtClass["classes"]["4"]["amount"]*1 < $debtClass["FollowAmount4"])
-			continue;
-		
 		//------------- first alert --------------
 		if($record["StatusID"] == "")
 		{
@@ -2068,6 +2048,13 @@ function GetFollowsToDo(){
 		if($diffDays <= $nextAlertRow["param1"]*1)
 			continue;
 		
+		if( $nextAlertRow != $followSteps[1] &&
+			$debtClass["classes"]["2"]["amount"]*1 < $debtClass["FollowAmount2"] &&
+			$debtClass["classes"]["3"]["amount"]*1 < $debtClass["FollowAmount3"] &&
+			$debtClass["classes"]["4"]["amount"]*1 < $debtClass["FollowAmount4"])
+			continue;
+
+
 		$record["DiffDays"] = $diffDays;
 		$record["ToDoStatusID"] = $nextAlertRow["InfoID"];
 		$record["ToDoDesc"] = $nextAlertRow["InfoDesc"];

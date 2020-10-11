@@ -35,6 +35,7 @@ class LON_requests extends PdoDataAccess{
 	public $ContractType;
 	public $IsLock;
 	public $EndDate;
+	public $DefrayDate;
 
 	/* New Add Fields */
 	public $LetterID;
@@ -66,6 +67,7 @@ class LON_requests extends PdoDataAccess{
 		$this->DT_VisitDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_WorkgroupDiscussDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_EndDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		$this->DT_DefrayDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		
 		if($RequestID != "")
 			PdoDataAccess::FillObject ($this, "
