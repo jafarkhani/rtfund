@@ -410,7 +410,7 @@ function ListData($IsDashboard = false){
 	$rpg->addColumn("وب سایت", "WebSite");
 
 	$rpg->addColumn("شعبه", "BranchName");
-	$rpg->addColumn("تاریخ پرداخت", "PartDate", "ReportDateRender");
+	$rpg->addColumn("تاریخ قرارداد", "PartDate", "ReportDateRender");
 	$col = $rpg->addColumn("مبلغ تایید شده", "PartAmount", "ReportMoneyRender");
 	$col->ExcelRender = false;
 	$col->EnableSummary();

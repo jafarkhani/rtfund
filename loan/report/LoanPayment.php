@@ -324,7 +324,7 @@ if(isset($_REQUEST["show"]))
 		$col = $rpg3->addColumn("تا تاریخ", "todate","ReportDateRender");
 		$col = $rpg3->addColumn("درآمد روزانه", "wag","ReportMoneyRender");
 		$col = $rpg3->addColumn("تعداد روز", "days");
-		asort($result)
+		
 		$col = $rpg3->addColumn("کل درآمد", "totalWage","ReportMoneyRender");
 		$col->EnableSummary();		
 		$col = $rpg3->addColumn("سهم درآمد صندوق", "totalfundWage","ReportMoneyRender");

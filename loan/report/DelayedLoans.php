@@ -317,6 +317,7 @@ function ListData($IsDashboard = false){
 	}
 	$col = $rpt->addColumn("مانده کل تا انتها", "TotalRemainder","TotalRemainderRender");	
 	$col->EnableSummary();
+	$col->ExcelRender = false;
 	
 	function TotalNonPenaltyRemainderRender($row,$value){
 		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
@@ -324,6 +325,7 @@ function ListData($IsDashboard = false){
 	}
 	$col = $rpt->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","TotalNonPenaltyRemainderRender");
 	$col->EnableSummary();
+	$col->ExcelRender = false;
 	
 	$col = $rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
     $rpt->addColumn(" تاریخ آخرین وضعیت پیگیری", "RegDate","ReportDateRender");

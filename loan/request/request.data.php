@@ -1981,8 +1981,32 @@ function RegisterLetter(){
 
 function GetFollowsToDo(){
 	
+	/*if($_SESSION["USER"]["UserName"] == "admin"){
+		$temp = PdoDataAccess::runquery("
+			select * from LON_follows f join( 
+					select RequestID, max(StatusID) StatusID from LON_follows group by RequestID)t 
+			using(RequestID,StatusID)
+			where f.StatusID in(10,20)");
+		foreach($temp as $row)
+		{
+			$instalmentRecord = LON_requests::GetMinNotPayedInstallment($row["RequestID"]);
+			$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $instalmentRecord["RecordDate"]);
+			if($row["StatusID"] == "10" && $diffDays < 3)
+				continue;
+			if($row["StatusID"] == "20" && $diffDays < 7)
+				continue;
+			echo "FollowID: " . $row["FollowID"] . " InstallmentID: " . $instalmentRecord["InstallmentID"] . "\n";
+
+			PdoDataAccess::runquery("update LON_follows set InstallmentID=? where FollowiD=?", array(
+				$instalmentRecord["InstallmentID"],
+				$row["FollowID"]
+			));
+		}
+		die();
+	}*/
+	
 	$loans = PdoDataAccess::runquery("
-		select r.RequestID,f.FollowID,f.StatusID,f.RegDate,f.CurrentStatusDesc,
+		select r.RequestID,f.FollowID,f.StatusID,f.RegDate,f.InstallmentID,f.CurrentStatusDesc,
 			concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanPersonName,
 			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqPersonName
 			
@@ -2016,6 +2040,11 @@ function GetFollowsToDo(){
 		$debtClass = LON_Computes::GetDebtClassificationInfo($RequestID, $computeArr);
 		$record["DebtClass"] = $debtClass["title"];
 		
+		//--------- sms steps reset for each delayed installment ------------------
+		if($record["StatusID"] == "10" || $record["StatusID"] == "20"){
+			if($instalmentRecord["InstallmentID"] != $record["InstallmentID"])
+				$record["StatusID"] = "";
+		}
 		//------------- first alert --------------
 		if($record["StatusID"] == "")
 		{
@@ -2029,6 +2058,7 @@ function GetFollowsToDo(){
 			$result[] = $record;
 			continue;
 		}
+		
 		//-------------- find next alert ------------
 		$nextAlertRow = null;
 		for($i=1; $i<count($followSteps); $i++)

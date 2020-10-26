@@ -219,7 +219,7 @@ class ReportGenerator {
 
 	function ExcelGeneration() {
 		
-		//ini_set("display_errors", "On");
+		ini_set("display_errors", "Off");
 		$worksheet = "";
 		require_once 'excel.php';
 		require_once "php_writeexcel-0.3.0/class.writeexcel_workbook.inc.php";

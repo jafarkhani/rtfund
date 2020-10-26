@@ -139,8 +139,8 @@ function GetData(){
     $count=count($temp);
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		echo PdoDataAccess::GetLatestQueryString();
-		print_r(ExceptionHandler::PopAllExceptions());
+		//echo PdoDataAccess::GetLatestQueryString();
+		//print_r(ExceptionHandler::PopAllExceptions());
 	}
     //---------------------- Warrenty Info --------------------------
     for ($i=0; $i<$count; $i++ ){
