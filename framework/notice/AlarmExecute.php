@@ -5,28 +5,30 @@
 //---------------------------
 
 ini_set("display_errors", "On");
-ob_start();
-$fp = fopen("/home/krrtfir/public_html/storage/errors.txt", "w");
-//$fp = fopen(getenv("DOCUMENT_ROOT"). "/storage/errors.txt", "w");
-
 ini_set("MAX_EXECUTION_TIME",3000);
-set_include_path("/home/krrtfir/public_html/generalClasses");
-//set_include_path(getenv("DOCUMENT_ROOT") . "/generalClasses");
 
-require_once '../../definitions.inc.php';
+ob_start();
+
+define("DOCUMENT_ROOT", "/home/sajakrrt/domains/saja.krrtf.ir/public_html/");
+
+set_include_path(DOCUMENT_ROOT . "generalClasses");
+
+require_once DOCUMENT_ROOT . 'definitions.inc.php';
 require_once 'InputValidation.class.php';
 require_once 'PDODataAccess.class.php';
 require_once 'classconfig.inc.php';
 require_once 'DataAudit.class.php';
+
+$fp = fopen(DOCUMENT_ROOT . "storage/errors.txt", "w");
 
 define("SYSTEMID", 1);
 session_start();
 $_SESSION["USER"] = array("PersonID" => 1000);
 $_SESSION['LIPAddress'] = '';
 
-require_once '../configurations.inc.php';
+require_once DOCUMENT_ROOT . 'framework/configurations.inc.php';
 require_once 'operation.class.php';
-require_once '../../office/letter/letter.class.php';
+require_once DOCUMENT_ROOT . 'office/letter/letter.class.php';
 require_once 'email.php';
 require_once 'sms.php';
 
