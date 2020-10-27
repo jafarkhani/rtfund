@@ -2045,12 +2045,24 @@ function GetFollowsToDo(){
 			if($instalmentRecord["InstallmentID"] != $record["InstallmentID"])
 				$record["StatusID"] = "";
 		}
+		
 		//------------- first alert --------------
 		if($record["StatusID"] == "")
 		{
 			$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $instalmentRecord["RecordDate"]);
 			if($diffDays <= $followSteps[0]["param1"]*1)
 				continue;
+			
+			//---------- check the min of debt ---------
+			if($followSteps[0]["param3"]*1 > 0 && 
+				$record["CurrentRemain"] < $followSteps[0]["param3"]*$instalmentRecord["RecordAmount"]/100){
+				continue;
+			}
+			if($followSteps[0]["param4"]*1 > 0 && 
+				$record["CurrentRemain"] < $followSteps[0]["param4"]*1){
+				continue;
+			}
+			//-------------------------------------------
 			
 			$record["DiffDays"] = $diffDays;
 			$record["ToDoStatusID"] = $followSteps[0]["InfoID"];
@@ -2077,6 +2089,17 @@ function GetFollowsToDo(){
 		$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $record["RegDate"]);
 		if($diffDays <= $nextAlertRow["param1"]*1)
 			continue;
+		
+		//---------- check the min of debt ---------
+		if($nextAlertRow["param3"]*1 > 0 && 
+			$record["CurrentRemain"] < $nextAlertRow["param3"]*$instalmentRecord["RecordAmount"]/100){
+			continue;
+		}
+		if($nextAlertRow["param4"]*1 > 0 && 
+			$record["CurrentRemain"] < $nextAlertRow["param4"]*1){
+			continue;
+		}
+		//------------------------------------------
 		
 		if( $nextAlertRow != $followSteps[1] &&
 			$debtClass["classes"]["2"]["amount"]*1 < $debtClass["FollowAmount2"] &&
