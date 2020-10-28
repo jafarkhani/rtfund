@@ -2044,7 +2044,7 @@ function GetFollowsToDo(){
 		if($record["StatusID"] == "10" || $record["StatusID"] == "20"){
 			if($instalmentRecord["InstallmentID"] != $record["InstallmentID"])
 				$record["StatusID"] = "";
-		}
+		}		
 		
 		//------------- first alert --------------
 		if($record["StatusID"] == "")
