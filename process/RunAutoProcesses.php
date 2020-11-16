@@ -12,14 +12,20 @@ ini_set("default_socket_timeout", 600);
 
 ob_start();
 
-require_once '../framework/configurations.inc.php';
+require_once __DIR__ . '/../framework/configurations.inc.php';
+
 set_include_path(DOCUMENT_ROOT . "/generalClasses");
 
-require_once '../definitions.inc.php';
+require_once DOCUMENT_ROOT . '/framework/configurations.inc.php';
+require_once DOCUMENT_ROOT . '/definitions.inc.php';
 require_once DOCUMENT_ROOT . '/generalClasses/InputValidation.class.php';
 require_once DOCUMENT_ROOT . '/generalClasses/PDODataAccess.class.php';
 require_once DOCUMENT_ROOT . '/generalClasses/DataAudit.class.php';
 require_once DOCUMENT_ROOT . '/generalClasses/DateModules.class.php';
+
+require_once DOCUMENT_ROOT . '/office/dms/dms.class.php';
+require_once DOCUMENT_ROOT . '/loan/request/request.class.php';
+require_once DOCUMENT_ROOT . '/commitment/ExecuteEvent.class.php';
 
 define("SYSTEMID", 1);
 session_start();
@@ -27,9 +33,7 @@ $_SESSION["USER"] = array("PersonID" => 1000);
 $_SESSION['LIPAddress'] = '';
 $_SESSION["accounting"]["CycleID"] = DateModules::GetYear(DateModules::shNow());
 
-require_once '../office/dms/dms.class.php';
-require_once '../loan/request/request.class.php';
-require_once '../commitment/ExecuteEvent.class.php';
+
 
 $query = " select * from LON_requests  r
 join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')

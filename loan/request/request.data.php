@@ -15,6 +15,7 @@ require_once DOCUMENT_ROOT . '/framework/person/persons.class.php';
 require_once DOCUMENT_ROOT . '/office/letter/letter.class.php';
 require_once 'compute.inc.php';
 require_once inc_CurrencyModule;
+require_once 'sms.php';
 
 $task = isset($_REQUEST["task"]) ? $_REQUEST["task"] : "";
 switch($task)
@@ -358,8 +359,16 @@ function SelectAllRequests(){
 		$field = $field == "StatusDesc" ? "bi.InfoDesc" : $field;
 		$field = $field == "RequestID" ? "r.RequestID" : $field;
 		
-        $where .= ' and ' . $field . ' like :fld';
-        $param[':fld'] = '%' . $_REQUEST['query'] . '%';
+		if($field == "r.RequestID")
+		{
+			$where .= ' and ' . $field . ' = :fld';
+	        $param[':fld'] = $_REQUEST['query'];
+		}
+		else
+		{
+			$where .= ' and ' . $field . ' like :fld';
+	        $param[':fld'] = '%' . $_REQUEST['query'] . '%';
+		}
     }
 	if(!empty($_REQUEST['query']) && empty($_REQUEST["fields"]))
 	{
@@ -677,37 +686,7 @@ function EndRequest(){
 	
 	$RequestID = $_POST["RequestID"];
 	$ReqObj = new LON_requests($RequestID);
-	
-	/*$pdo = PdoDataAccess::getPdoObject();
-	$pdo->beginTransaction();
-	
-	$dt = array();
-	$computeArr = LON_Computes::ComputePayments($RequestID, $dt);
-	$pureAmount = LON_requests::GetDefrayAmount($RequestID, $computeArr);
-	if($pureAmount == 0)
-	{
-		$remain = LON_Computes::GetTotalRemainAmount($RequestID, $computeArr);
 		
-		$obj = new LON_costs();
-		$obj->CostDate = PDONOW;
-		$obj->RequestID = $RequestID;
-		$obj->CostDesc = "بابت تسویه حساب وام";
-		$obj->CostAmount = -1*$remain;
-		if(!$obj->Add($pdo))
-		{
-			ExceptionHandler::PushException("خطا در ایجاد هزینه");
-			return false;
-		}
-		//RegisterLoanCost($obj, $CostID, $TafsiliID, $TafsiliID2, $pdo)
-	}
-	
-	if(!RegisterEndRequestDoc($ReqObj, $pdo))
-	{
-		$pdo->rollback();
-		echo Response::createObjectiveResponse(false, "خطا در صدور سند");
-		die();
-	}*/
-	
 	$ReqObj->IsEnded = "YES";
 	$ReqObj->StatusID = LON_REQ_STATUS_ENDED;
 	$ReqObj->EndDate = PDONOW;
@@ -795,6 +774,13 @@ function DefrayRequest(){
 	if($remain > 0)
 	{		
 		echo Response::createObjectiveResponse(false, "مانده وام " . number_format($remain) . " ریال می باشد و تا زمانی که صفر نشود قادر به تسویه وام نمی باشید");
+		die();
+	}
+	
+	$ReqObj->DefrayDate = PDONOW;
+	if(!$ReqObj->EditRequest($pdo))
+	{
+		echo Response::createObjectiveResponse(false, "خطا در تغییر درخواست");
 		die();
 	}
 	
@@ -1898,7 +1884,8 @@ function GetFollows(){
     }
 	
 	$temp = LON_follows::Get($where . dataReader::makeOrder(), $params);
-	$res = $temp->fetchAll();
+	$res = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);
+	
 	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
 	die();
 }
@@ -1994,8 +1981,32 @@ function RegisterLetter(){
 
 function GetFollowsToDo(){
 	
+	/*if($_SESSION["USER"]["UserName"] == "admin"){
+		$temp = PdoDataAccess::runquery("
+			select * from LON_follows f join( 
+					select RequestID, max(StatusID) StatusID from LON_follows group by RequestID)t 
+			using(RequestID,StatusID)
+			where f.StatusID in(10,20)");
+		foreach($temp as $row)
+		{
+			$instalmentRecord = LON_requests::GetMinNotPayedInstallment($row["RequestID"]);
+			$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $instalmentRecord["RecordDate"]);
+			if($row["StatusID"] == "10" && $diffDays < 3)
+				continue;
+			if($row["StatusID"] == "20" && $diffDays < 7)
+				continue;
+			echo "FollowID: " . $row["FollowID"] . " InstallmentID: " . $instalmentRecord["InstallmentID"] . "\n";
+
+			PdoDataAccess::runquery("update LON_follows set InstallmentID=? where FollowiD=?", array(
+				$instalmentRecord["InstallmentID"],
+				$row["FollowID"]
+			));
+		}
+		die();
+	}*/
+	
 	$loans = PdoDataAccess::runquery("
-		select r.RequestID,f.FollowID,f.StatusID,f.RegDate,f.CurrentStatusDesc,
+		select r.RequestID,f.FollowID,f.StatusID,f.RegDate,f.InstallmentID,f.CurrentStatusDesc,
 			concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanPersonName,
 			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqPersonName
 			
@@ -2029,10 +2040,11 @@ function GetFollowsToDo(){
 		$debtClass = LON_Computes::GetDebtClassificationInfo($RequestID, $computeArr);
 		$record["DebtClass"] = $debtClass["title"];
 		
-		if(	$debtClass["classes"]["2"]["amount"]*1 < $debtClass["FollowAmount2"] &&
-			$debtClass["classes"]["3"]["amount"]*1 < $debtClass["FollowAmount3"] &&
-			$debtClass["classes"]["4"]["amount"]*1 < $debtClass["FollowAmount4"])
-			continue;
+		//--------- sms steps reset for each delayed installment ------------------
+		if($record["StatusID"] == "10" || $record["StatusID"] == "20"){
+			if($instalmentRecord["InstallmentID"] != $record["InstallmentID"])
+				$record["StatusID"] = "";
+		}		
 		
 		//------------- first alert --------------
 		if($record["StatusID"] == "")
@@ -2041,12 +2053,24 @@ function GetFollowsToDo(){
 			if($diffDays <= $followSteps[0]["param1"]*1)
 				continue;
 			
+			//---------- check the min of debt ---------
+			if($followSteps[0]["param3"]*1 > 0 && 
+				$record["CurrentRemain"] < $followSteps[0]["param3"]*$instalmentRecord["RecordAmount"]/100){
+				continue;
+			}
+			if($followSteps[0]["param4"]*1 > 0 && 
+				$record["CurrentRemain"] < $followSteps[0]["param4"]*1){
+				continue;
+			}
+			//-------------------------------------------
+			
 			$record["DiffDays"] = $diffDays;
 			$record["ToDoStatusID"] = $followSteps[0]["InfoID"];
 			$record["ToDoDesc"] = $followSteps[0]["InfoDesc"];
 			$result[] = $record;
 			continue;
 		}
+		
 		//-------------- find next alert ------------
 		$nextAlertRow = null;
 		for($i=1; $i<count($followSteps); $i++)
@@ -2066,6 +2090,24 @@ function GetFollowsToDo(){
 		if($diffDays <= $nextAlertRow["param1"]*1)
 			continue;
 		
+		//---------- check the min of debt ---------
+		if($nextAlertRow["param3"]*1 > 0 && 
+			$record["CurrentRemain"] < $nextAlertRow["param3"]*$instalmentRecord["RecordAmount"]/100){
+			continue;
+		}
+		if($nextAlertRow["param4"]*1 > 0 && 
+			$record["CurrentRemain"] < $nextAlertRow["param4"]*1){
+			continue;
+		}
+		//------------------------------------------
+		
+		if( $nextAlertRow != $followSteps[1] &&
+			$debtClass["classes"]["2"]["amount"]*1 < $debtClass["FollowAmount2"] &&
+			$debtClass["classes"]["3"]["amount"]*1 < $debtClass["FollowAmount3"] &&
+			$debtClass["classes"]["4"]["amount"]*1 < $debtClass["FollowAmount4"])
+			continue;
+
+
 		$record["DiffDays"] = $diffDays;
 		$record["ToDoStatusID"] = $nextAlertRow["InfoID"];
 		$record["ToDoDesc"] = $nextAlertRow["InfoDesc"];
@@ -2081,15 +2123,70 @@ function DoFollow(){
 	
 	$RequestID = (int)$_POST["RequestID"];
 	$ToDoStatusID = (int)$_POST["ToDoStatusID"];
-	//$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID);
+	$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID);
 	
 	$followObj = new LON_follows();
 	$followObj->RequestID = $RequestID;
-	//$followObj->InstallmentID = $instalmentRecord["id"];
+	$followObj->InstallmentID = $instalmentRecord["id"];  
 	$followObj->RegDate = PDONOW;
 	$followObj->RegPersonID = $_SESSION["USER"]["PersonID"];
 	$followObj->StatusID = $ToDoStatusID;
 	$followObj->Add();
+	
+	//...........................................................
+	
+	if($ToDoStatusID == "10")
+	{
+		$dt = PdoDataAccess::runquery("select * from BaseInfo 
+			where TypeID=".TYPEID_LoanFollowStatusID." and InfoID=?", array($ToDoStatusID));
+		
+		$reqObj = new LON_requests($RequestID);
+		$personObj = new BSC_persons($reqObj->LoanPersonID);
+		if($personObj->mobile == "")
+		{
+			echo Response::createObjectiveResponse(false, "با توجه به عدم تکمیل شماره موبایل توسط مشتری پیامک مربوطه ارسال نگردید");
+			die();
+		}
+		$SendError = "";
+		$context = preg_replace("/#name/", $personObj->_fullname, $dt[0]["param2"]);
+		$result = ariana2_sendSMS($personObj->mobile, $context, "number", $SendError);
+		if(!$result)
+		{
+			echo Response::createObjectiveResponse(false, "ارسال پیامک به دلیل خطای زیر انجام نگردید" . "[" . $SendError . "]");
+			die();
+		}
+		echo Response::createObjectiveResponse(true, "");
+		die();
+	}
+	
+	//...........................................................
+	
+	if($ToDoStatusID == "20")
+	{
+		$reqObj = new LON_requests($RequestID);
+		$personObj = new BSC_persons($reqObj->LoanPersonID);
+		
+		$dt = PdoDataAccess::runquery("select * from BaseInfo 
+			where TypeID=".TYPEID_LoanFollowStatusID." and InfoID=?", array($ToDoStatusID));
+		
+		$guarantors = LON_guarantors::Get(" AND RequestID=? AND mobile <> ''", array($RequestID));
+		
+		$SendError = "";
+		foreach($guarantors as $row)
+		{
+			$mobile = $row["mobile"];
+			$context = preg_replace("/#name/", $personObj->_fullname, $dt[0]["param2"]);
+			$result = ariana2_sendSMS($mobile, $context, "number", $SendError);
+			if(!$result)
+			{
+				$SendError .= "ارسال پیامک به " . $context . $row["fullname"] . " انجام نگردید.<br>";
+			}
+		}
+		echo Response::createObjectiveResponse($SendError == "", $SendError);
+		die();
+	}
+	
+	//...........................................................
 	
 	$dt = LON_FollowTemplates::Get(" AND StatusID=?", array($ToDoStatusID));
 	if($dt->rowCount() > 0)

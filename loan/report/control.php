@@ -95,9 +95,7 @@ function GetData(){
 	$query = "select r.RequestID,r.*,l.*,p.*,bi.InfoDesc StatusDesc,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
-				BranchName,
-				t_pay.SumPayments,
-				t.TafsiliID
+				BranchName
 				
 			from LON_requests r 
 			left join BaseInfo bi on(bi.TypeID=5 AND bi.InfoID=StatusID)
@@ -106,13 +104,7 @@ function GetData(){
 			join BSC_branches using(BranchID)
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
-			join ACC_tafsilis t on(t.TafsiliType=".TAFSILITYPE_PERSON." AND t.ObjectID=r.LoanPersonID)
-			left join (
-				select RequestID,sum(PayAmount) SumPayments 
-				from LON_payments 
-				group by RequestID			
-			)t_pay on(r.RequestID=t_pay.RequestID)
-			
+						
 			where 1=1 " . $where . " order by r.RequestID";
 	
 	$dt = PdoDataAccess::runquery($query, $whereParam);
@@ -121,34 +113,73 @@ function GetData(){
 	//------------ get all involved costs -------------------
 	global $c_dt;
 	$c_dt = PdoDataAccess::runquery("
-		select CostID,CostCode,concat(CostCode,'<br>',concat_ws(' - ' , b1.BlockDesc,b2.BlockDesc,b3.BlockDesc,b4.BlockDesc)) CostDesc,b1.essence
+		select CostID,CostCode,
+			concat('[',CostCode,'] ',b3.BlockDesc) CostDesc,
+			b1.essence
 		from ACC_DocItems 
 		join ACC_docs using(DocID)
 		join ACC_CostCodes cc using(CostID)
 		join ACC_blocks b1 on(level1=b1.BlockID)
 		left join ACC_blocks b2 on(level2=b2.BlockID)
 		left join ACC_blocks b3 on(level3=b3.BlockID)
-		left join ACC_blocks b4 on(level4=b4.BlockID)
 		where CycleID=" . $_SESSION["accounting"]["CycleID"] . " AND 
 		(cc.param1 = ".ACC_COST_PARAM_LOAN_RequestID." or "
 			. "cc.param2=".ACC_COST_PARAM_LOAN_RequestID." or "
 			. "cc.param3=".ACC_COST_PARAM_LOAN_RequestID.")
-		 group by CostID");
+		 group by CostID
+		 having sum(DebtorAmount-CreditorAmount)<>0");
 	//-------------------------------------------------------
 	for($i=0; $i<count($dt); $i++){
 		
 		$row = &$dt[$i];	
 		
 		$ComputeDate = !empty($_REQUEST["ComputeDate"]) ? $_REQUEST["ComputeDate"] : "";
-		$computeArr = LON_Computes::ComputePayments($row["RequestID"],$ComputeDate);
-		$remain = LON_Computes::GetCurrentRemainAmount($row["RequestID"],$computeArr, $ComputeDate);
-		$RemainArr = LON_Computes::GetRemainAmounts($row["RequestID"],$computeArr, $ComputeDate);
+		$ComputeArr = LON_Computes::ComputePayments($row["RequestID"],$ComputeDate);
+		$totalCompute = array(
+			"pure" => 0,
+			"wage" => 0,
+			"late" => 0,
+			"pnlt" => 0
+		);
+		$totalPay = array(
+			"pure" => 0,
+			"wage" => 0,
+			"late" => 0,
+			"pnlt" => 0
+		);
+		for($i=0; $i<count($ComputeArr); $i++)
+		{
+			if($ComputeArr[$i]["type"] == "pay")
+			{
+				$totalPay["pure"] += $ComputeArr[$i]["pure"];
+				$totalPay["wage"] += $ComputeArr[$i]["wage"];
+				$totalPay["late"] += $ComputeArr[$i]["totallate"];
+				$totalPay["pnlt"] += $ComputeArr[$i]["totalpnlt"];
+				continue;
+			}			
+			
+			$totalCompute["pure"] += $ComputeArr[$i]["pure"];
+			$totalCompute["wage"] += $ComputeArr[$i]["wage"];
+			$totalCompute["late"] += $ComputeArr[$i]["totallate"];
+			$totalCompute["pnlt"] += $ComputeArr[$i]["totalpnlt"];
+			
+		}
+		$row["compute_pure"] = $totalCompute["pure"];
+		$row["compute_wage"] = $totalCompute["wage"];
+		$row["compute_late"] = $totalCompute["late"];
+		$row["compute_pnlt"] = $totalCompute["pnlt"];
 		
-		$row["remain_pure"] = $RemainArr["remain_pure"];
-		$row["remain_wage"] = $RemainArr["remain_wage"];
-		$row["remain_late"] = $RemainArr["remain_late"];
-		$row["remain_pnlt"] = $RemainArr["remain_pnlt"];
-		$row["TotalRemainder"] = $remain;
+		$row["pay_pure"] = $totalPay["pure"];
+		$row["pay_wage"] = $totalPay["wage"];
+		$row["pay_late"] = $totalPay["late"];
+		$row["pay_pnlt"] = $totalPay["pnlt"];
+		
+		$row["remain_pure"] = $totalCompute["pure"] - $totalPay["pure"];
+		$row["remain_wage"] = $totalCompute["wage"] - $totalPay["wage"];
+		$row["remain_late"] = $totalCompute["late"] - $totalPay["late"];
+		$row["remain_pnlt"] = $totalCompute["pnlt"] - $totalPay["pnlt"];
+		
+		//---------------------------------------------------------
 		
 		$where = "";
 		$params = array(":r"=>$row["RequestID"]);
@@ -163,9 +194,10 @@ function GetData(){
 			$params[":tdoc"] = $_POST["toDoc"];
 		}
 		$cv_dt = PdoDataAccess::runquery("
-			select CostID,CostCode,sum(CreditorAmount-DebtorAmount) remainCost
+			select CostID,CostCode,sum(CreditorAmount-DebtorAmount) remainCost, blockDesc
 				from ACC_DocItems di join ACC_docs using(DocID)
 				join ACC_CostCodes cc using(CostID)
+				join ACC_blocks on(level3=blockID)
 				where CycleID=" . $_SESSION["accounting"]["CycleID"] . " AND 
 					(
 						if(cc.param1=".ACC_COST_PARAM_LOAN_RequestID.",di.param1=:r,1=0) OR
@@ -204,53 +236,88 @@ function ListData($IsDashboard = false){
 	}
 	
 	function LoanRender($row, $value){
-		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . " target=blank >" . number_format($value) . "</a>";
+		return "<a href=DebitReport.php?show=tru&RequestID=" . $row["RequestID"] . " target=blank >" . $value . "</a>";
 	}
 	$col = $rpg->addColumn("شماره وام", "RequestID", "LoanRender");
 	$col->ExcelRender = false;
+	
 	$col = $rpg->addColumn("نوع وام", "LoanDesc");
 	$col = $rpg->addColumn("منبع ", "ReqFullname");
 	$col = $rpg->addColumn("مشتری", "LoanFullname");
-	$col = $rpg->addColumn("تفصیلی مشتری", "TafsiliID");
-	
-	$col = $rpg->addColumn("شعبه", "BranchName");
 	$rpg->addColumn("وضعیت", "StatusDesc");
-	$col = $rpg->addColumn("تاریخ درخواست", "ReqDate", "ReportDateRender");
 	
-	$col = $rpg->addColumn("مبلغ درخواست", "ReqAmount", "ReportMoneyRender");
-	$col->EnableSummary();
-	$col = $rpg->addColumn("مبلغ پرداختی", "SumPayments", "ReportMoneyRender");
-	$col->EnableSummary();
-		
-	$col = $rpg->addColumn("کل مانده وام", "TotalRemainder", "ReportMoneyRender");
-	$col->ExcelRender = false;
-	$col->SummaryOfRender = false;
+	//.............................
+	
+	$col = $rpg->addColumn("اصل", "compute_pure","ReportMoneyRender");
+	$col->GroupHeader = "جمع محاسبه شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#a2ff9c";
 	$col->EnableSummary();
 	
-	$col = $rpg->addColumn("مانده اصل", "remain_pure","ReportMoneyRender");
-	$col->ExcelRender = false;
-	$col->SummaryOfRender = false;
+	$col = $rpg->addColumn("کارمزد", "compute_wage","ReportMoneyRender");
+	$col->GroupHeader = "جمع محاسبه شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#a2ff9c";
 	$col->EnableSummary();
 	
-	$col = $rpg->addColumn("مانده کارمزد", "remain_wage","ReportMoneyRender");
-	$col->ExcelRender = false;
-	$col->SummaryOfRender = false;
+	$col = $rpg->addColumn("تاخیر", "compute_late","ReportMoneyRender");
+	$col->GroupHeader = "جمع محاسبه شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#a2ff9c";
 	$col->EnableSummary();
 	
-	$col = $rpg->addColumn("مانده کارمزد تاخیر", "remain_late","ReportMoneyRender");
-	$col->ExcelRender = false;
-	$col->SummaryOfRender = false;
+	$col = $rpg->addColumn("جریمه", "compute_pnlt","ReportMoneyRender");
+	$col->GroupHeader = "جمع محاسبه شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#a2ff9c";
 	$col->EnableSummary();
 	
-	$col = $rpg->addColumn("مانده جریمه", "remain_pnlt","ReportMoneyRender");
-	$col->ExcelRender = false;
-	$col->SummaryOfRender = false;
+	//.............................
+	
+	$col = $rpg->addColumn("اصل", "pay_pure","ReportMoneyRender");
+	$col->GroupHeader = "جمع پرداخت شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#b0edff";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("کارمزد", "pay_wage","ReportMoneyRender");
+	$col->GroupHeader = "جمع پرداخت شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#b0edff";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("تاخیر", "pay_late","ReportMoneyRender");
+	$col->GroupHeader = "جمع پرداخت شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#b0edff";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("جریمه", "pay_pnlt","ReportMoneyRender");
+	$col->GroupHeader = "جمع پرداخت شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#b0edff";
+	$col->EnableSummary();
+	
+	//.............................
+	
+	$col = $rpg->addColumn("اصل", "remain_pure","ReportMoneyRender");
+	$col->GroupHeader = "مانده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#fdff9c";	
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("کارمزد", "remain_wage","ReportMoneyRender");
+	$col->GroupHeader = "مانده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#fdff9c";	
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("تاخیر", "remain_late","ReportMoneyRender");
+	$col->GroupHeader = "مانده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#fdff9c";	
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("جریمه", "remain_pnlt","ReportMoneyRender");
+	$col->GroupHeader = "مانده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#fdff9c";	
 	$col->EnableSummary();
 	
 	global $c_dt;
 	foreach($c_dt as $row)
 	{
 		$col = $rpg->addColumn($row["CostDesc"], $row["CostID"],"ReportMoneyRender");
+		$col->GroupHeader = "مانده طبق مالی";
+		$col->headerColor = "#ffc4c4";
 		$col->EnableSummary();
 	}
 	

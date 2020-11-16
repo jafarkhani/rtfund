@@ -247,6 +247,40 @@ if(isset($_REQUEST["show"]))
 				$ComputeArr[$i]["remain_wage"] + 
 				$ComputeArr[$i]["remain_late"] + $ComputeArr[$i]["remain_pnlt"];
 	}
+	
+	//............................................................
+	
+	$zarib = $partObj->FundWage < $partObj->CustomerWage ? $partObj->FundWage/$partObj->CustomerWage : 1;
+	$pnlt_zarib = $partObj->FundForfeitPercent < $partObj->ForfeitPercent ?  $partObj->FundForfeitPercent/$partObj->ForfeitPercent : 1;
+	
+	$totals["remain"]["fund"]["debt_pure"] = round($totals["remain"]["debt_pure"]*$zarib);
+	$totals["remain"]["fund"]["debt_wage"] = round($totals["remain"]["debt_wage"]*$zarib);
+	$totals["remain"]["fund"]["debt_late"] = round($totals["remain"]["debt_late"]*$zarib);
+	$totals["remain"]["fund"]["debt_pnlt"] = round($totals["remain"]["debt_pnlt"]*$pnlt_zarib);
+	$totals["remain"]["fund"]["debt_total"] = $totals["remain"]["fund"]["debt_pure"] + 
+			$totals["remain"]["fund"]["debt_wage"] + $totals["remain"]["fund"]["debt_late"] +
+			$totals["remain"]["fund"]["debt_pnlt"];
+	
+	$totals["remain"]["agent"]["debt_pure"] = round($totals["remain"]["debt_pure"]-$totals["remain"]["fund"]["debt_pure"]);
+	$totals["remain"]["agent"]["debt_wage"] = round($totals["remain"]["debt_wage"]-$totals["remain"]["fund"]["debt_wage"]);
+	$totals["remain"]["agent"]["debt_late"] = round($totals["remain"]["debt_late"]-$totals["remain"]["fund"]["debt_late"]);
+	$totals["remain"]["agent"]["debt_pnlt"] = round($totals["remain"]["debt_pnlt"]-$totals["remain"]["fund"]["debt_pnlt"]);
+	$totals["remain"]["agent"]["debt_total"] = round($totals["remain"]["debt_total"]-$totals["remain"]["fund"]["debt_total"]);
+	
+	$totals["totalremain"]["fund"]["debt_pure"] = round($totals["totalremain"]["debt_pure"]*$zarib);
+	$totals["totalremain"]["fund"]["debt_wage"] = round($totals["totalremain"]["debt_wage"]*$zarib);
+	$totals["totalremain"]["fund"]["debt_late"] = round($totals["totalremain"]["debt_late"]*$zarib);
+	$totals["totalremain"]["fund"]["debt_pnlt"] = round($totals["totalremain"]["debt_pnlt"]*$pnlt_zarib);
+	$totals["totalremain"]["fund"]["debt_total"] = $totals["totalremain"]["fund"]["debt_pure"] +
+			$totals["totalremain"]["fund"]["debt_wage"] + $totals["totalremain"]["fund"]["debt_late"] +
+			$totals["totalremain"]["fund"]["debt_pnlt"];
+	
+	$totals["totalremain"]["agent"]["debt_pure"] = round($totals["totalremain"]["debt_pure"]-$totals["totalremain"]["fund"]["debt_pure"]);
+	$totals["totalremain"]["agent"]["debt_wage"] = round($totals["totalremain"]["debt_wage"]-$totals["totalremain"]["fund"]["debt_wage"]);
+	$totals["totalremain"]["agent"]["debt_late"] = round($totals["totalremain"]["debt_late"]-$totals["totalremain"]["fund"]["debt_late"]);
+	$totals["totalremain"]["agent"]["debt_pnlt"] = round($totals["totalremain"]["debt_pnlt"]-$totals["totalremain"]["fund"]["debt_pnlt"]);
+	$totals["totalremain"]["agent"]["debt_total"] = round($totals["totalremain"]["debt_total"]-$totals["totalremain"]["fund"]["debt_total"]);
+	
 	//............................................................
 	$rpg = new ReportGenerator();
 	$rpg->mysql_resource = $returnArr;
@@ -355,7 +389,7 @@ if(isset($_REQUEST["show"]))
 	$rpg->footerExplicit = true;
 	$rpg->footerContent = "
 		<tr class=totalTR>
-			<td style='background-color:lightgreen' colspan=7 align=center rowspan=3>جمع تا تاریخ گزارش </td>
+			<td style='background-color:lightgreen' colspan=7 align=center rowspan=5>جمع تا تاریخ گزارش </td>
 			<td>محاسبه شده</td>
 			<td>".  number_format($totals["compute"]["debt_pure"])."</td>
 			<td>".  number_format($totals["compute"]["debt_wage"])."</td>
@@ -373,6 +407,7 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["payed"]["debt_early"])."</td>
 			<td>".  number_format($totals["payed"]["debt_total"])."</td>
 		</tr>
+		
 		<tr  class=totalTR style='background-color:lightgreen'>
 			<td>مانده</td>
 			<td>".  number_format($totals["remain"]["debt_pure"])."</td>
@@ -382,15 +417,52 @@ if(isset($_REQUEST["show"]))
 			<td>".  number_format($totals["remain"]["debt_early"])."</td>
 			<td>".  number_format($totals["remain"]["debt_total"])."</td>
 		</tr>
+		<tr  class=totalTR style='background-color:lightgreen'>
+			<td>سهم صندوق از مانده</td>
+			<td>".  number_format($totals["remain"]["fund"]["debt_pure"])."</td>
+			<td>".  number_format($totals["remain"]["fund"]["debt_wage"])."</td>
+			<td>".  number_format($totals["remain"]["fund"]["debt_late"])."</td>		
+			<td>".  number_format($totals["remain"]["fund"]["debt_pnlt"])."</td>
+			<td>".  number_format($totals["remain"]["debt_early"])."</td>
+			<td>".  number_format($totals["remain"]["fund"]["debt_total"])."</td>
+		</tr>
+		<tr  class=totalTR style='background-color:lightgreen'>
+			<td>سهم سرمایه گذار از مانده</td>
+			<td>".  number_format($totals["remain"]["agent"]["debt_pure"])."</td>
+			<td>".  number_format($totals["remain"]["agent"]["debt_wage"])."</td>
+			<td>".  number_format($totals["remain"]["agent"]["debt_late"])."</td>		
+			<td>".  number_format($totals["remain"]["agent"]["debt_pnlt"])."</td>
+			<td>0</td>
+			<td>".  number_format($totals["remain"]["agent"]["debt_total"])."</td>
+		</tr>
+		
 		<tr class=totalTR style='background-color:pink'>
-			<td colspan=7 align=center>جمع تا انتهای قرارداد </td>
-			<td>مانده</td>
+			<td colspan=7 align=center rowspan=3>جمع تا انتهای قرارداد </td>
+			<td>مانده کل</td>
 			<td>".  number_format($totals["totalremain"]["debt_pure"])."</td>
 			<td>".  number_format($totals["totalremain"]["debt_wage"])."</td>
 			<td>".  number_format($totals["totalremain"]["debt_late"])."</td>		
 			<td>".  number_format($totals["totalremain"]["debt_pnlt"])."</td>
 			<td>".  number_format($totals["totalremain"]["debt_early"])."</td>
 			<td>".  number_format($totals["totalremain"]["debt_total"])."</td>
+		</tr>
+		<tr class=totalTR style='background-color:pink'>
+			<td>سهم صندوق از مانده کل</td>
+			<td>".  number_format($totals["totalremain"]["fund"]["debt_pure"])."</td>
+			<td>".  number_format($totals["totalremain"]["fund"]["debt_wage"])."</td>
+			<td>".  number_format($totals["totalremain"]["fund"]["debt_late"])."</td>		
+			<td>".  number_format($totals["totalremain"]["fund"]["debt_pnlt"])."</td>
+			<td>".  number_format($totals["totalremain"]["debt_early"])."</td>
+			<td>".  number_format($totals["totalremain"]["fund"]["debt_total"])."</td>
+		</tr>
+		<tr class=totalTR style='background-color:pink'>
+			<td>سهم سرمایه گذار از مانده کل</td>
+			<td>".  number_format($totals["totalremain"]["agent"]["debt_pure"])."</td>
+			<td>".  number_format($totals["totalremain"]["agent"]["debt_wage"])."</td>
+			<td>".  number_format($totals["totalremain"]["agent"]["debt_late"])."</td>		
+			<td>".  number_format($totals["totalremain"]["agent"]["debt_pnlt"])."</td>
+			<td>0</td>
+			<td>".  number_format($totals["totalremain"]["agent"]["debt_total"])."</td>
 		</tr>
 	";	
 	

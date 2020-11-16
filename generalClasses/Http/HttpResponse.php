@@ -6,7 +6,6 @@
 // create Date:	98.07
 //---------------------------
 
-require_once 'SharedModules/ComposerPacks/vendor/autoload.php';
 use GuzzleHttp\Client;
 
 class HttpResponse {
@@ -78,12 +77,14 @@ class HttpResponse {
 
                 $response = $client->request($method, $url,  [
                     'multipart' => $multipartArr,
-                    'headers'=> $this->GetHeader()
+                    'headers'=> $this->GetHeader(),
+					'verify' => false
                 ]);
                 break;
         }
         $content = ($response->getBody()->getContents()); // added by S.Ehsani
         $arr = json_decode($response->getBody());
+		print_r($arr);
         //*******************added by S.Ehsani**************
         if(empty($arr)){
             $header = substr($content, 0, strpos($content,'}'));
@@ -110,7 +111,8 @@ class HttpResponse {
 
     private function GetHeader(){
 		
-		if(isset($GLOBALS["FUMHeaderInfo"]))
+		return array();
+		/*if(isset($GLOBALS["FUMHeaderInfo"]))
 		{
 			$headerInfo = $GLOBALS["FUMHeaderInfo"];
 			$ipAddress = isset($headerInfo[HeaderKey::IP_ADDRESS]) ? $headerInfo[HeaderKey::IP_ADDRESS] : "";
@@ -136,7 +138,7 @@ class HttpResponse {
             'SYS-KEY' => $sysCode,
             'IP-ADDRESS' => $ipAddress,
             'USER-ID' => $userId,
-            'H-TOKEN' => $hash) , $this->extraHeaders );
+            'H-TOKEN' => $hash) , $this->extraHeaders );*/
     }
 
     public function getHttpStatus() {

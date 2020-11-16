@@ -219,7 +219,7 @@ class ReportGenerator {
 
 	function ExcelGeneration() {
 		
-		//ini_set("display_errors", "On");
+		ini_set("display_errors", "Off");
 		$worksheet = "";
 		require_once 'excel.php';
 		require_once "php_writeexcel-0.3.0/class.writeexcel_workbook.inc.php";
@@ -319,16 +319,11 @@ class ReportGenerator {
 		echo "<caption style='background-color: #2D72AD;color: white;'>";
 		if($reportTitle)
 		{
-			
-			if ($this->headerContent != "")
-			{
-				//$this->pageRecordCounter++;
-				//$this->pageRecordCounter++;
+			if ($this->headerContent != ""){
 				echo $this->headerContent;
 			}
 			else if ($this->header != "") {
 				echo "<center><span style='font-family:titr,b titr;'>" . $this->header . "</span><center>";
-				//$this->pageRecordCounter++;
 			}
 			
 		}
@@ -359,6 +354,8 @@ class ReportGenerator {
 			if($this->columns[$i]->hidden)
 				continue;
 			
+			$CellColor = $this->columns[$i]->headerColor != "" ? "background-color:" . $this->columns[$i]->headerColor : "";
+			
 			if($GroupHeaderFlag)
 			{
 				$rowspan = !empty($this->columns[$i]->GroupHeader) ? "" : "rowspan=2";
@@ -376,14 +373,14 @@ class ReportGenerator {
 								break;
 						}
 						$colspan = "colspan=" . $index;
-
+						
 						echo "<td $colspan align='center' 
-						style='padding:2px' border='$this->border' height='21px'><font
+						style='padding:2px;$CellColor' border='$this->border' height='21px'><font
 						color = '$this->header_textcolor' style='font-size:".$this->fontSize."'><b>&nbsp;" . 
 						$this->columns[$i]->GroupHeader . "</b></font></td>";
 					}
 					$secondRow .= "<td align='center' 
-						style='padding:2px' border='$this->border' height='21px'><font
+						style='padding:2px;$CellColor' border='$this->border' height='21px'><font
 						color = '$this->header_textcolor' style='font-size:".$this->fontSize."'><b>&nbsp;" . 
 						$this->columns[$i]->header . "</b></font></td>";
 				}
@@ -391,7 +388,7 @@ class ReportGenerator {
 				{
 					echo "<td $rowspan align='" . ($this->columns[$i]->align == "" ? $this->header_alignment : 
 						$this->columns[$i]->align). 
-						"' style='padding:2px' border='$this->border' height='21px'><font
+						"' style='padding:2px;$CellColor' border='$this->border' height='21px'><font
 						color = '$this->header_textcolor' style='font-size:".$this->fontSize."'><b>&nbsp;" . 
 						$this->columns[$i]->header . "</b></font></td>";
 				}
@@ -400,7 +397,7 @@ class ReportGenerator {
 			{
 				echo "<td align='" . ($this->columns[$i]->align == "" ? $this->header_alignment : 
 						$this->columns[$i]->align). 
-						"' style='padding:2px' border='$this->border' height='21px'><font
+						"' style='padding:2px;$CellColor' border='$this->border' height='21px'><font
 						color = '$this->header_textcolor' style='font-size:".$this->fontSize."'><b>&nbsp;" . 
 						$this->columns[$i]->header . "</b></font></td>";
 			}
@@ -1254,6 +1251,7 @@ class ReportColumn {
 	public $GroupHeader = "";
 	public $field;
 	public $queryField;
+	public $headerColor;
 	
 	public $renderFunction;
 	public $renderParams;

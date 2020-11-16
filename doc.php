@@ -1,4 +1,9 @@
 <?php
+
+$a = array(   0=> "3", 1 => "d", 6 => "4");
+echo count($a);
+die();
+
 require_once "framework/header.inc.php";
 
 ?>

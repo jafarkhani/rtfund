@@ -7,4 +7,17 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Api\\Controllers\\AttendanceController' => $baseDir . '/api/controllers/AttendanceController.php',
+    'ArithmeticError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/ArithmeticError.php',
+    'AssertionError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/AssertionError.php',
+    'DivisionByZeroError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/DivisionByZeroError.php',
+    'Error' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/Error.php',
+    'HTTPStatusCodes' => $baseDir . '/generalClasses/Http/HTTPStatusCodes.php',
+    'HeaderControl' => $baseDir . '/generalClasses/Http/HeaderControl.php',
+    'HeaderKey' => $baseDir . '/generalClasses/Http/HeaderKey.php',
+    'HttpResponse' => $baseDir . '/generalClasses/Http/HttpResponse.php',
+    'Normalizer' => $vendorDir . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
+    'ParseError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/ParseError.php',
+    'ResponseHelper' => $baseDir . '/generalClasses/Http/ResponseHelper.php',
+    'SessionUpdateTimestampHandlerInterface' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/SessionUpdateTimestampHandlerInterface.php',
+    'TypeError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/TypeError.php',
 );

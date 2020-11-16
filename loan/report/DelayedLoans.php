@@ -26,7 +26,7 @@ $page_rpg->addColumn("معرف", "ReqPersonName");
 $page_rpg->addColumn("وام گیرنده", "LoanPersonName");
 $page_rpg->addColumn("موبایل", "mobile");
 $page_rpg->addColumn("وضعیت", "StatusDesc");
-$col = $page_rpg->addColumn("تاریخ خاتمه", "EndingDate");
+$col = $page_rpg->addColumn("تاریخ خاتمه", "EndDate");
 $col->type = "date";
 $page_rpg->addColumn("مبلغ وام", "PartAmount");
 $page_rpg->addColumn("جمع وام و کارمزد", "TotalLoanAmount");
@@ -123,7 +123,7 @@ function GetData(){
 	MakeWhere($where, $whereParam);
 			
 	$query = "select p.*,
-				r.EndingDate,
+				r.EndDate,
 				l.LoanDesc,
 				r.RequestID,LoanPersonID,p1.mobile,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanPersonName,
@@ -284,7 +284,7 @@ function ListData($IsDashboard = false){
 	$rpt->addColumn("وام گیرنده", "LoanPersonName");
 	$rpt->addColumn("موبایل", "mobile");
 	$rpt->addColumn("وضعیت", "StatusDesc");
-	$rpt->addColumn("تاریخ خاتمه", "EndingDate", "ReportDateRender");
+	$rpt->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
 	
 	$rpt->addColumn("مبلغ وام", "PartAmount", "ReportMoneyRender");
 	$col = $rpt->addColumn("جمع وام و کارمزد", "TotalLoanAmount", "ReportMoneyRender");
@@ -317,6 +317,7 @@ function ListData($IsDashboard = false){
 	}
 	$col = $rpt->addColumn("مانده کل تا انتها", "TotalRemainder","TotalRemainderRender");	
 	$col->EnableSummary();
+	$col->ExcelRender = false;
 	
 	function TotalNonPenaltyRemainderRender($row,$value){
 		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
@@ -324,6 +325,7 @@ function ListData($IsDashboard = false){
 	}
 	$col = $rpt->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","TotalNonPenaltyRemainderRender");
 	$col->EnableSummary();
+	$col->ExcelRender = false;
 	
 	$col = $rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
     $rpt->addColumn(" تاریخ آخرین وضعیت پیگیری", "RegDate","ReportDateRender");

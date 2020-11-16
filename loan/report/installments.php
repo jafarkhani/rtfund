@@ -220,9 +220,12 @@ function GetData(){
 			$MainRow["remain"] =  count($row["pays"])>0 ? $row["pays"][ count($row["pays"])-1 ]["remain"]*1 : 
 									$MainRow["InstallmentAmount"];
 
-			if($_POST["RemainStatus"] == "paid" && count($row["pays"]) == 0)
+//print_r($row);			
+			if($_POST["RemainStatus"] == "paid" && 
+				(count($row["pays"]) == 0 || $row["pays"][0]["BackPayID"] == "0"))
 				continue;
-			if($_POST["RemainStatus"] == "notPaid" && count($row["pays"]) > 0)
+			if($_POST["RemainStatus"] == "notPaid" && 
+				(count($row["pays"]) == 0 || $row["pays"][0]["BackPayID"] != "0"))
 				continue;
 			if($_POST["RemainStatus"] == "fullPaid" && $row["pays"][ count($row["pays"])-1 ]["remain"]*1 > 0)
 				continue;

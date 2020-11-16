@@ -107,51 +107,50 @@ function MakeWhere(&$where, &$whereParam , $ForRemain = false){
 		$where .= " AND b4.BlockID = :bf4";
 		$whereParam[":bf4"] = $_REQUEST["level4"];
 	}
-	if(isset($_REQUEST["taraz"]) && isset($_REQUEST["TafsiliID"]))
+	if(isset($_REQUEST["taraz"]))
 	{
-		if($_REQUEST["TafsiliID"] == "")
+		if($_GET["TafsiliID"] == "")
 			$where .= " AND (di.TafsiliID=0 OR di.TafsiliID is null)";
 		else
 		{
-			$where .= " AND (di.TafsiliID = :tid or di.TafsiliID2 = :tid or di.TafsiliID3 = :tid) ";
-			$whereParam[":tid"] = $_REQUEST["TafsiliID"];
+			$where .= " AND di.TafsiliID = :tid";
+			$whereParam[":tid"] = $_GET["TafsiliID"];
 		}
-	}
-	if(empty($_REQUEST["taraz"]) && !empty($_REQUEST["TafsiliID"]))
-	{
-		$where .= " AND (di.TafsiliID = :tid )";
-		$whereParam[":tid"] = $_REQUEST["TafsiliID"];
+		if($_GET["TafsiliID2"] == "")
+			$where .= " AND (di.TafsiliID2=0 OR di.TafsiliID2 is null)";
+		else
+		{
+			$where .= " AND di.TafsiliID2 = :tid2";
+			$whereParam[":tid2"] = $_GET["TafsiliID2"];
+		}
+		
+		if($_GET["TafsiliID3"] == "")
+			$where .= " AND (di.TafsiliID3=0 OR di.TafsiliID3 is null)";
+		else
+		{
+			$where .= " AND di.TafsiliID3 = :tid3";
+			$whereParam[":tid3"] = $_GET["TafsiliID3"];
+		}
 	}
 	if(!empty($_REQUEST["TafsiliType"]))
 	{
 		$where .= " AND (di.TafsiliType = :tt)";
 		$whereParam[":tt"] = $_REQUEST["TafsiliType"];
 	}
-	if(isset($_REQUEST["TafsiliID2"]))
+	if(!empty($_POST["TafsiliID"]))
 	{
-		if($_REQUEST["TafsiliID2"] == "")
-		{
-			if(isset($_REQUEST["taraz"]))
-				$where .= " AND (di.TafsiliID2=0 OR di.TafsiliID2 is null)";
-		}
-		else
-		{
-			$where .= " AND di.TafsiliID2 = :tid2 ";
-			$whereParam[":tid2"] = $_REQUEST["TafsiliID2"];
-		}
+		$where .= " AND di.TafsiliID = :tid ";
+		$whereParam[":tid"] = $_POST["TafsiliID"];
 	}
-	if(isset($_REQUEST["TafsiliID3"]))
+	if(!empty($_POST["TafsiliID2"]))
 	{
-		if($_REQUEST["TafsiliID3"] == "")
-		{
-			if(isset($_REQUEST["taraz"]))
-				$where .= " AND (di.TafsiliID3=0 OR di.TafsiliID3 is null)";
-		}
-		else
-		{
-			$where .= " AND di.TafsiliID3 = :tid3 ";
-			$whereParam[":tid3"] = $_REQUEST["TafsiliID3"];
-		}
+		$where .= " AND di.TafsiliID2 = :tid2 ";
+		$whereParam[":tid2"] = $_POST["TafsiliID2"];
+	}
+	if(!empty($_POST["TafsiliID3"]))
+	{
+		$where .= " AND di.TafsiliID3 = :tid3 ";
+		$whereParam[":tid3"] = $_POST["TafsiliID3"];
 	}
 	if(!empty($_REQUEST["fromLocalNo"]))
 	{

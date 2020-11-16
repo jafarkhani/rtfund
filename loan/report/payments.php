@@ -144,6 +144,7 @@ function ListData($IsDashboard = false){
 
 	$col = $rpg->addColumn("شماره وام", "RRequestID", "LoanReportRender");
 	$col->rowspaning = true;
+	$col->ExcelRender = false;
 	$col->rowspanByFields = array("RequestID");
 	
 	$col = $rpg->addColumn("نوع وام", "LoanDesc");

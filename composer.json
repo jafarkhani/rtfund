@@ -8,11 +8,13 @@
         }
     ],
     "require": {
-        "slim/slim": "3.*"
+        "slim/slim": "3.*",
+        "guzzlehttp/guzzle": "^6.3"
     },
     "autoload": {
         "classmap": [
-            "api/controllers"
+            "api/controllers/",
+			"generalClasses/Http/"
         ]   
     }
 }

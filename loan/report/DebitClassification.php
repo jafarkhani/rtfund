@@ -85,7 +85,7 @@ function GetData(){
 	MakeWhere($where, $whereParam);
 			
 	$query = "select p.*,
-				r.EndingDate,
+				r.EndDate,
 				l.LoanDesc,
 				r.RequestID,LoanPersonID,p1.mobile,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanPersonName,
@@ -216,7 +216,7 @@ function ListData($IsDashboard = false){
 	$rpt->addColumn("وام گیرنده", "LoanPersonName");
 	$rpt->addColumn("موبایل", "mobile");
 	$rpt->addColumn("وضعیت", "StatusDesc");
-	//$rpt->addColumn("تاریخ خاتمه", "EndingDate", "ReportDateRender");
+	//$rpt->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
 	
 	$rpt->addColumn("مبلغ وام", "PartAmount", "ReportMoneyRender");
 	$rpt->addColumn("شرح", "PartDesc");

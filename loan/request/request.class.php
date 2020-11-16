@@ -8,6 +8,9 @@ require_once DOCUMENT_ROOT . '/office/dms/dms.class.php';
 
 class LON_requests extends PdoDataAccess{
 	
+	static $MinPercentOfInstallmentToBeDelayed = 5;
+	static $MinAmountOfInstallmentToBeDelayed = 2000000;
+	
 	public $RequestID;
 	public $BranchID;
 	public $LoanID;
@@ -35,6 +38,7 @@ class LON_requests extends PdoDataAccess{
 	public $ContractType;
 	public $IsLock;
 	public $EndDate;
+	public $DefrayDate;
 
 	/* New Add Fields */
 	public $LetterID;
@@ -66,6 +70,7 @@ class LON_requests extends PdoDataAccess{
 		$this->DT_VisitDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_WorkgroupDiscussDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_EndDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		$this->DT_DefrayDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		
 		if($RequestID != "")
 			PdoDataAccess::FillObject ($this, "
@@ -1174,12 +1179,18 @@ class LON_requests extends PdoDataAccess{
 		foreach($computeArr as $row)
 			if($row["type"] == "installment" && $row["id"]*1 > 0)
 			{
-				if( $row["remain_pure"]*1 != 0 || 
-					$row["remain_wage"]*1 != 0 || 
-					$row["remain_late"]*1 != 0 || 
-					$row["remain_pnlt"]*1 != 0 )
-					
+				$totalRemain = $row["remain_pure"]*1 + $row["remain_wage"]*1 + $row["remain_late"]*1 + $row["remain_pnlt"]*1;
+				
+				if( $totalRemain != 0 ){
+
+					if($totalRemain < $row["RecordAmount"]*self::$MinPercentOfInstallmentToBeDelayed/100)
+						continue;
+
+					if($totalRemain < self::$MinAmountOfInstallmentToBeDelayed)
+						continue;
+
 					return $row;
+				}	
 			}
 		return null;
 	}

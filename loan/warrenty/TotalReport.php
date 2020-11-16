@@ -8,7 +8,7 @@ require_once '../../header.inc.php';
 require_once "ReportGenerator.class.php";
  
 $page_rpg = new ReportGenerator("mainForm","WarrentyReport_totalObj");
-$page_rpg->addColumn("شماره تضمین", "RequestID");
+$page_rpg->addColumn("شماره تضمین", "RefRequestID");
 $page_rpg->addColumn("شعبه", "BranchName");
 $page_rpg->addColumn("نوع درخواست", "TypeDesc");	
 $col = $page_rpg->addColumn("تاریخ شروع", "StartDate");
@@ -122,6 +122,8 @@ function GetData(){
 				($userFields != "" ? "," . $userFields : "")
 				."
 			from WAR_requests r 
+				join (select RefRequestID,max(RequestID) RequestID from WAR_requests group by RefRequestID)t
+					using(RequestID,RefRequestID)
 				left join BSC_branches using(BranchID)
 				left join BSC_persons p using(PersonID)
 				left join BaseInfo bf on(bf.TypeID=74 AND InfoID=r.TypeID)
@@ -133,10 +135,13 @@ function GetData(){
 	$query .= $group == "" ? " group by r.RequestID" : " group by " . $group;
 	$query .= $group == "" ? " order by r.RequestID" : " order by " . $group;
 
-    /*return PdoDataAccess::runquery($query, $whereParam);*/
     $temp = PdoDataAccess::runquery($query, $whereParam);
     $count=count($temp);
-
+	if($_SESSION["USER"]["UserName"] == "admin")
+	{
+		//echo PdoDataAccess::GetLatestQueryString();
+		//print_r(ExceptionHandler::PopAllExceptions());
+	}
     //---------------------- Warrenty Info --------------------------
     for ($i=0; $i<$count; $i++ ){
         if($temp[$i]['RequestID'] > 0)
@@ -164,7 +169,7 @@ function ListDate($IsDashboard = false){
 	//if($_SESSION["USER"]["UserName"] == "admin")
 	//	echo PdoDataAccess::GetLatestQueryString ();
 	
-	$rpg->addColumn("شماره تضمین", "RequestID");
+	$rpg->addColumn("شماره تضمین", "RefRequestID");
 	$rpg->addColumn("شعبه", "BranchName");
 	$rpg->addColumn("نوع درخواست", "TypeDesc");	
 	$rpg->addColumn("تاریخ شروع", "StartDate", "ReportDateRender");
