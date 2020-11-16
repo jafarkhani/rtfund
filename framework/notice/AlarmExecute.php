@@ -9,26 +9,26 @@ ini_set("MAX_EXECUTION_TIME",3000);
 
 ob_start();
 
-define("DOCUMENT_ROOT", "/home/sajakrrt/domains/saja.krrtf.ir/public_html/");
+define("DOCUMENTROOT", "/home/sajakrrt/domains/saja.krrtf.ir/public_html/");
 
-set_include_path(DOCUMENT_ROOT . "generalClasses");
+set_include_path(DOCUMENTROOT . "generalClasses");
 
-require_once DOCUMENT_ROOT . 'definitions.inc.php';
+require_once DOCUMENTROOT . 'definitions.inc.php';
 require_once 'InputValidation.class.php';
 require_once 'PDODataAccess.class.php';
 require_once 'classconfig.inc.php';
 require_once 'DataAudit.class.php';
 
-$fp = fopen(DOCUMENT_ROOT . "storage/errors.txt", "w");
+$fp = fopen(DOCUMENTROOT . "storage/errors.txt", "w");
 
 define("SYSTEMID", 1);
 session_start();
 $_SESSION["USER"] = array("PersonID" => 1000);
 $_SESSION['LIPAddress'] = '';
 
-require_once DOCUMENT_ROOT . 'framework/configurations.inc.php';
+require_once DOCUMENTROOT . 'framework/configurations.inc.php';
 require_once 'operation.class.php';
-require_once DOCUMENT_ROOT . 'office/letter/letter.class.php';
+require_once DOCUMENTROOT . 'office/letter/letter.class.php';
 require_once 'email.php';
 require_once 'sms.php';
 
