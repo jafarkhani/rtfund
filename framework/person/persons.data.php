@@ -180,7 +180,7 @@ function selectPersons(){
 	
 	if(!empty($_REQUEST["EmptyRow"]) && empty($_REQUEST["PersonID"]))
 	{
-		$temp = array_merge(array(array("PersonID" => 0, "fullname" => "منابع داخلی")), $temp);
+		$temp = array_merge(array(array("PersonID" => "0", "fullname" => "منابع داخلی")), $temp);
 	}
 	
 	echo dataReader::getJsonData($temp, $no, $_GET["callback"]);
