@@ -167,26 +167,27 @@ RequestInfo.prototype.LoadRequestInfo = function(){
 				var R2 = false;
 				var R3 = false;
 				var R4 = false;
-				if(record.data.ReqPersonID > 0)
-				{
-					R2 = me.companyPanel.down("[name=ReqPersonID]").getStore().load({
-						params : {
-							PersonID : record.data.ReqPersonID
-						},
-						callback : function(){
-							if(this.getCount() > 0)
-								me.companyPanel.down("[name=ReqPersonID]").setValue(this.getAt(0).data.PersonID);
-						}
-					});
-					
-					R3 = me.companyPanel.down("[itemId=cmp_subAgent]").getStore().load({
-						params : {
-							PersonID : record.data.ReqPersonID
-						},
-						callback : function(){
-						}
-					});					
-				}
+				
+				
+				R2 = me.companyPanel.down("[name=ReqPersonID]").getStore().load({
+					params : {
+						PersonID : record.data.ReqPersonID
+					},
+					callback : function(){
+						if(this.getCount() > 0)
+							me.companyPanel.down("[name=ReqPersonID]").setValue(this.getAt(0).data.PersonID);
+					}
+				});
+
+				R3 = me.companyPanel.down("[itemId=cmp_subAgent]").getStore().load({
+					params : {
+						PersonID : record.data.ReqPersonID
+					},
+					callback : function(){
+					}
+				});					
+				
+	
 				if(record.data.LetterID > 0)
 				{
 					R4 = me.companyPanel.down("[name=LetterID]").getStore().load({
@@ -551,7 +552,7 @@ RequestInfo.prototype.BuildForms = function(){
 				proxy: {
 					type: 'jsonp',
 					url: this.address_prefix + '../../framework/person/persons.data.php?' +
-						"task=selectPersons&UserTypes=IsAgent,IsSupporter,IsShareholder",
+						"task=selectPersons&UserTypes=IsAgent,IsSupporter,IsShareholder&EmptyRow=true",
 					reader: {root: 'rows',totalProperty: 'totalCount'}
 				},
 				fields : ['PersonID','fullname']
