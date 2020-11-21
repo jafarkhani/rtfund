@@ -314,7 +314,7 @@ class ACC_docs extends PdoDataAccess {
 						<tr>
 						<td style="width:25%"><img src="/framework/icons/logo.jpg" style="width:100px" /></td>
 						<td style="height: 60px;font-family:titr;font-size:16px" align="center">سند حسابداری
-						<br>' . $temp[0]["BranchName"] . '</td>
+						<br>شعبه ' . $temp[0]["BranchName"] . '</td>
 						<td style="width:25%" align="center" >شماره سند : 
 						'. $DocObject->LocalNo .'<br>تاریخ سند :
 						'. DateModules::miladi_to_shamsi($DocObject->DocDate).'</td>
