@@ -27,8 +27,8 @@ if(isset($_REQUEST["show"]))
 			false : true;
 	$ComputeArr = LON_Computes::ComputePayments($RequestID, $ComputeDate, null, $ComputePenalty);
 	
-	//if($_SESSION['USER']["UserName"] == "admin")
-	//	print_r($ComputeArr);
+	if($_SESSION['USER']["UserName"] == "admin")
+		print_r($ComputeArr);
 	
 	$PureArr = LON_Computes::ComputePures($RequestID); 
 	//............ get remain untill now ......................
