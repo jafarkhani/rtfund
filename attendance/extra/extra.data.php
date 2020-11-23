@@ -61,7 +61,7 @@ function ComputeExtraSummary() {
 	
 	$PersonsDT = PdoDataAccess::runquery("
 		select PersonID, concat(fname,' ',lname) fullname from BSC_persons
-		where IsStaff='YES' ");
+		where IsStaff='YES' AND IsActive='YES' ");
 	
 	$pdo = PdoDataAccess::getPdoObject(); 
 	$pdo->beginTransaction();
