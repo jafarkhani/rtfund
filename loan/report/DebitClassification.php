@@ -244,28 +244,29 @@ function ListData($IsDashboard = false){
 	$col->ExcelRender =false;
 	$col->EnableSummary();
 	
-	$col = $rpt->addColumn("مانده قابل پرداخت معوقه", "CurrentRemainder","ReportMoneyRender");	
+	$col = $rpt->addColumn("مانده سررسید شده", "CurrentRemainder","ReportMoneyRender");	
 	$col->EnableSummary();
 		
 	$rpt->addColumn("نوع بدهی", "DebitClassify");	
 	
-	$col = $rpt->addColumn("وام با شرایط طبقه بندی معوق می باشد", "IsDelayedInDebitClass","IsDelayedInDebitClassRender");
+	$col = $rpt->addColumn("حقوقی شده", "IsDelayedInDebitClass","IsDelayedInDebitClassRender");
 	$col->align = "center";
 	function IsDelayedInDebitClassRender($row,$value){
-		return ($value) ? "*" : "";
+		return ($value) ? "بلی" : "";
 	}
 	function ColorRender($row){
 		return $row["IsDelayedInDebitClass"] ? "violet" : "";
 	}
 	$rpt->rowColorRender = "ColorRender";
 	
-	$dt = PdoDataAccess::runquery("select param4,InfoDesc from BaseInfo b1 
+	$dt = PdoDataAccess::runquery("select InfoID,param4,InfoDesc from BaseInfo b1 
 		where b1.TypeID=" . TYPEID_DebitClass . " group by param4");
 	foreach($dt as $row)
 	{
-		$col = $rpt->addColumn("بدهی " . $row["InfoDesc"], "Debit_" . $row["param4"],"ReportMoneyRender");
+		$col = $rpt->addColumn("C" . $row["InfoID"], "Debit_" . $row["param4"],"ReportMoneyRender");
 		$col->EnableSummary();
-	}
+		$col->align = "center";
+	} 
 	
 	if(!$rpt->excel && !$IsDashboard)
 	{
