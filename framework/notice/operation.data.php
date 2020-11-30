@@ -12,6 +12,7 @@ require_once "config.inc.php";
 require_once 'operation.class.php';
 require_once 'email.php';
 require_once 'sms.php';
+ini_set('max_execution_time', 30000000);
 
 $task = isset($_REQUEST["task"]) ? $_REQUEST["task"] : "";
 if(!empty($task))

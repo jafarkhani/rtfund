@@ -34,6 +34,8 @@ $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
 $col->type = "date";	
 $col = $page_rpg->addColumn("تاریخ خاتمه", "EndDate");
 $col->type = "date";	
+$col = $page_rpg->addColumn("تاریخ تسویه", "DefrayDate");
+$col->type = "date";	
 $page_rpg->addColumn("سند خاتمه", "EndDocNo");
 $page_rpg->addColumn("مبلغ درخواست", "ReqAmount");
 $page_rpg->addColumn("وام بالاعوض", "IsFree", "IsFreeRender");
@@ -157,6 +159,8 @@ function MakeWhere(&$where, &$pay_where, &$whereParam){
 			case "toPartDate":
 			case "fromEndDate":
 			case "toEndDate":
+			case "fromDefrayDate":
+			case "toDefrayDate":
 				$value = DateModules::shamsi_to_miladi($value, "-");
 				break;
 			case "fromReqAmount":
@@ -397,6 +401,7 @@ function ListData($IsDashboard = false){
 	$rpg->addColumn("تضامین بر اساس", "FundRules", "FundRulesRender");
 	$rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
 	$rpg->addColumn("سند خاتمه", "EndDocNo");
+	$rpg->addColumn("تاریخ تسویه", "DefrayDate", "ReportDateRender");	
 	
 	$rpg->addColumn("مشتری", "LoanFullname");
 	$rpg->addColumn("شماره پرونده", "PackNo");	
@@ -856,6 +861,14 @@ function LoanReport_total()
 		},{
 			xtype : "shdatefield",
 			name : "toEndDate",
+			fieldLabel : "تا تاریخ"
+		},{
+			xtype : "shdatefield",
+			name : "fromDefrayDate",
+			fieldLabel : "تاریخ تسویه از"
+		},{
+			xtype : "shdatefield",
+			name : "toDefrayDate",
 			fieldLabel : "تا تاریخ"
 		},{
 			xtype : "shdatefield",
