@@ -162,5 +162,25 @@ function ConfirmSummary() {
 	die();	
 }
 
+function UndoSummary() {
+	
+	$SummaryYear = $_POST["SummaryYear"];
+	$SummaryMonth = $_POST["SummaryMonth"];
+
+	$dt = PdoDataAccess::runquery("select * from HRM_payments where 
+			payment_type=1 and pay_year=? and pay_month=?",
+			array($SummaryYear, $SummaryMonth));
+	if(count($dt)> 0){
+		echo Response::createObjectiveResponse(false, "در این ماه محاسبه حقوق انجام شده است");
+		die();
+	}
+	
+	PdoDataAccess::runquery("update ATN_ExtraSummary set StatusCode='RAW' "
+			. " where SummaryYear=? and SummaryMonth=?", array(
+				$SummaryYear, $SummaryMonth
+			));
+	echo Response::createObjectiveResponse(true, "");
+	die();	
+}
 
 ?>
