@@ -95,6 +95,7 @@ function GetData(){
 				bif.InfoDesc LatestFollowStatus,
 				t5.RegDate,
 				tazamin,
+				t_pay.firstPay,
 				t1.InstallmentAmount,
 				t1.LastInstallmentDate,
 				t1.FirstInstallmentDate,
@@ -151,6 +152,12 @@ function GetData(){
 				group by RequestID			
 			)t4 on(r.RequestID=t4.RequestID)
 			
+			left join (
+				select RequestID,sum(PayAmount) SumPayments, min(PayDate) firstPay
+				from LON_payments p
+				group by RequestID			
+			)t_pay on(r.RequestID=t_pay.RequestID)
+
 			where r.StatusID=" . LON_REQ_STATUS_CONFIRM . " " . $where . "
 		
 			group by r.RequestID
@@ -230,6 +237,7 @@ function ListData($IsDashboard = false){
 	$rpt->addColumn("سررسید اولین قسط", "FirstInstallmentDate","ReportDateRender");
 	$rpt->addColumn("سررسید آخرین قسط", "LastInstallmentDate","ReportDateRender");
 	$rpt->addColumn("مبلغ قسط", "InstallmentAmount","ReportMoneyRender");
+	$rpt->addColumn("تاریخ اولین مرحله پرداخت وام", "firstPay","ReportDateRender");
 	$rpt->addColumn("تاریخ آخرین پرداخت مشتری", "MaxPayDate","ReportDateRender");
 	$rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
 	
