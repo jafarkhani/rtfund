@@ -63,7 +63,7 @@ class ACC_docs extends PdoDataAccess {
 	}
 
 	function Trigger($pdo = null) {
-
+ 
 		if ($this->LocalNo != "") {
 			$dt = PdoDataAccess::runquery("select * from ACC_docs 
 			where BranchID=? AND CycleID=? AND LocalNo=?", array($this->BranchID, $this->CycleID, $this->LocalNo), $pdo);
