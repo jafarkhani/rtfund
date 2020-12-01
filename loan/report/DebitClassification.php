@@ -231,6 +231,7 @@ function ListData($IsDashboard = false){
 	$rpt->addColumn("سررسید آخرین قسط", "LastInstallmentDate","ReportDateRender");
 	$rpt->addColumn("مبلغ قسط", "InstallmentAmount","ReportMoneyRender");
 	$rpt->addColumn("تاریخ آخرین پرداخت مشتری", "MaxPayDate","ReportDateRender");
+	$rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
 	
 	$col = $rpt->addColumn("جمع کل پرداختی تاکنون", "TotalPayAmount", "ReportMoneyRender");
 	$col->ExcelRender = false;
