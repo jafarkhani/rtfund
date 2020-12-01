@@ -63,6 +63,8 @@ function MakeWhere(&$where, &$whereParam){
 				break;
 			case "fromReqDate":
 			case "toReqDate":
+			case "fromDefrayDate":
+			case "toDefrayDate":
 				$value = DateModules::shamsi_to_miladi($value, "-");
 				break;
 		}
@@ -75,9 +77,6 @@ function MakeWhere(&$where, &$whereParam){
 		$whereParam[":$key"] = $value;
 	}
 
-	$where .= isset($_POST["IsEndedInclude"]) ? 
-			" AND r.StatusID in('".LON_REQ_STATUS_CONFIRM."','".LON_REQ_STATUS_ENDED."')" : 
-			" AND r.StatusID in('".LON_REQ_STATUS_CONFIRM."')";
 }	
 
 global $c_dt;
@@ -245,7 +244,8 @@ function ListData($IsDashboard = false){
 	$col = $rpg->addColumn("منبع ", "ReqFullname");
 	$col = $rpg->addColumn("مشتری", "LoanFullname");
 	$rpg->addColumn("وضعیت", "StatusDesc");
-	
+	$rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
+	$rpg->addColumn("تاریخ تسویه", "DefrayDate", "ReportDateRender");	
 	//.............................
 	
 	$col = $rpg->addColumn("اصل", "compute_pure","ReportMoneyRender");
@@ -513,12 +513,42 @@ function LoanReport_control()
 			fieldLabel : "تا تاریخ وام"
 		},{
 			xtype : "shdatefield",
+			name : "fromEndDate",
+			fieldLabel : "تاریخ خاتمه از"
+		},{
+			xtype : "shdatefield",
+			name : "toEndDate",
+			fieldLabel : "تا تاریخ"
+		},{
+			xtype : "shdatefield",
+			name : "fromDefrayDate",
+			fieldLabel : "تاریخ تسویه از"
+		},{
+			xtype : "shdatefield",
+			name : "toDefrayDate",
+			fieldLabel : "تا تاریخ"
+		},{
+			xtype : "shdatefield",
 			name : "ComputeDate",
 			fieldLabel : "محاسبه تا تاریخ"
 		},{
-			xtype : "container",
-			colspan : 2,
-			html : "<input type=checkbox name=IsEndedInclude >  گزارش شامل وام های خاتمه یافته نیز باشد"
+			xtype : "combo",
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + '../request/request.data.php?' +
+						"task=GetAllStatuses",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['InfoID','InfoDesc'],
+				autoLoad : true					
+			}),
+			fieldLabel : "وضعیت وام",
+			queryMode : 'local',
+			width : 370,
+			displayField : "InfoDesc",
+			valueField : "InfoID",
+			hiddenName : "StatusID"
 		}],
 		buttons : [{
 			text : "گزارش ساز",
