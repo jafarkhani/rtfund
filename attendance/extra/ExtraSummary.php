@@ -33,6 +33,7 @@ $col->width =120;
 $dg->addButton("btn_compute", "محاسبه اضافه کار", "refresh", "function(){ExtraSummaryObject.ComputeSummary();}");
 $dg->addButton("btn_save", "ذخیره مبالغ نهایی", "save", "function(){ExtraSummaryObject.SaveSummary();}");
 $dg->addButton("btn_confirm", "تایید نهایی", "tick", "function(){ExtraSummaryObject.ConfirmSummary();}");
+$dg->addButton("btn_undo", "برگشت تایید", "undo", "function(){ExtraSummaryObject.ReturnSummary();}");
 
 $dg->title = "خلاصه لیست اضافه کار ماهانه";
 $dg->height = 500;
@@ -96,12 +97,14 @@ ExtraSummary.GridOnLoad = function(store){
 		me.grid.down("[itemId=btn_compute]").show();
 		me.grid.down("[itemId=btn_save]").show();
 		me.grid.down("[itemId=btn_confirm]").show();
+		me.grid.down("[itemId=btn_undo]").hide();
 	}
 	else
 	{
 		me.grid.down("[itemId=btn_compute]").hide();
 		me.grid.down("[itemId=btn_save]").hide();
 		me.grid.down("[itemId=btn_confirm]").hide();
+		me.grid.down("[itemId=btn_undo]").show();
 	}
 }
 
@@ -242,6 +245,43 @@ ExtraSummary.prototype.ConfirmSummary = function(){
 				if(st.success)
 				{
 					Ext.MessageBox.alert("", "اطلاعات با موفقیت تایید شد");
+					ExtraSummaryObject.grid.getStore().load();
+				}
+				else
+				{
+					Ext.MessageBox.alert("خطا", st.data);
+				}
+			},
+			failure: function(){}
+		}); 
+	});
+	
+}
+
+ExtraSummary.prototype.ReturnSummary = function(){
+
+	Ext.MessageBox.confirm("", "آیا مایل به برگشت تایید می باشید؟",
+	function(btn){
+		if(btn == "no")
+			return;
+		
+		me = ExtraSummaryObject;
+		mask = new Ext.LoadMask(me.grid, {msg:'در حال ذخیره سازی ...'});
+		mask.show();
+		Ext.Ajax.request({
+			url: me.address_prefix + 'extra.data.php?task=UndoSummary',
+			method: 'POST',
+			form : me.get("ExtraMainForm"),
+			params  :{
+				SummaryYear : me.SummaryYear,
+				SummaryMonth : me.SummaryMonth
+			},
+			success: function(response){
+				mask.hide();
+				var st = Ext.decode(response.responseText);
+				if(st.success)
+				{
+					Ext.MessageBox.alert("", "اطلاعات با موفقیت برگشت شد");
 					ExtraSummaryObject.grid.getStore().load();
 				}
 				else

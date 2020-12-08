@@ -65,12 +65,13 @@ class ExecuteEvent extends PdoDataAccess{
 		}
 
 		//------------------ run trigger --------------------
-		if($this->TriggerFunction != "")
+		if($this->TriggerFunction != ""){
 			if(!call_user_func($this->TriggerFunction, $this->Sources, $this, $pdo))
 			{
 				ExceptionHandler::PushException("خطا در اجرای  Trigger " . $this->TriggerFunction);
 				return false;
 			} 
+		}
 		//---------------------------------------------------
 
 		switch($eventRows[0]["EventType"])
@@ -261,7 +262,7 @@ class ExecuteEvent extends PdoDataAccess{
 		if(empty($this->DocObj->DocID))
 		{
 			if(!$this->DocObj->Add($this->pdo))
-			{
+			{ 
 				ExceptionHandler::PushException("خطا در ایجاد سند");
 				return false;
 			}

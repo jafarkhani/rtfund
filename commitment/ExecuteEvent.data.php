@@ -141,7 +141,7 @@ function RegisterEventDoc(){
 	$obj = new ExecuteEvent($EventID);
 	$obj->Sources = $SourceIDs;
 	$result = $obj->RegisterEventDoc($pdo);
-	if(!$result)
+	if(!$result) 
 	{
 		//print_r(ExceptionHandler::PopAllExceptions());
 		Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
