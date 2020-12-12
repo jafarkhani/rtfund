@@ -420,8 +420,8 @@ function selectCompanyTypes(){
 
 function ResetAttempt(){
 	
-	PdoDataAccess::runquery("delete from FRW_LoginAttempts where PersonID=?",
-		array($_POST["PersonID"]));
+	//PdoDataAccess::runquery("delete from FRW_LoginAttempts where PersonID=?",
+	//	array($_POST["PersonID"]));
 	echo Response::createObjectiveResponse(true, "");
 	die();
 }
