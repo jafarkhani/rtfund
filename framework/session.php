@@ -202,9 +202,69 @@ class session{
 		return $email;
 	}
 
+	static function getMobile($userName, $coded = false){
+		
+		$temp = PdoDataAccess::runquery("select * from BSC_persons where UserName=?", array($userName));
+		
+		if(count($temp) == 0)
+		{
+			return "WrongUserName";
+		}
+		
+		$mobile = $temp[0]["mobile"];
+		if($mobile == "")
+			return "EmptyMobile";
+		
+		if($coded)
+			return substr($mobile,0,3) . "****" . substr($mobile,strlen($mobile)-4);
+		
+		return $mobile;
+	} 
+	
 	static function SendNewPass($userName){
 		
-		require_once 'email.php';
+		require_once 'sms.php';
+		$temp = PdoDataAccess::runquery("select * from BSC_persons where UserName=?", array($userName));
+		if(count($temp) == 0)
+		{
+			echo "WrongUserName";
+			die();
+		}
+		$PersonRecord = $temp[0];
+		$mobile = $PersonRecord["mobile"];
+		if($mobile == ""){
+			echo "EmptyMobile";
+			die();
+		}
+		
+		$dt = PdoDataAccess::runquery("select * from FRW_SmsPass where PersonID=? and 
+			(now()-SendTime)/60 < 10", array($temp[0]["PersonID"]));
+		if(count($dt) > 0){
+			echo "SendedMobileBefore10Min";
+			die();
+		}
+		
+		$newPass = "r" . rand(111111, 999999);
+		
+		$hash_cost_log2 = 8;	
+		$hasher = new PasswordHash($hash_cost_log2, true);
+		PdoDataAccess::runquery("update BSC_persons set UserPass=? where PersonID=?", array(
+			$hasher->HashPassword(md5($newPass)), $PersonRecord["PersonID"]
+		)); 
+		
+		PdoDataAccess::runquery("insert into FRW_SmsPass(PersonID,SendedPass,SendTime)
+			values(:p,:pass," . PDONOW . ")", array(
+				":p" => $temp[0]["PersonID"],
+				":pass" => $newPass
+			));		
+		
+		$context = "رمز عبور جدید : " . $newPass . "  " . SoftwareName;
+		$result = ariana2_sendSMS($mobile, $context, "number", $err);
+		
+		echo $result ? "true" : "false";
+		die();
+		
+		/*require_once 'email.php';
 		
 		$temp = PdoDataAccess::runquery("select * from BSC_persons where UserName=?", array($userName));
 		if(count($temp) == 0)
@@ -231,7 +291,7 @@ class session{
 			"<br> لطفا پس از ورود به پرتال نسبت به تغییر رمز عبور خود اقدام نمایید." . 
 			"<br><br> صندوق نوآوری و شکوفایی";
 		echo SendEmail($email, $subject, $body) ? "true" : "false";
-		die();
+		die();*/
 	}
 	
 	static function IsPortal(){

@@ -69,7 +69,7 @@ function forget(){
 	{
 		if(!empty($_POST["ForgetUserName"]))
 		{
-			echo session::getEmail($_POST["ForgetUserName"], true);
+			echo session::getMobile($_POST["ForgetUserName"], true);
 			die();			
 		}
 
@@ -77,14 +77,13 @@ function forget(){
 	}
 	else if(isset($_REQUEST["forgetStep2"]))
 	{
-		$email = session::getEmail($_POST["ForgetUserName"]);
-		if($email != $_POST["forgetemail"])
+		$mobile = session::getMobile($_POST["ForgetUserName"]);
+		if($mobile != $_POST["forgetmobile"])
 		{
-			echo "WrongEmail";
+			echo "WrongMobile";
 			die();	
 		}
 		session::SendNewPass($_POST["ForgetUserName"]);
-		echo "true";
 		die();
 	}
 }
@@ -233,7 +232,7 @@ $index = rand(0, count($pics)-1);
 				document.getElementById("loginBTN").style.display = "none";	
 				document.getElementById("step1BTN").style.display = "block";	
 				document.getElementById("ForgetUserName").value = "";
-				document.getElementById("forgetemail").value = "";
+				document.getElementById("forgetmobile").value = "";
 				return;
 			}
 			if(step == 1)
@@ -256,19 +255,19 @@ $index = rand(0, count($pics)-1);
 							document.getElementById("ForgetErrorDiv").innerHTML = "کلمه کاربری وارد شده وجود ندارد";
 							return;
 						}
-						if(xmlhttp.responseText == "EmptyEmail")
+						if(xmlhttp.responseText == "EmptyMobile")
 						{
 							document.getElementById("ForgetErrorDiv").style.display = "block";
 							document.getElementById("ForgetErrorDiv").innerHTML = 
-								"ایمیل شما برای ارسال رمز عبور جدید در سیستم ثبت نشده است"+
+								"شماره تلفن همراه شما برای ارسال رمز عبور جدید در سیستم ثبت نشده است"+
 								"برای بازیابی رمز با صندوق تماس بگیرید ";
 							return;
 						}
 						document.getElementById("ForgetErrorDiv").style.display = "none";
 						document.getElementById("ForgetUserName").style.display = "none";
-						document.getElementById("descDIV").innerHTML = "ابمیل خود را که مطابق با الگوی زیر می باشد وارد کنید" +
-							"<br><br>" + xmlhttp.responseText + "<br><br>";
-						document.getElementById("forgetemail").style.display = "block";
+						document.getElementById("descDIV").innerHTML = "شماره تلفن همراه خود را که مطابق با الگوی زیر می باشد وارد کنید" +
+							"<br><br><div style=direction:ltr align=left>" + xmlhttp.responseText + "</div><br><br>";
+						document.getElementById("forgetmobile").style.display = "block";
 						document.getElementById("step1BTN").style.display = "none";
 						document.getElementById("step2BTN").style.display = "block";					
 					}
@@ -285,16 +284,23 @@ $index = rand(0, count($pics)-1);
 					if (xmlhttp.readyState==4 && xmlhttp.status==200)
 					{
 						document.getElementById("ajax-loading").style.display = "none";
-						if(xmlhttp.responseText == "WrongEmail")
+						if(xmlhttp.responseText == "WrongMobile")
 						{						
 							document.getElementById("ForgetErrorDiv").style.display = "block";
-							document.getElementById("ForgetErrorDiv").innerHTML = "ایمیل وارد شده صحیح نمی باشد";
+							document.getElementById("ForgetErrorDiv").innerHTML = "شماره وارد شده صحیح نمی باشد";
 							return;
 						}
+						if(xmlhttp.responseText == "SendedMobileBefore10Min")
+						{						
+							document.getElementById("ForgetErrorDiv").style.display = "block";
+							document.getElementById("ForgetErrorDiv").innerHTML = " برای ارسال مجدد پیامک باید حداقل 10 دقیقه منتظر بمانید";
+							return;
+						}
+						
 						if(xmlhttp.responseText == "true")
 						{						
 							document.getElementById("ForgetErrorDiv").style.display = "none";
-							document.getElementById("descDIV").innerHTML = "رمز عبور جدید به ایمیل شما ارسال گردید" +
+							document.getElementById("descDIV").innerHTML = "رمز عبور جدید به شماره تلفن همراه شما ارسال گردید" +
 							"<br><br>";
 							document.getElementById("step2BTN").style.display = "none";
 							document.getElementById("loginBTN").style.display = "block";	
@@ -302,7 +308,7 @@ $index = rand(0, count($pics)-1);
 						}
 						
 						document.getElementById("ForgetErrorDiv").style.display = "block";
-						document.getElementById("ForgetErrorDiv").innerHTML = "ارسال ایمیل با شکست مواجه گردید";
+						document.getElementById("ForgetErrorDiv").innerHTML = "ارسال پیامک با شکست مواجه گردید";
 										
 					}
 				}
@@ -605,10 +611,10 @@ $index = rand(0, count($pics)-1);
 					<br><br></div>
 					<input type="text" id="ForgetUserName" name="ForgetUserName" class="textfield" 
 					placeholder="کلمه کاربری ..." required="required" dir="ltr"/>
-					<input type="text" id="forgetemail" name="forgetemail" style="display:none" class="textfield" 
-							placeholder="ایمیل ..." dir="ltr"/>
+					<input type="text" id="forgetmobile" name="forgetmobile" style="display:none" class="textfield" 
+							placeholder="شماره تلفن همراه ..." dir="ltr"/>
 					<button type="button" onclick="ForgetPass(2)" style="" id="step1BTN" class="btn"> مرحله بعد </button>
-					<button type="button" onclick="ForgetPass(3)" style="display:none" id="step2BTN" class="btn"> ارسال ایمیل </button>
+					<button type="button" onclick="ForgetPass(3)" style="display:none" id="step2BTN" class="btn"> ارسال پیامک </button>
 					<button type="button" onclick="ForgetPass(0)" style="display:none" id="loginBTN" class="btn"> ورود </button>
 				</form>
 			</div>
