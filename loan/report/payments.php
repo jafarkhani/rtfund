@@ -178,8 +178,10 @@ function ListData($IsDashboard = false){
 	
 	$rpg->addColumn("تاریخ پرداخت مصوب", "PayDate", "ReportDateRender");
 	$rpg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate", "ReportDateRender");
-	$rpg->addColumn("مبلغ پرداخت مصوب", "PayAmount", "ReportMoneyRender");
-	$rpg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", "ReportMoneyRender");
+	$col = $rpg->addColumn("مبلغ پرداخت مصوب", "PayAmount", "ReportMoneyRender");
+	$col->EnableSummary();
+	$col = $rpg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", "ReportMoneyRender");
+	$col->EnableSummary(); 
 		
 	$col = $rpg->addColumn("صدور سند", "IsDocRegistered" , "IsDocRegisteredRender");
 	$col->align = "center";

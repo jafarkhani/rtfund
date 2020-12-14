@@ -839,15 +839,17 @@ RequestInfo.prototype.BuildForms = function(){
 		},{
 			xtype : "textfield",
 			fieldLabel : "شماره قرارداد",
-			name : "ContractNo"
-		},{
-			xtype : "textfield",
-			fieldLabel : "عنوان طرح",
-			name : "PlanTitle"
+			name : "ContractNo",
 		},{
 			xtype : "textfield",
 			fieldLabel : "شماره مصوبه",
 			name : "RuleNo"
+		},{
+			xtype : "textfield",
+			fieldLabel : "عنوان طرح",
+			name : "PlanTitle",
+			colspan: 2,
+			width : 700
 		},{
 			xtype : "combo",
 			name : "LetterID",

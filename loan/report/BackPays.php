@@ -140,8 +140,8 @@ function GetData(){
 	
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		$query = PdoDataAccess::GetLatestQueryString();
-		print_r(ExceptionHandler::PopAllExceptions());
+		//$query = PdoDataAccess::GetLatestQueryString();
+		//print_r(ExceptionHandler::PopAllExceptions());
 	}
 	
 	//.....................................

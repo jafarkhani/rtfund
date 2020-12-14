@@ -20,7 +20,7 @@ $col = $dg->addColumn("تفصیلی", "TafsiliDesc","");
 /*$col = $dg->addColumn("شعبه", "BranchName","");
 $col->width = 150;*/
 
-$col = $dg->addColumn("پس انداز", "pasandaz",  GridColumn::ColumnType_money);
+$col = $dg->addColumn("حساب مشتری", "pasandaz",  GridColumn::ColumnType_money);
 $col->renderer = "InOutAccount.AccountDetailRender";
 $col->width = 110;
 

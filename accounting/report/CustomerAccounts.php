@@ -32,7 +32,7 @@ function showSummary(){
 	$rpg->addColumn("تفصیلی", "TafsiliDesc");
 	if(isset($_POST["savingCost"]))	
 	{
-		$col = $rpg->addColumn("پس انداز", "pasandaz","ReportMoneyRender");
+		$col = $rpg->addColumn("حساب مشتری", "pasandaz","ReportMoneyRender");
 		$col->EnableSummary();
 	}
 	if(isset($_POST["shortCost"]))	
@@ -140,10 +140,10 @@ function showFlow(){
 	if(isset($_POST["savingCost"]))	
 	{
 		$col = $rpg->addColumn("بدهکار", "saving_debtor","ReportMoneyRender");
-		$col->GroupHeader = "حساب پس انداز";
+		$col->GroupHeader = "حساب مشتری";
 		$col->EnableSummary();
 		$col = $rpg->addColumn("بستانکار", "saving_creditor","ReportMoneyRender");
-		$col->GroupHeader = "حساب پس انداز";
+		$col->GroupHeader = "حساب مشتری";
 		$col->EnableSummary();
 		function savingRemainRender(&$row, $value, $BeforeAmount, $prevRow){
 
@@ -158,7 +158,7 @@ function showFlow(){
 				return "<div style=direction:ltr>" . number_format($row["saving_Sum"]) . "</div>";
 		}
 		$col = $rpg->addColumn("مانده حساب", "saving_debtor", "savingRemainRender", "");
-		$col->GroupHeader = "حساب پس انداز";
+		$col->GroupHeader = "حساب مشتری";
 	}
 	if(isset($_POST["shortCost"]))
 	{
@@ -332,7 +332,7 @@ function AccReport_CustomerAccount()
 			title : "حساب ها",
 			items : [{
 				xtype: "container",
-				html : "<input type=checkbox name=savingCost> حساب پس انداز &nbsp;&nbsp;&nbsp;" +
+				html : "<input type=checkbox name=savingCost> حساب مشتری &nbsp;&nbsp;&nbsp;" +
 					"<input type=checkbox name=shortCost> حساب کوتاه مدت &nbsp;&nbsp;&nbsp;" +
 					"<input type=checkbox name=longCost> حساب بلند مدت &nbsp;&nbsp;&nbsp;" +
 					"<input type=checkbox name=currentCost> حساب جاری &nbsp;&nbsp;&nbsp;" 

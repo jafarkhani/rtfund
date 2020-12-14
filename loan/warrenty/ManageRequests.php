@@ -21,7 +21,6 @@ $dg->addColumn("", "TypeID", "", true);
 $dg->addColumn("", "IsEnded", "", true);
 $dg->addColumn("", "LetterNo", "", true);
 $dg->addColumn("", "LetterDate", "", true);
-$dg->addColumn("", "DocID", "", true);
 $dg->addColumn("", "IsBlock", "", true);
 $dg->addColumn("", "BranchID", "", true);
 $dg->addColumn("", "BranchName", "", true);
@@ -38,6 +37,7 @@ $dg->addColumn("", "SubjectNO", "", true);
 $dg->addColumn("", "SendEnable", "", true);
 $dg->addColumn("", "ActionType", "", true);
 $dg->addColumn("", "SepasCode", "", true);
+$dg->addColumn("", "orgNationalID", "", true);  //new added
 
 $col = $dg->addColumn("شعبه", "BranchName");
 $col->width = 120;
@@ -68,8 +68,8 @@ $col->renderer = "function(v,p,r){ if(r.data.StatusID == ".WAR_STEPID_CANCEL.") 
 		. "MiladiToShamsi(r.data.CancelDate); return v; }";
 $col->width = 80;
 
-$col = $dg->addColumn("سند", "LocalNo", "");
-$col->width = 100;
+$col = $dg->addColumn("اسناد", "docs", "");
+$col->width = 200;
 
 $col = $dg->addColumn('عملیات', '', 'string');
 $col->renderer = "WarrentyRequest.OperationRender";
@@ -89,7 +89,6 @@ $dg->groupHeaderTpl = "ضمانتنامه شماره [ {[values.rows[0].data.Ref
 $dg->emptyTextOfHiddenColumns = true;
 $dg->height = 500;
 $dg->pageSize = 15;
-$dg->width = 850;
 $dg->title = "ضمانت نامه ها";
 $dg->DefaultSortField = "RefRequestID";
 $dg->autoExpandColumn = "organization";
@@ -111,5 +110,5 @@ WarrentyRequestObject.grid.render(WarrentyRequestObject.get("DivGrid"));
 <center><br>
 	<div><div id="RequestInfo"></div></div>
 	<br>
-	<div id="DivGrid"></div>	
+	<div style="width:98%" id="DivGrid"></div>	
 </center>

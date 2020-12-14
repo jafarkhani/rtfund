@@ -5,6 +5,7 @@
 //---------------------------
 
 require_once DOCUMENT_ROOT . '/office/dms/dms.class.php';
+require_once DOCUMENT_ROOT . '/office/workflow/wfm.class.php';
 
 class WAR_requests extends OperationClass
 {
@@ -63,8 +64,8 @@ class WAR_requests extends OperationClass
 				p.PhoneNo,
 				p.mobile,
 				p.PostalCode, /*new added*/
-				bf.InfoDesc TypeDesc,
-				t1.DocID,group_concat(distinct t1.LocalNo) LocalNo, 
+				bf.InfoDesc TypeDesc,				
+				t1.docs, 
 				BranchName,
 				if(lst.RequestID=r.RequestID, 'YES', 'NO') IsCurrent,
 				concat(if(fr.ActionType='REJECT','رد ',''),sp.StepDesc) StepDesc,
@@ -80,12 +81,13 @@ class WAR_requests extends OperationClass
 					AND fr.StepRowID=sp.StepRowID AND fr.FlowID=sp.FlowID)
 			
 				left join (
-				select di2.SourceID1,d2.DocID,LocalNo 
+				select di2.SourceID1,group_concat(distinct concat(e.EventTitle,':',LocalNo) separator '<br>') docs
 					from COM_events e
-						join ACC_docs d2 on(e.EventID=d2.EventID) 
-						join ACC_DocItems di2 on(d2.DocID=di2.DocID)
-					where ComputeFn='Warrenty'
+						join ACC_docs d on(e.EventID=d.EventID) 
+						join ACC_DocItems di2 on(d.DocID=di2.DocID)
+					where EventFunction='Warrenty'
 					group by di2.SourceID1
+					order by d.DocID asc
 				)t1 on(r.RequestID=t1.SourceID1)
 				
 				left join (
@@ -121,9 +123,23 @@ class WAR_requests extends OperationClass
 		return $dt[0][0];
 	}
 	
+	static function EventTrigger_end($SourceObjects){
+		
+		$RequestID = (int)$SourceObjects[0];
+				
+		WFM_FlowRows::AddOuterFlow(FLOWID_WARRENTY, $RequestID, WAR_STEPID_END);
+		
+		$ReqObj = new WAR_requests($RequestID);
+		$ReqObj->StatusID = WAR_STEPID_END;
+		return $ReqObj->Edit();
+	}
+	
 	static function EventTrigger_cancel($SourceObjects){
 		
-		$ReqObj = new WAR_requests((int)$SourceObjects[0]);
+		$RequestID = (int)$SourceObjects[0];
+		WFM_FlowRows::AddOuterFlow(FLOWID_WARRENTY, $RequestID, WAR_STEPID_CANCEL);
+		
+		$ReqObj = new WAR_requests($RequestID);
 		$ReqObj->StatusID = WAR_STEPID_CANCEL;
 		$ReqObj->CancelDate = DateModules::shamsi_to_miladi($SourceObjects[2]);
 		return $ReqObj->Edit();
@@ -131,7 +147,10 @@ class WAR_requests extends OperationClass
 	
 	static function EventTrigger_reduce($SourceObjects){
 		
-		$ReqObj = new WAR_requests((int)$SourceObjects[0]);
+		$RequestID = (int)$SourceObjects[0];
+		WFM_FlowRows::AddOuterFlow(FLOWID_WARRENTY, $RequestID, WAR_STEPID_REDUCE);
+		
+		$ReqObj = new WAR_requests($RequestID);
 		
 		$newObj = new WAR_requests();
 		PdoDataAccess::FillObjectByObject($ReqObj, $newObj);
