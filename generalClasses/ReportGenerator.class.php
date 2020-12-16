@@ -1013,7 +1013,14 @@ class ReportGenerator {
 		$arr = explode("#", $_POST["rpcmp_userfields"]);
 		for($i=1; $i < count($arr); $i=$i+2)
 		{
-			$returnArr[] = str_replace("_", "(",$arr[$i]) . ") as " . preg_replace('/\./','',$arr[$i]);
+			$str = str_replace("_", "(",$arr[$i]) . ") as " . preg_replace('/\./','',$arr[$i]);
+			
+			if(substr($str,0,5) == "count"){
+				$str = str_replace("count(", "count(distinct ", $str);
+			}				
+					
+			$returnArr[] = $str;
+			
 		}
 
 		return implode(",", $returnArr);
