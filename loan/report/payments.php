@@ -51,6 +51,11 @@ function MakeWhere(&$where, &$whereParam){
 
 		if($key == "ZeroRemain")
 			continue;
+		
+		if($key == "IsDocRegistered"){
+			$where .= " AND pd.DocID is not null";
+			continue;
+		}
 
 		$prefix = "";
 		switch($key)
@@ -503,6 +508,10 @@ function LoanReport_payments()
 			name : "toPayAmount",
 			hideTrigger : true,
 			fieldLabel : "تا مبلغ پرداخت"
+		},{
+			xtype : "container",
+			colspan : 2,
+			html : "<input type=checkbox name=IsDocRegistered > حتما سند حسابداری پرداخت صادر شده باشد"
 		},{
 			xtype : "fieldset",
 			title : "ستونهای گزارش",
