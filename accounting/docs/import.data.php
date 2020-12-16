@@ -3040,8 +3040,8 @@ function RegisterWarrantyDoc($ReqObj, $WageCost, $TafsiliID, $TafsiliID2,$Block_
 			));
 	if(!$IsExtend && $WageCost == $CostCode_pasandaz && $dt[0][0]*1 < $ReqObj->amount*$ReqObj->SavePercent/100)
 	{
-		$message = "مانده حساب پس انداز مشتری کمتر از ".$ReqObj->SavePercent."% مبلغ ضمانت نامه می باشد";
-		$message .= "<br> مانده حساب پس انداز : " . number_format($dt[0][0]);
+		$message = "مانده حساب  مشتری کمتر از ".$ReqObj->SavePercent."% مبلغ ضمانت نامه می باشد";
+		$message .= "<br> مانده حساب  : " . number_format($dt[0][0]);
 		$message .= "<br> ".$ReqObj->SavePercent."% مبلغ ضمانت نامه: " . number_format($ReqObj->amount*$ReqObj->SavePercent/100);
 		$message .= "<br> مبلغ کارمزد: " . number_format($TotalWage);
 		ExceptionHandler::PushException($message);
@@ -3051,8 +3051,8 @@ function RegisterWarrantyDoc($ReqObj, $WageCost, $TafsiliID, $TafsiliID2,$Block_
 	$totalAmount = $IsExtend ? $TotalWage : ($ReqObj->amount*$ReqObj->SavePercent/100 + $TotalWage);
 	if($WageCost == $CostCode_pasandaz && $dt[0][0]*1 < $totalAmount)
 	{
-		$message = "مانده حساب پس انداز مشتری کمتر از مبلغ کارمزد و ".$ReqObj->SavePercent."% مبلغ ضمانت نامه می باشد";
-		$message .= "<br> مانده حساب پس انداز : " . number_format($dt[0][0]);
+		$message = "مانده حساب  مشتری کمتر از مبلغ کارمزد و ".$ReqObj->SavePercent."% مبلغ ضمانت نامه می باشد";
+		$message .= "<br> مانده حساب  : " . number_format($dt[0][0]);
 		$message .= "<br> ".$ReqObj->SavePercent."% مبلغ ضمانت نامه: " . number_format($ReqObj->amount*$ReqObj->SavePercent/100);
 		$message .= "<br> مبلغ کارمزد: " . number_format($TotalWage);
 		ExceptionHandler::PushException($message);
@@ -3219,7 +3219,7 @@ function RegisterWarrantyDoc($ReqObj, $WageCost, $TafsiliID, $TafsiliID2,$Block_
 		if(!$blockObj->Add())
 		{
 			print_r(ExceptionHandler::PopAllExceptions());
-			ExceptionHandler::PushException("خطا در بلوکه کردن حساب پس انداز");
+			ExceptionHandler::PushException("خطا در بلوکه کردن حساب مشتری");
 			return false;
 		}
 	}
@@ -3248,7 +3248,7 @@ function RegisterWarrantyDoc($ReqObj, $WageCost, $TafsiliID, $TafsiliID2,$Block_
 		if(!$blockObj->Add())
 		{
 			print_r(ExceptionHandler::PopAllExceptions());
-			ExceptionHandler::PushException("خطا در بلوکه کردن حساب پس انداز");
+			ExceptionHandler::PushException("خطا در بلوکه کردن حساب مشتری");
 			return false;
 		}
 	}
@@ -3645,7 +3645,7 @@ function CancelWarrantyDoc($ReqObj, $extradays, $pdo){
 	if(!$itemObj->Add($pdo))
 	{
 		print_r(ExceptionHandler::PopAllExceptions());
-		ExceptionHandler::PushException("خطا در بلوکه کردن حساب پس انداز");
+		ExceptionHandler::PushException("خطا در بلوکه کردن حساب مشتری");
 		return false;
 	}
 	

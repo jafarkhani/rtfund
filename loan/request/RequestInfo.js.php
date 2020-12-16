@@ -89,7 +89,7 @@ RequestInfo.prototype.LoadRequestInfo = function(){
 		fields : ["RequestID","PartID","BranchID","LoanID","BranchName","ReqPersonID","ReqFullname","LoanPersonID",
 					"LoanFullname","ReqDate","ReqAmount","ReqDetails","BorrowerDesc","BorrowerID",
 					"BorrowerMobile","guarantees","AgentGuarantee","FundGuarantee","StatusID","DocumentDesc","IsFree",
-					"imp_GirandehCode","imp_VamCode","IsEnded","SubAgentID","PlanTitle","RuleNo","FundRules",
+					"imp_GirandehCode","imp_VamCode","IsEnded","SubAgentID","ContractNo","PlanTitle","RuleNo","FundRules",
 					"DomainID","DomainDesc","IsLock",
             		"LetterID","SourceID","ExpertPersonID","DocRequestDate","DocReceiveDate",
 					"MeetingDate","VisitDate","WorkgroupDiscussDate","ContractType"],
@@ -838,12 +838,18 @@ RequestInfo.prototype.BuildForms = function(){
 			name : "DocumentDesc"
 		},{
 			xtype : "textfield",
-			fieldLabel : "عنوان طرح",
-			name : "PlanTitle"
+			fieldLabel : "شماره قرارداد",
+			name : "ContractNo",
 		},{
 			xtype : "textfield",
 			fieldLabel : "شماره مصوبه",
 			name : "RuleNo"
+		},{
+			xtype : "textfield",
+			fieldLabel : "عنوان طرح",
+			name : "PlanTitle",
+			colspan: 2,
+			width : 700
 		},{
 			xtype : "combo",
 			name : "LetterID",
@@ -1183,6 +1189,7 @@ RequestInfo.prototype.CustomizeForm = function(record){
 		this.companyPanel.down("[itemId=cmp_guarantees]").hide();
 		this.companyPanel.down("[itemId=setting]").hide();
 		this.companyPanel.down("[name=PlanTitle]").hide();
+		this.companyPanel.down("[name=ContractNo]").hide();
 		this.companyPanel.down("[name=RuleNo]").hide();
 		
 		this.companyPanel.down("[itemId=cmp_saveAndSend]").show();

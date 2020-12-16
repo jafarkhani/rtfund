@@ -44,7 +44,7 @@ function ShowInfo(&$errorMsg){
 		return false;
 	}
 	
-	if($dt[0]["NationalID"] != $_POST["NationalID"])
+	if($dt[0]["NationalID"] != $_POST["NationalID"] AND $dt[0]["orgNationalID"] != $_POST["NationalID"])
 	{
 		$errorMsg = "کدملی / شناسه ملی وارد شده مطابق با ضمانت نامه موجود نمی باشد";
 		return false;
@@ -87,7 +87,7 @@ function DownloadFile(){
 		return false;
 	}
 	
-	if($dt[0]["NationalID"] != $NationalID)
+	if($dt[0]["NationalID"] != $NationalID AND $dt[0]["orgNationalID"] != $NationalID)
 	{
 		$errorMsg = "کدملی / شناسه ملی وارد شده مطابق با ضمانت نامه موجود نمی باشد";
 		return false;

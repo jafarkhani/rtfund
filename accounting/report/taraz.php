@@ -492,7 +492,7 @@ function ListData($IsDashboard = false){
 	$dt = PdoDataAccess::runquery("select * from BSC_branches");
 	$branches = array();
 	foreach($dt as $row)
-		$branches[ $row["BranchID"] ] = $row["BranchName"];
+		$branches[ $row["BranchID"] ] = "شعبه " . $row["BranchName"];
 			
 	
 	$rpg = new ReportGenerator();

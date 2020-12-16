@@ -3,7 +3,8 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 94.08
 //-----------------------------
-// require_once '../letter/letter.class.php';
+
+require_once DOCUMENT_ROOT . '/office/letter/letter.class.php';
 
 class WFM_flows extends PdoDataAccess {
 

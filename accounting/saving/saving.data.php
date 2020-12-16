@@ -119,7 +119,7 @@ function GetSavingLoanInfo($ReportMode = false){
 	
 	if(count($dt) == 0)
 	{
-		$msg = "شخص مورد نظر فاقد حساب پس انداز می باشد";
+		$msg = "شخص مورد نظر فاقد حساب مشتری می باشد";
 		echo dataReader::getJsonData(array(), 0, $_GET["callback"], $msg);
 		die();
 	}

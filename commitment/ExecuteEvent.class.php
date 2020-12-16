@@ -77,7 +77,11 @@ class ExecuteEvent extends PdoDataAccess{
 		switch($eventRows[0]["EventType"])
 		{
             // new added for set description for warrenty event
-            case 'RegisterWarrenty':
+			case EVENTTYPE_RegisterWarrenty:
+            case EVENTTYPE_ExtendWarrenty:
+			case EVENTTYPE_EndWarrenty:
+			case EVENTTYPE_CancelWarrenty:
+			case EVENTTYPE_SubWarrenty:
 				$warObj = new WAR_requests($this->Sources[0]);
                 $this->ExtraDescription = 'شماره ضمانتنامه [ ' . $this->Sources[0] . ' ] ' . 
 					$warObj->_fullname . " ". $this->ExtraDescription;

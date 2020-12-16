@@ -146,4 +146,13 @@ END$$
 DELIMITER ;
 //------------------------------------------------------------------
 composer require slim/slim:3.*
-require 'vendor/autoload.php';
+
+npm install react-bootstrap bootstrap
+npm install sass
+npm install underscore
+npm install react-select
+npm install -g typescript
+npm install --save typescript @types/node @types/react @types/react-dom @types/jest @types/underscore
+npm install --save @types/react-select
+
+fetch(url + new URLSearchParams({GroupID : GroupID}))

@@ -17,12 +17,11 @@ $response = $client->post($url, $options);
 
 $arr = json_decode($response->getBody());
 print_r($arr);
-die();*/
+die();
 
 $url = "https://applybyapi.com/apply/";
-//$url = "http://saja.krrtf.ir/api/AddAttendenceRecord";
 $data = array(
-	"token" => "PTZJQCY0I9E78OLVNMPT",
+	"token" => "L38WMTW6SY65KLU83HP7",
 	"name"  => "Shabnam Jafarkhani",
 	"email"  => "jafarkhani.shabnam@gmail.com",
 	"resume"  => fopen('ShabnamCV.pdf', 'r'),
@@ -30,7 +29,7 @@ $data = array(
 );
 $response = new HttpResponse();
 $response->CallService(HttpResponse::METHOD_POST, $url, $data);
-die();
+die();*/
 
 $PersonKey = isset($_GET["PersonKey"]) ? $_GET["PersonKey"] : "";
 $TrafficDate = isset($_GET["TrafficDate"]) ? $_GET["TrafficDate"] : "";

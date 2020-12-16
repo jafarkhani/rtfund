@@ -88,6 +88,8 @@ for ($i = 0; $i < count($contentArr); $i++) {
 			font-family: titr;
 			margin-left: 20px;
 		}
+.subjectNO{display: <?php echo (isset($ReqObj->SubjectNO) && !empty($ReqObj->SubjectNO))? 'inline' : 'none' ?>;}
+
 		</style>
 	</head>
 	<body dir="rtl">

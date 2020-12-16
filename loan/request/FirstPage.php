@@ -76,7 +76,7 @@ $dg->autoExpandColumn = "LoanFullname";
 $grid_pay = $dg->makeGrid_returnObjects();
 
 //---------------------------------------------
-$dg = new sadaf_datagrid("dg", $js_prefix_address . "request.data.php?task=SelectAllMessages&MsgStatus=RAW", "grid_div");
+$dg = new sadaf_datagrid("dg", $js_prefix_address . "request.data.php?task=SelectAllMessages&MsgStatus=OFF", "grid_div");
 
 $dg->addColumn("", "BorrowerDesc", "", true);
 
@@ -113,7 +113,7 @@ $grid_msg = $dg->makeGrid_returnObjects();
 require_once 'request.data.php';
 
 $receivedCount = SelectReceivedRequests(true);
-$_REQUEST["MsgStatus"] = "RAW";
+$_REQUEST["MsgStatus"] = "OFF";
 $messagesCount = SelectAllMessages(true);
 $readyToPayCount = SelectReadyToPayParts(true);
 ?>

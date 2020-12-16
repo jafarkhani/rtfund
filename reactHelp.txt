@@ -1,0 +1,20 @@
+npm install react-bootstrap bootstrap
+npm install sass
+npm install underscore
+npm install react-select
+npm install typescript
+npm install node-sass@4.14.1
+npx create-react-app my_project --typescript
+
+npm install --save typescript @types/node @types/react @types/react-dom @types/underscore
+npm install --save @types/react-select
+
+--------------- test ---------------------
+npm install --save-dev jest@26.6.0
+npm install --save-dev enzyme
+npm install --save-dev enzyme-adapter-react-16
+npm install --save-dev react-test-renderer
+npm install --save-dev @types/jest @testing-library/react @types/jest @types/react-test-renderer @testing-library/jest-dom jest ts-jest
+
+
+fetch(url + new URLSearchParams({GroupID : GroupID}))

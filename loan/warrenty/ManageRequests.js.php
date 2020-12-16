@@ -268,7 +268,7 @@ WarrentyRequest.prototype.OperationMenu = function(e){
 	
 	if(this.EditAccess && record.data.StatusID == "<?= WAR_STEPID_CONFIRM ?>")
 	{
-		if(record.data.DocID == "" || record.data.DocID == null)
+		//if(record.data.DocID == "" || record.data.DocID == null)
 			op_menu.add({text: 'صدور سند',iconCls: 'send',
 			handler : function(){ return WarrentyRequestObject.ExecuteRegEvent();/*BeforeRegDoc(1);*/ }});
 	
@@ -318,7 +318,7 @@ WarrentyRequest.prototype.OperationMenu = function(e){
 		handler : function(){ 
 			me = WarrentyRequestObject;
 			var record = me.grid.getSelectionModel().getLastSelected();
-			window.open(me.address_prefix + "PrintDocs.php?RequestID=" + record.data.RequestID);
+			window.open(me.address_prefix + "PrintDocs.php?RequestID=" + record.data.RefRequestID);
 	}});
 	
 	op_menu.showAt(e.pageX-120, e.pageY);
@@ -1335,7 +1335,8 @@ WarrentyRequest.prototype.ExecuteEndEvent = function(){
 		case "8" : eventID= "<?= EVENT_WAR_END_8 ?>";break;
 		default  : eventID= "<?= EVENT_WAR_END_other ?>";break;
 	}
-	framework.ExecuteEvent(eventID, new Array(record.data.RequestID));
+	framework.ExecuteEvent(eventID, new Array(record.data.RequestID)
+			,"WarrentyRequestObject.AfterExecuteEvent");
 }
 
 WarrentyRequest.prototype.ExecuteCancelEvent = function(){
