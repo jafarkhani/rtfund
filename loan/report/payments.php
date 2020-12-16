@@ -13,7 +13,7 @@ function IsDocRegisteredRender($row,$value){
 }
 		
 $page_rpg = new ReportGenerator("mainForm","LoanReport_paymentsObj");
-$page_rpg->addColumn("شماره وام", "RRequestID");
+$col = $page_rpg->addColumn("شماره وام", "RRequestID");
 $col->queryField = "r.RequestID";
 $page_rpg->addColumn("نوع وام", "LoanDesc");
 $page_rpg->addColumn("منبع", "ReqFullname", "ReqPersonRender"); 
@@ -132,6 +132,7 @@ function ListData($IsDashboard = false){
 	{
 		if(ExceptionHandler::GetExceptionCount() > 0)
 			print_r(ExceptionHandler::PopAllExceptions ());
+		echo PdoDataAccess::GetLatestQueryString();
 	}
 	
 	function endedRender($row,$value){
