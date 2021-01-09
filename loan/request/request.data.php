@@ -2041,7 +2041,7 @@ function GetFollowsToDo(){
 		$record["DebtClass"] = $debtClass["title"];
 		
 		//--------- sms steps reset for each delayed installment ------------------
-		if($record["StatusID"] == "10" || $record["StatusID"] == "20"){
+		if($record["StatusID"] == "10"){
 			if($instalmentRecord["InstallmentID"] != $record["InstallmentID"])
 				$record["StatusID"] = "";
 		}		
@@ -2101,7 +2101,7 @@ function GetFollowsToDo(){
 		}
 		//------------------------------------------
 		
-		if( $nextAlertRow != $followSteps[1] &&
+		if( 
 			$debtClass["classes"]["2"]["amount"]*1 < $debtClass["FollowAmount2"] &&
 			$debtClass["classes"]["3"]["amount"]*1 < $debtClass["FollowAmount3"] &&
 			$debtClass["classes"]["4"]["amount"]*1 < $debtClass["FollowAmount4"])
