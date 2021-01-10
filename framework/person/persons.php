@@ -36,6 +36,10 @@ $col = $dg->addColumn("نام و نام خانوادگی","fullname","string");
 
 $col = $dg->addColumn("نام كاربري","UserName","string");
 $col->width = 120;
+$col = $dg->addColumn("تلفن ثابت","PhoneNo","string");
+$col->width = 100;
+$col = $dg->addColumn("تلفن همراه","mobile","string");
+$col->width = 100;
 
 $col = $dg->addColumn("<font style=font-size:10px>کاربر</font>","IsStaff","string");
 $col->renderer = "function(v){return (v=='YES') ? '٭' : '';}";
@@ -94,7 +98,7 @@ if($accessObj->RemoveFlag)
 
 $dg->height = 500;
 $dg->pageSize = 15;
-$dg->width = 750;
+$dg->width = 950;
 $dg->DefaultSortField = "fullname";
 $dg->DefaultSortDir = "ASC";
 $dg->autoExpandColumn = "fullname";
