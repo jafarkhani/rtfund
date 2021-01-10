@@ -272,8 +272,8 @@ function ListData($IsDashboard = false){
 	$rpt->mysql_resource = GetData();
 	
 	function LoanReportRender($row,$value){
-		return "<a href=LoanPayment.php?show=tru&RequestID=" . $value . " target=blank >" . $value . "</a>";
-	}
+		return "<a href=DebitReport.php?show=tru&RequestID=" . $value . " target=blank >" . $value . "</a>";
+	} 
 
 	$col = $rpt->addColumn("شماره وام", "RequestID", "LoanReportRender");
 	$col->ExcelRender = false;
@@ -312,7 +312,7 @@ function ListData($IsDashboard = false){
 	$col->EnableSummary();
 	
 	function TotalRemainderRender($row,$value){
-		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
+		return "<a href=DebitReport.php?show=tru&RequestID=" . $row["RequestID"] . 
 				" target=blank >" . number_format($value) . "</a>";
 	}
 	$col = $rpt->addColumn("مانده کل تا انتها", "TotalRemainder","TotalRemainderRender");	
@@ -320,7 +320,7 @@ function ListData($IsDashboard = false){
 	$col->ExcelRender = false;
 	
 	function TotalNonPenaltyRemainderRender($row,$value){
-		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
+		return "<a href=DebitReport.php?show=tru&RequestID=" . $row["RequestID"] . 
 				"&ComputePenalty=false target=blank >" . number_format($value) . "</a>";
 	}
 	$col = $rpt->addColumn("مانده تا انتها بدون احتساب جریمه دیرکرد", "TotalNonPenaltyRemainder","TotalNonPenaltyRemainderRender");
