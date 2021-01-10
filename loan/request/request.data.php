@@ -2134,56 +2134,65 @@ function DoFollow(){
 	$followObj->Add();
 	
 	//...........................................................
-	
-	if($ToDoStatusID == "10")
-	{
-		$dt = PdoDataAccess::runquery("select * from BaseInfo 
+	$dt = PdoDataAccess::runquery("select * from BaseInfo 
 			where TypeID=".TYPEID_LoanFollowStatusID." and InfoID=?", array($ToDoStatusID));
-		
+	
+	if($dt[0]["param2"] != "" || $dt[0]["param5"] != ""){
+	
 		$reqObj = new LON_requests($RequestID);
 		$personObj = new BSC_persons($reqObj->LoanPersonID);
-		if($personObj->mobile == "")
+		$computeArr = LON_Computes::ComputePayments($RequestID);
+		$instalmentRecord = LON_requests::GetMinNotPayedInstallment($RequestID, $computeArr);
+		$totalRemain = LON_Computes::GetCurrentRemainAmount($RequestID,$computeArr);
+
+		$name = $personObj->CompanyName != "" ? $personObj->CompanyName . " محترم " :
+					(($personObj->sex == "2" ? "سرکارخانم " : "جناب آقای ") . $personObj->_fullname );
+		if($dt[0]["param2"] != "")
 		{
-			echo Response::createObjectiveResponse(false, "با توجه به عدم تکمیل شماره موبایل توسط مشتری پیامک مربوطه ارسال نگردید");
-			die();
-		}
-		$SendError = "";
-		$context = preg_replace("/#name/", $personObj->_fullname, $dt[0]["param2"]);
-		$result = ariana2_sendSMS($personObj->mobile, $context, "number", $SendError);
-		if(!$result)
-		{
-			echo Response::createObjectiveResponse(false, "ارسال پیامک به دلیل خطای زیر انجام نگردید" . "[" . $SendError . "]");
-			die();
-		}
-		echo Response::createObjectiveResponse(true, "");
-		die();
-	}
-	
-	//...........................................................
-	
-	if($ToDoStatusID == "20")
-	{
-		$reqObj = new LON_requests($RequestID);
-		$personObj = new BSC_persons($reqObj->LoanPersonID);
-		
-		$dt = PdoDataAccess::runquery("select * from BaseInfo 
-			where TypeID=".TYPEID_LoanFollowStatusID." and InfoID=?", array($ToDoStatusID));
-		
-		$guarantors = LON_guarantors::Get(" AND RequestID=? AND mobile <> ''", array($RequestID));
-		
-		$SendError = "";
-		foreach($guarantors as $row)
-		{
-			$mobile = $row["mobile"];
-			$context = preg_replace("/#name/", $personObj->_fullname, $dt[0]["param2"]);
-			$result = ariana2_sendSMS($mobile, $context, "number", $SendError);
+			if($personObj->mobile == "")
+			{
+				echo Response::createObjectiveResponse(false, "با توجه به عدم تکمیل شماره موبایل توسط مشتری پیامک مربوطه ارسال نگردید");
+				die();
+			}
+			$SendError = "";
+			$context = $dt[0]["param2"];
+			$context = preg_replace("/name/", $name, $context);
+			$context = preg_replace("/no/", $reqObj->RequestID, $context);
+			$context = preg_replace("/amount/", $totalRemain, $context);
+			$context = preg_replace("/date/", DateModules::miladi_to_shamsi($instalmentRecord["RecordDate"]), $context);
+
+			$result = ariana2_sendSMS($personObj->mobile, $context, "number", $SendError);
 			if(!$result)
 			{
-				$SendError .= "ارسال پیامک به " . $context . $row["fullname"] . " انجام نگردید.<br>";
+				echo Response::createObjectiveResponse(false, "ارسال پیامک به دلیل خطای زیر انجام نگردید" . "[" . $SendError . "]");
+				die();
 			}
 		}
-		echo Response::createObjectiveResponse($SendError == "", $SendError);
-		die();
+		if($dt[0]["param5"] != "")
+		{
+			$guarantors = LON_guarantors::Get(" AND RequestID=? AND mobile <> ''", array($RequestID));
+
+			$context = $dt[0]["param5"];
+			$context = preg_replace("/name/",$name, $context);
+			$context = preg_replace("/no/", $reqObj->RequestID, $context);
+			$context = preg_replace("/amount/", $totalRemain, $context);
+			$context = preg_replace("/date/", DateModules::miladi_to_shamsi($instalmentRecord["RecordDate"]), $context);
+
+			$SendError = "";
+			foreach($guarantors as $row)
+			{
+				$mobile = $row["mobile"];
+				$result = ariana2_sendSMS($mobile, $context, "number", $SendError);
+				if(!$result)
+				{
+					$SendError .= "ارسال پیامک به " . $context . $row["fullname"] . " انجام نگردید.<br>";
+				}
+			}
+			if($SendError != ""){
+				echo Response::createObjectiveResponse(false, $SendError);
+				die();
+			}
+		}
 	}
 	
 	//...........................................................
