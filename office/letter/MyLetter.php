@@ -1,3 +1,11 @@
+
+<style>
+/*.x-panel, .x-plain {
+    overflow: auto!important;
+}
+#div_grid{overflow: auto!important;}*/
+</style>
+
 <?php
 //-----------------------------
 //	Programmer	: SH.Jafarkhani
@@ -91,6 +99,9 @@ if($mode == "receive")
 {
 	$dg->addButton("", "خوانده نشده", "view", "function(){MyLetterObject.UnSeen();}");
     $dg->addButton("", "خوانده شده", "tick", "function(){MyLetterObject.Seen();}");
+    $dg->addButton("", "گروهی خوانده نشده", "view", "function(){MyLetterObject.GroupUnSeen();}"); //new added
+    $dg->addButton("", "گروهی خوانده شده", "tick", "function(){MyLetterObject.GroupSeen();}"); //new added
+
 
 	$dg->addButton("", "امضاء گروهی", "sign", "function(){MyLetterObject.GroupSignLetter();}");
 	$dg->addButton("", "ارجاع گروهی", "sendLetter", "function(){MyLetterObject.SendLetter(true);}");
@@ -113,8 +124,11 @@ $dg->HeaderMenu = false;
 $dg->title = $mode == "send" ? "نامه های ارسالی" : "نامه های دریافتی";
 $dg->DefaultSortField = "_SendDate";
 $dg->autoExpandColumn = "LetterTitle";
+$dg->DefaultSortDir = "DESC";
 $grid = $dg->makeGrid_returnObjects();	
 ?>
+
+
 <script>
 	
 MyLetter.prototype = {
@@ -187,7 +201,6 @@ function MyLetter(){
 			width : 150,
 			autoScroll : true,
 			autoHeight : true,
-				border : true,
 			style : "border-left : 1px solid #99bce8;margin-left:5px",
 			layout : "vbox",
 			itemId : "cmp_buttons"
@@ -212,12 +225,12 @@ function MyLetter(){
 					record = this.getAt(i);
 					me.panel.down("[itemId=cmp_buttons]").add({
 						xtype : "button",
-						width : 130,
-						height : 50,
-						autoScroll : true,
+						height : 55,
+						border: true,
+						width: 140,
 						enableToggle : true,
 						scale : "large",
-						style : "margin-bottom:10px",	
+						style : "margin-bottom:10px;",	
 						itemId : record.data.SendType,
 						text : record.data.SendTypeDesc + "<br><div style=float:right>" + " تعداد : " + 
 							record.data.totalCnt + "</div><div style=float:left>" + "جدید : " + (record.data.newCnt*1>0 ? "<b>" : "") + 
@@ -590,6 +603,67 @@ MyLetter.prototype.Seen = function(){
         }
     })
 }
+
+// new added
+MyLetter.prototype.GroupSeen = function(){
+
+    record = this.grid.getSelectionModel().getLastSelected();
+    if(!record)
+    {
+        Ext.MessageBox.alert("","&#1575;&#1576;&#1578;&#1583;&#1575; &#1585;&#1583;&#1740;&#1601; &#1605;&#1608;&#1585;&#1583; &#1606;&#1592;&#1585; &#1585;&#1575; &#1575;&#1606;&#1578;&#1582;&#1575;&#1576; &#1705;&#1606;&#1740;&#1583;");
+        return;
+    }
+
+    mask = new Ext.LoadMask(Ext.getCmp(this.TabID),{msg:'&#1583;&#1585; &#1581;&#1575;&#1604; &#1584;&#1582;&#1740;&#1585;&#1607; &#1587;&#1575;&#1586;&#1740; ...'});
+    mask.show();
+
+    Ext.Ajax.request({
+        url : this.address_prefix + "letter.data.php?task=GroupSeenSend",
+        form : me.get("mainForm"),
+        method : "post",
+
+        success : function(response){
+            mask.hide();
+            result = Ext.decode(response.responseText);
+            if(result.success)
+                MyLetterObject.grid.getStore().load();
+            else
+            {
+                Ext.MessageBox.alert("Error", "&#1593;&#1605;&#1604;&#1740;&#1575;&#1578; &#1605;&#1608;&#1585;&#1583; &#1606;&#1592;&#1585; &#1576;&#1575; &#1588;&#1705;&#1587;&#1578; &#1605;&#1608;&#1575;&#1580;&#1607; &#1588;&#1583;");
+            }
+        }
+    })
+}
+MyLetter.prototype.GroupUnSeen = function(){
+
+    record = this.grid.getSelectionModel().getLastSelected();
+    if(!record)
+    {
+        Ext.MessageBox.alert("","&#1575;&#1576;&#1578;&#1583;&#1575; &#1585;&#1583;&#1740;&#1601; &#1605;&#1608;&#1585;&#1583; &#1606;&#1592;&#1585; &#1585;&#1575; &#1575;&#1606;&#1578;&#1582;&#1575;&#1576; &#1705;&#1606;&#1740;&#1583;");
+        return;
+    }
+
+    mask = new Ext.LoadMask(Ext.getCmp(this.TabID),{msg:'&#1583;&#1585; &#1581;&#1575;&#1604; &#1584;&#1582;&#1740;&#1585;&#1607; &#1587;&#1575;&#1586;&#1740; ...'});
+    mask.show();
+
+    Ext.Ajax.request({
+        url : this.address_prefix + "letter.data.php?task=GroupUnSeenSend",
+        form : me.get("mainForm"),
+        method : "post",
+
+        success : function(response){
+            mask.hide();
+            result = Ext.decode(response.responseText);
+            if(result.success)
+                MyLetterObject.grid.getStore().load();
+            else
+            {
+                Ext.MessageBox.alert("Error", "&#1593;&#1605;&#1604;&#1740;&#1575;&#1578; &#1605;&#1608;&#1585;&#1583; &#1606;&#1592;&#1585; &#1576;&#1575; &#1588;&#1705;&#1587;&#1578; &#1605;&#1608;&#1575;&#1580;&#1607; &#1588;&#1583;");
+            }
+        }
+    })
+}
+// end new added
 
 MyLetter.prototype.GroupDeleteSend = function(){
 	
