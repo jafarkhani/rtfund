@@ -2083,7 +2083,8 @@ function GetFollowsToDo(){
 		}
 		if($nextAlertRow == null)
 		{
-			$nextAlertRow = $followSteps[ count($followSteps)-1 ];
+			continue;
+			//$nextAlertRow = $followSteps[ count($followSteps)-1 ];
 		}
 		
 		$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $record["RegDate"]);
