@@ -5,6 +5,7 @@
 //-----------------------------
 
 require_once '../../header.inc.php';
+require_once DOCUMENT_ROOT . '/framework/baseInfo/baseInfo.class.php';
 require_once inc_dataGrid;
 
 $ObjectType = $_POST["ObjectType"];
@@ -78,6 +79,9 @@ switch($ObjectType)
 	//......................................................
 	case "BeneficiaryDocs":
 	case "orgdoc":
+        case "safeBox":
+	case "meetingEvent":
+        case "agencydoc":
 	case "package":
 	case "asset":
 		$access = true;
@@ -115,6 +119,7 @@ switch($ObjectType)
 		$obj = new MTG_meetings($robj->MeetingID);
 		$access = $obj->StatusID == MTG_STATUSID_RAW ? true : false;
 		break;
+
 }
 //------------------------------------------------------
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "dms.data.php?" .
@@ -141,12 +146,14 @@ $col->width = 80;
 
 $col = $dg->addColumn("اطلاعات مدرک", "paramValues", "");
 $col->renderer = "ManageDocument.ParamValueRender";
-$col->width = 130;
+$col->width = 90;
 
 $col = $dg->addColumn("عنوان مدرک ارسالی", "DocDesc", "");
 
 $col = $dg->addColumn("ثبت کننده", "regfullname", "");
-$col->width = 120;
+$col->width = 100;
+$col = $dg->addColumn("&#1578;&#1575;&#1585;&#1740;&#1582; &#1579;&#1576;&#1578;", "RegDate", GridColumn::ColumnType_date);
+$col->width = 80;
 
 if($ObjectType == "package")
 {
@@ -170,7 +177,7 @@ $col->width = 30;
 $col = $dg->addColumn("توضیحات کارشناس", "RejectDesc", "");
 //$col->renderer = "function(v,p,r){return ManageDocument.commentRender(v,p,r)}";
 $col->align = "center";
-$col->width = 120;
+$col->width = 100;
 
 if($access)
 {
@@ -190,7 +197,8 @@ if(session::IsFramework() && $access)
 	$col->renderer = "function(v,p,r){return ManageDocument.ConfirmRender(v,p,r)}";
 	$col->width = 60;
 	
-	$dg->addButton("", "برگشت از تایید", "return", "function(){ManageDocumentObject.UnConfirm();}");
+	if(BSC_jobs::GetModirAmelPerson()->PersonID == $_SESSION["USER"]["PersonID"])
+		$dg->addButton("", "برگشت از تایید", "return", "function(){ManageDocumentObject.UnConfirm();}");
 }
 
 $dg->EnableGrouping = true;
