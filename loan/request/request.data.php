@@ -2021,7 +2021,7 @@ function GetFollowsToDo(){
 		where r.StatusID=" . LON_REQ_STATUS_CONFIRM .
 		" order by f.StatusID desc");
 	
-	$followSteps = PdoDataAccess::runquery("select * from BaseInfo where typeID=" . 
+	$followSteps = PdoDataAccess::runquery("select * from BaseInfo where IsActive='YES' AND typeID=" . 
 			TYPEID_LoanFollowStatusID . " order by InfoID");
 	
 	$result = array();
