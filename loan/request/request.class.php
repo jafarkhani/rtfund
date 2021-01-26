@@ -2272,6 +2272,19 @@ class LON_Computes extends PdoDataAccess{
 		return $total;		
 	}
 	
+	/**
+	 * مبلغ کل مطالبات وام
+	 * @param type $RequestID
+	 */
+	static function GetTotalDebitAmount($RequestID){
+		
+		$dt = LON_installments::GetValidInstallments($RequestID);
+		$sum = 0;
+		foreach($dt as $row){
+			$sum += $row["InstallmentAmount"]*1;
+		}
+		return $sum;
+	}
 	//..................................................................
 	static $DebitClassify = array();
 	static function FillDebitClassify(){ 
