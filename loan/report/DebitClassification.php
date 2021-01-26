@@ -178,7 +178,7 @@ function GetData(){
 		$computeArr = LON_Computes::ComputePayments($row["RequestID"], $ComputeDate);
 		$remain = LON_Computes::GetCurrentRemainAmount($row["RequestID"],$computeArr, $ComputeDate);
 		$totalRemain = LON_Computes::GetTotalRemainAmount($row["RequestID"],$computeArr);
-
+		$totalDebit = LON_Computes::GetTotalDebitAmount($row["RequestID"]);
 		if($remain <= 0)
 			continue;
 		
@@ -194,9 +194,13 @@ function GetData(){
 			$debtClass["classes"]["4"]["amount"]*1 > $debtClass["FollowAmount4"])
 			$row["IsDelayedInDebitClass"] = true;
 		
+		$sum = 0;
 		foreach($debtClass["classes"] as $record){
 			$row[ "Debit_" . $record["code"] ] = $record["amount"];
+			$sum += $record["amount"];
 		}
+		
+		$row["NPL"] = round($sum/$totalDebit, 2);
 		
 		$result[] = $row;
 	}
@@ -276,6 +280,7 @@ function ListData($IsDashboard = false){
 		$col->EnableSummary();
 		$col->align = "center";
 	} 
+	$rpt->addColumn("NPL", "NPL");	
 	
 	if(!$rpt->excel && !$IsDashboard)
 	{
