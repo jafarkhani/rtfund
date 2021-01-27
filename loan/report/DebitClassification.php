@@ -200,7 +200,8 @@ function GetData(){
 			$sum += $record["amount"];
 		}
 		
-		$row["NPL"] = round($sum/$totalDebit, 2);
+		$row["totalDebit"] = $totalDebit;
+		$row["NPL"] = round($sum*100/$totalDebit, 2) . " %";
 		
 		$result[] = $row;
 	}
@@ -246,6 +247,10 @@ function ListData($IsDashboard = false){
 	$rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");
 	
 	$col = $rpt->addColumn("جمع کل پرداختی تاکنون", "TotalPayAmount", "ReportMoneyRender");
+	$col->ExcelRender = false;
+	$col->EnableSummary();
+	
+	$col = $rpt->addColumn("جمع کل مطالبات", "totalDebit", "ReportMoneyRender");
 	$col->ExcelRender = false;
 	$col->EnableSummary();
 	
