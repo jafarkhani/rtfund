@@ -48,7 +48,7 @@ function GetData(){
 				group by RequestID			
 			)t_pay on(r.RequestID=t_pay.RequestID)
 
-			where r.StatusID=" . LON_REQ_STATUS_CONFIRM . " " . $where . "
+			where r.RequestID<>2143 AND r.StatusID=" . LON_REQ_STATUS_CONFIRM . " " . $where . "
 		
 			group by r.RequestID
 			order by r.RequestID,p.PartID";
@@ -166,11 +166,11 @@ function ListData($IsDashboard = false){
 	$rpt->addColumn("تاریخ آخرین پرداخت مشتری", "MaxPayDate","ReportDateRender");
 	$rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");*/
 	
-	$col = $rpt->addColumn("جمع کل پرداخت وام", "SumPayments", "ReportMoneyRender");
+	$col = $rpt->addColumn("مبلغ پرداختی وام", "SumPayments", "ReportMoneyRender");
 	$col->ExcelRender = false;
 	$col->EnableSummary();
 	
-	$col = $rpt->addColumn("جمع کل مطالبات", "totalDebit", "ReportMoneyRender");
+	$col = $rpt->addColumn("مبلغ پرداختی و کارمزد وام", "totalDebit", "ReportMoneyRender");
 	$col->ExcelRender = false;
 	$col->EnableSummary();
 	
@@ -178,11 +178,11 @@ function ListData($IsDashboard = false){
 		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
 				" target=blank >" . number_format($value) . "</a>";
 	}
-	$col = $rpt->addColumn("مانده کل تا انتها", "TotalRemainder","TotalRemainderRender");	
+	$col = $rpt->addColumn("کل مطالبات", "TotalRemainder","TotalRemainderRender");	
 	$col->ExcelRender =false;
 	$col->EnableSummary();
 	
-	$col = $rpt->addColumn("مانده سررسید شده", "CurrentRemainder","ReportMoneyRender");	
+	$col = $rpt->addColumn("مطالبات حال شده", "CurrentRemainder","ReportMoneyRender");	
 	$col->EnableSummary();
 		
 	$rpt->addColumn("نوع بدهی", "DebitClassify");	
@@ -214,7 +214,7 @@ function ListData($IsDashboard = false){
 		echo "<table style='border:2px groove #9BB1CD;border-collapse:collapse;width:100%'><tr>
 				<td width=60px><img src='/framework/icons/logo.jpg' style='width:120px'></td>
 				<td align='center' style='height:100px;vertical-align:middle;font-family: titr;font-size:15px'>
-					گزارش محاسبه شاخص های وام
+					گزارش محاسبه شاخص های مطالبات
 				</td>
 				<td width='200px' align='center' style='font-family:tahoma;font-size:11px'>تاریخ تهیه گزارش : " 
 			. DateModules::shNow() . "<br>";
@@ -227,25 +227,35 @@ function ListData($IsDashboard = false){
 		}
 		echo "</td></tr></table>";
 		?>
-<style>.blueText{
-	font-weight: bold;
-	color: #0D6EB2;
-}</style>
+<style>
+	.blueText{font-weight: bold;color: #0D6EB2;}
+	.orangeText{color:#FF5200}
+</style>
 		<table cellpadding="4px" style="border:2px groove #9BB1CD;border-collapse:collapse;width:100%;font-family: nazanin;
 			   font-size: 16px;line-height: 20px;">
 			<tr>
-				<td>ریسک اعتباری صندوق (CR) : <?= $computes["CR"] ?> %</td>
-				<td>جمع کل وام های پرداخت شده :</td>
-				<td class="blueText"><?= number_format($computes["totalPayed"])?></td>
-				<td>جمع کل وام های نامطلوب :</td>
-				<td class="blueText"><?= number_format($computes["BadNPL"])?></td>
+				<td>ریسک اعتباری صندوق (CR) : 
+					<span class="blueText"><?= $computes["CR"] ?> %</span>
+					<span class="orangeText">(حد مطلوب کمتر از 5%)</span>
+				</td>
+				<td>جمع کل وام های پرداخت شده :
+					<span class="blueText"><?= number_format($computes["totalPayed"])?></span>
+				</td>
+				<td>جمع کل وام های نامطلوب :
+					<span class="blueText"><?= number_format($computes["BadNPL"])?></span>
+				</td>
 			</tr>
 			<tr>
-				<td>شاخص معوقات صندوق در هر روز : <?= $computes["CR2"] ?> %</td>
-				<td>مجموع کل مطالبات :</td>
-				<td class="blueText"><?= number_format($computes["totalRemain"])?></td>
-				<td>مجموع مطالبات حال شده :</td>
-				<td class="blueText"><?= number_format($computes["totalDelayed"])?></td>
+				<td>شاخص معوقات صندوق در هر روز : 
+					<span class="blueText"><?= $computes["CR2"] ?> %</span>
+					<span class="orangeText">(حد مطلوب کمتر از 10%)</span>
+				</td>
+				<td>مجموع کل مطالبات :
+					<span class="blueText"><?= number_format($computes["totalRemain"])?></span>
+				</td>
+				<td>مجموع مطالبات حال شده :
+					<span class="blueText"><?= number_format($computes["totalDelayed"])?></span>
+				</td>
 			</tr>
 		</table>
 		<?
@@ -308,7 +318,7 @@ function LoanReport_indicators()
 			columns :2
 		},
 		bodyStyle : "text-align:right;padding:5px",
-		title : "گزارش شاخص های وام",
+		title : "گزارش شاخص های مطالبات",
 		width : 780,
 		items :[{
 			xtype : "shdatefield",
