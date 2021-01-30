@@ -365,8 +365,13 @@ RequestInfo.prototype.MakePartsPanel = function(){
 						if(v == "PERCENT") return 'فرمول درصدی';
 					}
 				},{
-					name : "details",
+					fieldLabel: 'تاریخ تغییر شرایط',
+					name: 'ChangeDate',
+					renderer : function(v){return MiladiToShamsi(v);},
 					colspan : 2,
+				},{
+					name : "details",
+					colspan : 3,
 					width : 390,
 					fieldLabel: 'توضیحات'
 				},{
@@ -1830,6 +1835,13 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 					name : "details",
 					allowBlank : true,
 					fieldLabel : "توضیحات",
+					colspan : 2,
+					width : 450
+				},{
+					xtype : "textfield",
+					name : "ChangeDate",
+					allowBlank : true,
+					fieldLabel : "تاریخ تغییر شرایط",
 					colspan : 2,
 					width : 450
 				},{
