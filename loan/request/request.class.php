@@ -2640,6 +2640,47 @@ class LON_difference extends PdoDataAccess{
 
 		$ReqObj = new LON_requests($RequestID, $pdo);
 		$NewPartObj = LON_ReqParts::GetValidPartObj($RequestID, $pdo);
+		
+		if($DocID > 0)
+		{
+			$obj = new ACC_docs($DocID);
+		}
+		else
+		{
+			$obj = new ACC_docs();
+			$obj->RegDate = PDONOW;
+			$obj->regPersonID = $_SESSION['USER']["PersonID"];
+			$obj->DocDate = PDONOW;
+			$obj->CycleID = $_SESSION["accounting"]["CycleID"];
+			$obj->BranchID = $ReqObj->BranchID;
+			$obj->EventID = EVENT_LOAN_CHANGE; 
+			$obj->description = "سند تغییر شرایط وام شماره " . $ReqObj->RequestID . 
+					" به نام " . $ReqObj->_LoanPersonFullname;
+			if(!$obj->Add($pdo))
+			{
+				ExceptionHandler::PushException("خطا در ایجاد سند");
+				return false;
+			}
+		}
+
+		
+			
+		return $obj;
+	}
+
+	static function RegisterDiffernce_old($RequestID, $pdo, $DocID=0){
+
+		if(ACC_cycles::IsClosed())
+		{
+			echo Response::createObjectiveResponse(false, "دوره مالی جاری بسته شده است و قادر به اعمال تغییرات نمی باشید");
+			die();	
+		}
+
+		ini_set('max_execution_time', 30000000);
+		ini_set('memory_limit','4000M');
+
+		$ReqObj = new LON_requests($RequestID, $pdo);
+		$NewPartObj = LON_ReqParts::GetValidPartObj($RequestID, $pdo);
 
 		$process = new LON_difference();
 		$process->ReqObj = $ReqObj;
@@ -2707,7 +2748,6 @@ class LON_difference extends PdoDataAccess{
 			
 		return $obj;
 	}
-
 }
 
 class LON_ReqParts extends PdoDataAccess{
@@ -2741,11 +2781,13 @@ class LON_ReqParts extends PdoDataAccess{
 	public $details;
 	public $ComputeMode;
 	public $BackPayCompute;
+	public $ChangeDate;
 	
 	function __construct($PartID = "", $pdo = null) {
 		
 		$this->DT_PartDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_PartStartDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		$this->DT_ChangeDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		$this->DT_MaxFundWage = DataMember::CreateDMA(DataMember::DT_INT, 0);
 		
 		if($PartID != "")
