@@ -549,8 +549,7 @@ function SavePart(){
 		
 		echo Response::createObjectiveResponse(true, "");
 		die();
-	}
-	
+	}	
 	//--------------------------------------------------------------------------
 	
 	$pdo = PdoDataAccess::getPdoObject();
