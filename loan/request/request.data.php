@@ -31,6 +31,7 @@ switch($task)
 	case "GetTazminDocTypes":
 	case "selectFollowLevels":
 	case "SelectContractType":
+		case "SelectDomainType":
 		
 	case "GetRequestParts":
 	case "SavePart":
@@ -457,6 +458,12 @@ function SelectContractType(){
 	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=101");
 	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
 	die();
+}
+function SelectDomainType(){
+
+    $temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=107");
+    echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
+    die();
 }
 
 
