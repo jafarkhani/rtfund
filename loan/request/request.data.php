@@ -455,7 +455,7 @@ function selectFollowLevels(){
 
 function SelectContractType(){ 
 	
-	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=101");
+	$temp = PdoDataAccess::runquery("select * from BaseInfo where TypeID=106");
 	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
 	die();
 }
