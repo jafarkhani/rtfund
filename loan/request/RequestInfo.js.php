@@ -683,7 +683,7 @@ RequestInfo.prototype.BuildForms = function(){
 			displayField : "InfoDesc",
 			valueField : "InfoID",
 			name : "ContractType"
-		},{
+		},/*{
 			xtype : "trigger",
 			colspan : 2,
 			width : 700,
@@ -699,7 +699,26 @@ RequestInfo.prototype.BuildForms = function(){
 						RequestInfoObject.companyPanel.down("[name=DomainID]").setValue();
 				}
 			}
-		},{
+		}*/{
+    xtype : "combo",
+                        colspan : 2,
+                        width : 700,
+			store : new Ext.data.SimpleStore({
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + 'request.data.php?' +
+						"task=SelectDomainType",
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['InfoID','InfoDesc','param1'],
+				autoLoad : true					
+			}),
+    fieldLabel: 'حوزه فناوری',
+    queryMode : 'local',
+			displayField : "InfoDesc",
+			valueField : "InfoID",
+			name : "DomainID"
+},{
 			xtype : "container",
 			layout : "hbox",
 			colspan : 2,
@@ -723,10 +742,10 @@ RequestInfo.prototype.BuildForms = function(){
 				colspan : 2,
 				boxLabel : "ضمانت اقساط وام با صندوق می باشد"
 			}]
-		},{
+		},/*{
 			xtype : "hidden",
 			name : "DomainID"
-		},{
+		},*/{
 			xtype : "container",
 			hidden : true,
 			colspan : 2,
