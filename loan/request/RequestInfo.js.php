@@ -1838,12 +1838,13 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 					colspan : 2,
 					width : 450
 				},{
-					xtype : "textfield",
+					xtype : "shdatefield",
 					name : "ChangeDate",
 					allowBlank : true,
 					fieldLabel : "تاریخ تغییر شرایط",
 					colspan : 2,
-					width : 450
+					hideTrigger : false,
+					width : 200,
 				},{
 					xtype : "currencyfield",
 					name : "PartAmount",
@@ -2144,6 +2145,7 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 		this.PartWin.down('form').loadRecord(record);
 		this.PartWin.down("[name=PartDate]").setValue(MiladiToShamsi(record.data.PartDate));
 		this.PartWin.down("[name=PartStartDate]").setValue(MiladiToShamsi(record.data.PartStartDate));
+		this.PartWin.down("[name=ChangeDate]").setValue(MiladiToShamsi(record.data.ChangeDate));
 		this.PartWin.down("[name=PayInterval]").setValue(record.data.PayInterval*1);
 		this.PartWin.down("[itemId=monthInterval]").setValue(record.data.IntervalType == "MONTH" ? true : false);
 		this.PartWin.down("[itemId=dayInterval]").setValue(record.data.IntervalType == "DAY" ? true : false);
@@ -2155,6 +2157,7 @@ RequestInfo.prototype.PartInfo = function(EditMode){
 		this.PartWin.down('form').loadRecord(record);
 		this.PartWin.down("[name=PartDate]").setValue(MiladiToShamsi(record.data.PartDate));
 		this.PartWin.down("[name=PartStartDate]").setValue(MiladiToShamsi(record.data.PartStartDate));
+		this.PartWin.down("[name=ChangeDate]").setValue(MiladiToShamsi(record.data.ChangeDate));
 		this.PartWin.down("[name=PayInterval]").setValue(record.data.PayInterval*1);
 		this.PartWin.down("[itemId=monthInterval]").setValue(record.data.IntervalType == "MONTH" ? true : false);
 		this.PartWin.down("[itemId=dayInterval]").setValue(record.data.IntervalType == "DAY" ? true : false);

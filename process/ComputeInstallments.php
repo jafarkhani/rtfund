@@ -2,6 +2,7 @@
 require_once '../header.inc.php';
 ini_set("display_errors", "On");
 require_once '../loan/request/request.class.php';
+require_once '../commitment/ExecuteEvent.class.php';
 
 ini_set('max_execution_time', 30000000);
 ini_set('memory_limit','4000M');
@@ -9,69 +10,72 @@ header("X-Accel-Buffering: no");
 ob_start();
 set_time_limit(0);
 
-$dt = PdoDataAccess::runquery(" SELECT c1 RequestID FROM sajakrrt_rtfund.aaa 
-	join LON_requests on(c1=RequestID)
-	where StatusID=95"); 
+$dt = PdoDataAccess::runquery("select * from LON_ReqParts join LON_requests using(RequestID) 
+    join LON_loans using(LoanID)
+   left join (select SourceID1 from ACC_DocItems join ACC_docs using(DocID) where eventID=2001)t on(SourceID1=RequestID)
+    where ChangeDate>0 and ReqPersonID=1001 AND StatusID=70 AND GroupID=2 AND t.SourceID1 is null
+    "); 
 flush();
 ob_flush();
 $i=0;
 foreach($dt as $row)
 {
 	$RequestID = $row["RequestID"];
-	LON_installments::ComputeInstallments($RequestID, null,true);
-	echo $RequestID . " : " ;
-	print_r(ExceptionHandler::PopAllExceptions());
-	ob_flush();flush();
-	continue;
-	
-	
-	
-	
-	
-	
-	
-	$oldAmount = $row["amount"];
-	
-	echo $RequestID . " : ";
-	
-	$temp = PdoDataAccess::runquery("select * from LON_installments where RequestID=? AND IsDelayed='NO' AND history='NO'", array($RequestID));
-	
-	$installmentArray = array();
-	for ($i = 0; $i < count($temp); $i++) {
-		$installmentArray[] = array(
-			"InstallmentAmount" => $oldAmount,
-			"InstallmentDate" => DateModules::miladi_to_shamsi($temp[$i]["InstallmentDate"])
-		);
+	$EventID = LON_requests::GetEventID($RequestID, "LoanChange");
+	if(!$EventID){
+		echo $RequestID . " : no event" ;
+		continue;
 	}
-	$installmentArray = ExtraModules::array_sort($installmentArray, "InstallmentDate");
-	$partObj = LON_ReqParts::GetValidPartObj($RequestID);
-	$installmentArray = LON_Computes::ComputeInstallment($partObj, $installmentArray, "", "NO");
-
+		
 	$pdo = PdoDataAccess::getPdoObject();
 	$pdo->beginTransaction();
-	PdoDataAccess::runquery("delete from LON_installments "
-			. "where RequestID=? AND history='NO' AND IsDelayed='NO'", array($RequestID), $pdo);
 	
-	for($i=0; $i < count($installmentArray); $i++)
-	{
-		$obj = new LON_installments();
-		$obj->RequestID = $RequestID;
-		$obj->InstallmentDate = DateModules::shamsi_to_miladi($installmentArray[$i]["InstallmentDate"]);
-		$obj->InstallmentAmount = $installmentArray[$i]["InstallmentAmount"];
-		$obj->wage = isset($installmentArray[$i]["wage"]) ? $installmentArray[$i]["wage"] : 0;
-		$obj->PureWage = isset($installmentArray[$i]["PureWage"]) ? $installmentArray[$i]["PureWage"] : 0;
-		if(!$obj->AddInstallment($pdo))
-		{
-			$pdo->rollBack();
-			print_r(ExceptionHandler::PopAllExceptions());
-			echo "false";
-		}
-	}
 	
-	$pdo->commit();	
-	echo "true<br>";
-	flush();
-	ob_flush();
+	$dt = PdoDataAccess::runquery("select * from LON_ReqParts 
+		where requestID=? order by PartID desc", array($RequestID), $pdo);
+	
+	$newpart = new LON_ReqParts($dt[0]["PartID"]);
+	$newpart->RequestID = 0;
+	$newpart->EditPart($pdo);
+	
+	$prePart = new LON_ReqParts($dt[1]["PartID"]);
+	$prePart->IsHistory = "NO";
+	$prePart->EditPart($pdo);
+	
+	$dt = PdoDataAccess::runquery("update LON_installments set RequestID=2487,partID=?
+		where RequestID=? AND IsDelayed='NO' AND history='No'", array(
+			$newpart->PartID,
+			$RequestID
+		), $pdo);
+		
+	LON_installments::ComputeInstallments($RequestID, $pdo);
+	
+	$newpart->RequestID = $RequestID;
+	$newpart->EditPart($pdo);
+	
+	$prePart->IsHistory = "YES";
+	$prePart->EditPart($pdo);
+	
+	PdoDataAccess::runquery("update LON_installments set history='YES' where RequestID=? AND PartID<>?",
+				array($RequestID, $newpart->PartID));
+	
+	PdoDataAccess::runquery("update LON_installments set RequestID=?
+		where RequestID=2487", array(	$RequestID	), $pdo);
+	
+	
+	$eventobj = new ExecuteEvent($EventID);
+	$eventobj->Sources = array($RequestID, $newpart->PartID);
+	$result = $eventobj->RegisterEventDoc($pdo);
+
+	if(ExceptionHandler::GetExceptionCount() > 0)
+		$pdo->rollBack ();
+	else
+		$pdo->commit();
+	
+	echo $RequestID . " : " . "<br><br>";
+	print_r(ExceptionHandler::PopAllExceptions());
+	ob_flush();flush();
+	
 }
 die();
 ?>

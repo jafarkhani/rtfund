@@ -77,6 +77,7 @@ $dg->addColumn("", "details","", true);
 $dg->addColumn("", "ComputeMode","", true);
 $dg->addColumn("", "BackPayCompute","", true);
 $dg->addColumn("", "BackPayComputeDesc","", true);
+$dg->addColumn("", "ChangeDate","", true);
 
 $dg->addColumn("", "AllPay","", true);
 $dg->addColumn("", "LastPay","", true);

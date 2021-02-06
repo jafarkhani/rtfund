@@ -17,6 +17,7 @@ $dg = new sadaf_datagrid("dg",$js_prefix_address . "request.data.php?task=GetFol
 $dg->addColumn("", "FollowID","", true);
 $dg->addColumn("", "StatusDesc","", true);
 $dg->addColumn("", "IsPartDiff","", true);
+$dg->addColumn("", "StatusID","", true);
 
 $col = $dg->addColumn("شماره وام", "RequestID");
 $col->width = 80;
@@ -197,7 +198,7 @@ LoanFollow.prototype.OperationMenu = function(e){
 
 	record = this.grid.getSelectionModel().getLastSelected();
 	var op_menu = new Ext.menu.Menu();
-	
+
 	if(this.RemoveAccess)
 		op_menu.add({text: 'حذف ردیف	',iconCls: 'remove', 
 			handler : function(){ return LoanFollowObject.DeleteFollow(); }});
@@ -206,7 +207,7 @@ LoanFollow.prototype.OperationMenu = function(e){
 	for(i=0; i<this.LetterStore.totalCount; i++)
 	{
 		r = this.LetterStore.getAt(i);
-		if(r.data.StatusID != record.data.StatusID)
+		if(r.data.StatusID !== record.data.StatusID)
 			continue;
 		
 		menu.push({

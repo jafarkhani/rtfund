@@ -92,11 +92,13 @@ function FollowTemplate(){
 
 	this.MainPanel = new Ext.form.Panel({
 		renderTo: this.get("div_form"),
-		title: "انتخاب نوع درخواست",
+		title: "اطلاعات الگو",
 		width: 600,
+		height: 350,
 		hidden : true,
 		frame: true,
-		defaults : {width : 590},
+		autoHeight: true,
+		defaults : {width : 580},
 		bodyCfg: {style: "background-color:white"},
 		items :[{
 			xtype : "combo",
@@ -148,7 +150,7 @@ function FollowTemplate(){
 			}
 		},{
 			xtype : "htmleditor",
-			height : 200,
+			height: 200,
 			name : "LetterContent"
 		},{
 			xtype : "hidden",

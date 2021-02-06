@@ -128,7 +128,7 @@ class ExecuteEvent extends PdoDataAccess{
 		//------- balance the doc with low prices -----------
 		$dt = PdoDataAccess::runquery("select di.*, sum(DebtorAmount) dsum, sum(CreditorAmount) csum
 			from ACC_DocItems di where DocID=?", array($this->DocObj->DocID), $pdo);
-		if($dt[0]["dsum"] != $dt[0]["csum"] && $dt[0]["dsum"]*1 - $dt[0]["csum"]*1 < 1000)
+		if($dt[0]["dsum"] != $dt[0]["csum"] && abs($dt[0]["dsum"]*1 - $dt[0]["csum"]*1) < 1000)
 		{
 			$diff = $dt[0]["dsum"]*1 - $dt[0]["csum"]*1;
 			$itemObj = new ACC_DocItems();

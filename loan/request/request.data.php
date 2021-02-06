@@ -575,23 +575,18 @@ function SavePart(){
 	$OldDocID = 0;
 	if(!$firstPart)
 	{
-		$temp = PdoDataAccess::runquery("select DocID,LocalNo,CycleDesc,StatusID 
-			from ACC_DocItems 
-			join ACC_docs using(DocID)
-			join COM_events using(EventID)
-			join ACC_cycles using(CycleID)
-			where EventType='" . EVENTTYPE_LoanChange ."' AND SourceID1=? AND SourceID2=?",
-			array($obj->RequestID, $obj->PartID));
-
-		if(count($temp) > 0 && $temp[0]["StatusID"] != ACC_STEPID_RAW)
-		{
-			$pdo->rollBack();
-			echo Response::createObjectiveResponse(false, "سند اختلاف به شماره ".$temp[0]["LocalNo"]."در ".
-					$temp[0]["CycleDesc"]." تایید شده و قادر به صدور مجدد نمی باشید");
-			die();
-		} 
-		$OldDocID = count($temp)>0 ? $temp[0]["DocID"] : 0;
-		
+		$EventID = LON_requests::GetEventID($obj->RequestID, "LoanChange");
+		if($EventID > 0){
+			$LocalNo = ExecuteEvent::GetRegisteredDoc($EventID, array($obj->RequestID, $obj->PartID));
+			if($LocalNo > 0)
+			{
+				$pdo->rollBack();
+				echo Response::createObjectiveResponse(false, "سند اختلاف به شماره ".$LocalNo. " قبلا صادر شده است" . "<br>" . 
+						"جهت ادامه ابتدا آن را حذف نمایید");
+				die();
+			} 
+		}
+		//-------------------------------
 		foreach($parts as $row)
 		{
 			$partobj = new LON_ReqParts($row["PartID"]);
@@ -600,20 +595,37 @@ function SavePart(){
 				$partobj->IsHistory = "YES";
 				$partobj->EditPart($pdo);
 			}
+		}		
+		$pdo->commit();
+		
+		//-------------------------------
+		PdoDataAccess::runquery("update LON_installments set history='YES' where RequestID=? AND PartID<>?",
+				array($obj->RequestID, $obj->PartID));
+		LON_installments::ComputeInstallments($obj->RequestID, null, true);
+		
+		//------------------------------
+		if($EventID > 0){
+			$eventobj = new ExecuteEvent($EventID);
+			$eventobj->Sources = array($obj->RequestID, $obj->PartID);
+			$result = $eventobj->RegisterEventDoc();
+			if(!$result){
+				print_r(ExceptionHandler::PopAllExceptions());
+				echo Response::createObjectiveResponse(false, "خطا در صدور سند اختلاف");
+				die();
+			}
+			$LocalNo = ExecuteEvent::GetRegisteredDoc($EventID, array($obj->RequestID, $obj->PartID));
+
+			$msg = "سند اختلاف با شماره " . $LocalNo . " موفقیت صادر گردید.";
 		}
-		LON_installments::ComputeInstallments($obj->RequestID, $pdo, true);
-		$DiffDoc = LON_difference::RegisterDiffernce($obj->RequestID, $pdo, (int)$OldDocID);
-		if($DiffDoc == false)
-		{
-			$pdo->rollBack(); 
-			echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
-			die();
+		else {
+			$msg = "با شرایط این وام رویداد اختلاف تعریف نشده است";
 		}
-		$msg = "سند اختلاف با شماره " . $DiffDoc->LocalNo . " با موفقیت صادر گردید.";
+	}
+	else{
+		$pdo->commit();
 	}
 	
 	//--------------------------------------------------------------------------
-	$pdo->commit();
 	echo Response::createObjectiveResponse(true, $msg);
 	die();
 }
@@ -824,7 +836,7 @@ function ComputeInstallments($RequestID = "", $returnMode = false, $pdo2 = null,
 	//............... control all pays register .................
 	$partObj = LON_ReqParts::GetValidPartObj($RequestID);
 	$dt = PdoDataAccess::runquery("select sum(PayAmount) sumamount from LON_payments where requestID=?",$RequestID);
-	if($partObj->PartAmount*1 <> $dt[0][0]*1)
+	if($partObj->PartAmount*1 > $dt[0][0]*1)
 	{
 		echo Response::createObjectiveResponse(false, "تا زمانی که کلیه مراحل پرداخت را وارد نکرده اید قادر به محاسبه اقساط نمی باشید");
 		die();
@@ -965,6 +977,7 @@ function DelayInstallments(){
 
 		$obj2 = new LON_installments();
 		$obj2->RequestID = $RequestID;
+		$obj2->PartID = $PartObj->PartID;
 		$obj2->InstallmentDate = DateModules::AddToGDate($dt[$i]["InstallmentDate"], $days);
 
 		$ComputeInstallmentAmount = $dt[$i]["InstallmentAmount"]*1;
@@ -2080,10 +2093,10 @@ function GetFollowsToDo(){
 				break;
 			}
 		}
-		if($nextAlertRow == null)
+		if($nextAlertRow == null) 
 		{
-			continue;
-			//$nextAlertRow = $followSteps[ count($followSteps)-1 ];
+			//continue;
+			$nextAlertRow = $followSteps[ count($followSteps)-1 ];
 		}
 		
 		$diffDays = DateModules::GDateMinusGDate(DateModules::Now(), $record["RegDate"]);
@@ -2267,6 +2280,7 @@ function ComputeManualInstallments(){
 	{
 		$obj = new LON_installments();
 		$obj->RequestID = $RequestID;
+		$obj->PartID = $partObj->PartID;
 		$obj->InstallmentDate = DateModules::shamsi_to_miladi($installmentArray[$i]["InstallmentDate"]);
 		$obj->InstallmentAmount = $installmentArray[$i]["InstallmentAmount"];
 		$obj->wage = isset($installmentArray[$i]["wage"]) ? $installmentArray[$i]["wage"] : 0;

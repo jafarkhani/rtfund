@@ -400,6 +400,45 @@ class EventComputeItems {
 		
 	}
 	
+	static function ChangeLoan($ItemID, $SourceObjects){
+		
+		$ReqObj = new LON_requests((int)$SourceObjects[0]);
+		$PartObj = new LON_ReqParts((int)$SourceObjects[1]);
+		//-------- get prev part -------------
+		$temp = PdoDataAccess::runquery("select max(PartID) PartID 
+			from LON_ReqParts where IsHistory='YES'
+			And RequestID=?", array($ReqObj->RequestID));
+		$prevPartObj = new LON_ReqParts($temp[0]["PartID"]);
+		
+		//------------------------------------
+		$computeArr = LON_Computes::ComputePayments($ReqObj->RequestID, $PartObj->ChangeDate);
+		
+		switch($ItemID){
+			
+			case 50 : // مبلغ اصل تسهیلات = اصل تسهیلات جدید - (اصل تسهیلات قبلی - مبلغ اصل پرداختی مشتری)
+				return $PartObj->PartAmount - ($prevPartObj->PartAmount - 
+				LON_Computes::TotalPureBackPayed($ReqObj->RequestID, $computeArr));
+				
+			case 51: //مانده کارمزد : کل کارمزد جدید - (کل کارمزد قبلی - کارمزد پرداختی مشتری )
+				$c1 = LON_installments::GetTotalInstallmentsWage($ReqObj->RequestID);
+				$c2 = LON_installments::GetTotalInstallmentsWage($ReqObj->RequestID, $prevPartObj->PartID);
+				$c3 = LON_Computes::TotalWageBackPayed($ReqObj->RequestID, $computeArr);
+				return $c1 - ($c2 - $c3);
+				
+			case 52: // اختلاف مبلغ وام : اصل تسهیلات جدید - اصل تسهیلات قبلی
+				return $PartObj->PartAmount - $prevPartObj->PartAmount;
+				
+			case 53: // مانده بدهی : اصل جدید + کارمزد جدید - (اصل قبلی + کارمزد قبلی - اصل و کارمزد سهم سرمایه گذار پرداختی مشتری)
+				$c1 = LON_installments::GetTotalInstallmentsAmount($ReqObj->RequestID);
+				$c2 = LON_installments::GetTotalInstallmentsAmount($ReqObj->RequestID, $prevPartObj->PartID);
+				$c3 = LON_Computes::TotalPureBackPayed($ReqObj->RequestID, $computeArr);
+				$c4 = LON_Computes::TotalWageBackPayed($ReqObj->RequestID, $computeArr);
+				$FundWage = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $c4 : 
+					round(($PartObj->FundWage/$PartObj->CustomerWage)*$c4);
+				$AgentWage = $c4 - $FundWage;				
+				return $c1 - ($c2 - ($c3 + $AgentWage));
+		}
+	}
 	//--------------------------------------------------------
 	
 	static function Warrenty($ItemID, $SourceObjects){
@@ -547,6 +586,7 @@ class EventComputeItems {
 			$EventRow["EventType"] == EVENTTYPE_LoanDailyLate ||	
 			$EventRow["EventType"] == EVENTTYPE_LoanDailyPenalty ||	
 			$EventRow["EventType"] == EVENTTYPE_IncomeCheque ||
+			$EventRow["EventType"] == EVENTTYPE_LoanChange ||
 			$EventRow["EventType"] == EVENTTYPE_LoanEnd)
 		{
 			$ReqObj = new LON_requests($params[0]);

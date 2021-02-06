@@ -14,9 +14,11 @@ function GetData(){
 	ini_set("memory_limit", "1000M");
 	ini_set("max_execution_time", "600");
 	
-	$where = "";
-	$whereParam = array();
-			
+	$ComputeDate = !empty($_POST["ComputeDate"]) ? 
+			DateModules::shamsi_to_miladi($_POST["ComputeDate"],"-") : DateModules::now();
+	$where = " AND p.PartDate<= :d";
+	$whereParam = array(":d" => $ComputeDate);
+	
 	$query = "select p.*,
 				r.EndDate,
 				l.LoanDesc,
@@ -59,8 +61,6 @@ function GetData(){
 		//print_r(ExceptionHandler::PopAllExceptions()); 
 		//echo PdoDataAccess::GetLatestQueryString();
 	}
-	$ComputeDate = !empty($_POST["ComputeDate"]) ? 
-			DateModules::shamsi_to_miladi($_POST["ComputeDate"],"-") : DateModules::now();
 	
 	$result = array();
 	
@@ -148,11 +148,17 @@ function ListData($IsDashboard = false){
 
 	$col = $rpt->addColumn("شماره وام", "RequestID", "LoanReportRender");
 	$col->ExcelRender = false;
-	$rpt->addColumn("شعبه وام", "BranchName");
-	$rpt->addColumn("نوع وام", "LoanDesc");
-	$rpt->addColumn("معرف", "ReqPersonName");
-	$rpt->addColumn("وام گیرنده", "LoanPersonName");
-	$rpt->addColumn("مبلغ پرداختی وام", "PartAmount", "ReportMoneyRender");
+	$col->align = "center";
+	$col =$rpt->addColumn("شعبه وام", "BranchName");
+	$col->align = "center";
+	$col =$rpt->addColumn("نوع وام", "LoanDesc");
+	$col->align = "center";
+	$col =$rpt->addColumn("معرف", "ReqPersonName");
+	$col->align = "center";
+	$col =$rpt->addColumn("وام گیرنده", "LoanPersonName");
+	$col->align = "center";
+	$col =$rpt->addColumn("مبلغ پرداختی وام", "PartAmount", "ReportMoneyRender");
+	$col->align = "center";
 	
 	/*$rpt->addColumn("تعداد اقساط", "InstallmentCount");
 	$rpt->addColumn("کارمزد مشتری", "CustomerWage");
@@ -169,10 +175,12 @@ function ListData($IsDashboard = false){
 	$col = $rpt->addColumn("مبلغ پرداختی وام", "SumPayments", "ReportMoneyRender");
 	$col->ExcelRender = false;
 	$col->EnableSummary();
+	$col->align = "center";
 	
 	$col = $rpt->addColumn("مبلغ پرداختی و کارمزد وام", "totalDebit", "ReportMoneyRender");
 	$col->ExcelRender = false;
 	$col->EnableSummary();
+	$col->align = "center";
 	
 	function TotalRemainderRender($row,$value){
 		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
@@ -181,11 +189,14 @@ function ListData($IsDashboard = false){
 	$col = $rpt->addColumn("کل مطالبات", "TotalRemainder","TotalRemainderRender");	
 	$col->ExcelRender =false;
 	$col->EnableSummary();
+	$col->align = "center";
 	
 	$col = $rpt->addColumn("مطالبات حال شده", "CurrentRemainder","ReportMoneyRender");	
 	$col->EnableSummary();
+	$col->align = "center";
 		
-	$rpt->addColumn("نوع بدهی", "DebitClassify");	
+	$col = $rpt->addColumn("نوع بدهی", "DebitClassify");	
+	$col->align = "center";
 	
 	/*$col = $rpt->addColumn("حقوقی شده", "IsDelayedInDebitClass","IsDelayedInDebitClassRender");
 	$col->align = "center";
@@ -206,7 +217,8 @@ function ListData($IsDashboard = false){
 		$col->EnableSummary();
 		$col->align = "center";
 	} 
-	$rpt->addColumn("NPL", "NPL");	
+	$col = $rpt->addColumn("NPL", "NPL");
+	$col->align = "center";	
 	
 	if(!$rpt->excel && !$IsDashboard)
 	{
@@ -215,6 +227,8 @@ function ListData($IsDashboard = false){
 				<td width=60px><img src='/framework/icons/logo.jpg' style='width:120px'></td>
 				<td align='center' style='height:100px;vertical-align:middle;font-family: titr;font-size:15px'>
 					گزارش محاسبه شاخص های مطالبات
+					<br>
+					<span style='font-size:12px;font-family:tahoma'>(کلیه مبالغ به ریال می باشد)</span>
 				</td>
 				<td width='200px' align='center' style='font-family:tahoma;font-size:11px'>تاریخ تهیه گزارش : " 
 			. DateModules::shNow() . "<br>";
@@ -229,14 +243,14 @@ function ListData($IsDashboard = false){
 		?>
 <style>
 	.blueText{font-weight: bold;color: #0D6EB2;}
-	.orangeText{color:#FF5200}
+	.greenText{font-weight: bold;color:#44bd04}
 </style>
 		<table cellpadding="4px" style="border:2px groove #9BB1CD;border-collapse:collapse;width:100%;font-family: nazanin;
 			   font-size: 16px;line-height: 20px;">
 			<tr>
 				<td>ریسک اعتباری صندوق (CR) : 
 					<span class="blueText"><?= $computes["CR"] ?> %</span>
-					<span class="orangeText">(حد مطلوب کمتر از 5%)</span>
+					<span class="greenText">(حد مطلوب کمتر از 5%)</span>
 				</td>
 				<td>جمع کل وام های پرداخت شده :
 					<span class="blueText"><?= number_format($computes["totalPayed"])?></span>
@@ -248,7 +262,7 @@ function ListData($IsDashboard = false){
 			<tr>
 				<td>شاخص معوقات صندوق در هر روز : 
 					<span class="blueText"><?= $computes["CR2"] ?> %</span>
-					<span class="orangeText">(حد مطلوب کمتر از 10%)</span>
+					<span class="greenText">(حد مطلوب کمتر از 10%)</span>
 				</td>
 				<td>مجموع کل مطالبات :
 					<span class="blueText"><?= number_format($computes["totalRemain"])?></span>
