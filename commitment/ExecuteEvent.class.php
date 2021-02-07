@@ -236,11 +236,7 @@ class ExecuteEvent extends PdoDataAccess{
 		$obj->TafsiliType = $eventRow["TafsiliType1"];
 		$obj->TafsiliType2 = $eventRow["TafsiliType2"];
 		$obj->TafsiliType3 = $eventRow["TafsiliType3"];
-		$result = EventComputeItems::SetSpecialTafsilis($eventRow, $this->Sources);
-		$obj->TafsiliID = $result[0]["TafsiliID"];
-		$obj->TafsiliID2 = $result[1]["TafsiliID"];
-		$obj->TafsiliID3 = $result[2]["TafsiliID"];
-		
+				
 		if(!empty($this->tafsilis))
 		{
 			if(!empty($eventRow["TafsiliType1"]) && !empty($this->tafsilis[ $eventRow["TafsiliType1"] ]))
@@ -252,6 +248,11 @@ class ExecuteEvent extends PdoDataAccess{
 			if(!empty($eventRow["TafsiliType3"]) && !empty($this->tafsilis[ $eventRow["TafsiliType3"] ]))
 				$obj->TafsiliID3 = $this->tafsilis[ $eventRow["TafsiliType3"] ];
 		}
+		
+		$result = EventComputeItems::SetSpecialTafsilis($eventRow, $this->Sources);
+		$obj->TafsiliID = $result[0]["TafsiliID"];
+		$obj->TafsiliID2 = $result[1]["TafsiliID"];
+		$obj->TafsiliID3 = $result[2]["TafsiliID"];
 		
 		//------------------- set SourceIDs  ---------------------
 		if(is_array($this->Sources))
