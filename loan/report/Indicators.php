@@ -16,10 +16,16 @@ function GetData(){
 	
 	$ComputeDate = !empty($_POST["ComputeDate"]) ? 
 			DateModules::shamsi_to_miladi($_POST["ComputeDate"],"-") : DateModules::now();
-	$where = " AND p.PartDate<= :d";
+	$where = " AND p.PartDate<= :d ";
+	$where .= " AND case r.StatusID 
+						when " . LON_REQ_STATUS_CONFIRM . " then 1=1
+						when " . LON_REQ_STATUS_DEFRAY . " then if(DefrayDate is null,1=0,DefrayDate>:d)
+						when " . LON_REQ_STATUS_ENDED . " then if(r.EndDate is null,1=0,r.EndDate>:d)
+					end";
 	$whereParam = array(":d" => $ComputeDate);
 	
 	$query = "select p.*,
+				r.DefrayDate,
 				r.EndDate,
 				l.LoanDesc,
 				r.RequestID,LoanPersonID,p1.mobile,
@@ -50,7 +56,7 @@ function GetData(){
 				group by RequestID			
 			)t_pay on(r.RequestID=t_pay.RequestID)
 
-			where r.RequestID<>2143 AND r.StatusID=" . LON_REQ_STATUS_CONFIRM . " " . $where . "
+			where r.RequestID<>2143 " . $where . "
 		
 			group by r.RequestID
 			order by r.RequestID,p.PartID";
@@ -109,7 +115,7 @@ function GetData(){
 			$sum = 0;
 		}
 		
-		$row["NPL"] = round($sum*100/$row["totalDebit"], 2) . "%";
+		$row["NPL"] = $row["totalDebit"] == 0 ? 0 : round($sum*100/$row["totalDebit"], 2) . "%";
 		
 		if($row["NPL"] > $BadPercent){
 			$BadNPL += $row["SumPayments"];
@@ -130,7 +136,7 @@ function GetData(){
 		"totalDelayed" => $totalDelayed,
 		"totalRemain" => $totalRemain,
 		"CR" => round($BadNPL*100/$totalPayed, 2),
-		"CR2" => round($totalDelayed*100/$totalRemain)
+		"CR2" => round($totalDelayed*100/$totalRemain,2)
 	);
 }	
 	
@@ -143,7 +149,7 @@ function ListData($IsDashboard = false){
 	$rpt->mysql_resource = $computes["results"];
 	
 	function LoanReportRender($row,$value){
-		return "<a href=LoanPayment.php?show=tru&RequestID=" . $value . " target=blank >" . $value . "</a>";
+		return "<a href=DebitReport.php?show=tru&RequestID=" . $value . " target=blank >" . $value . "</a>";
 	}
 
 	$col = $rpt->addColumn("شماره وام", "RequestID", "LoanReportRender");
@@ -158,6 +164,11 @@ function ListData($IsDashboard = false){
 	$col =$rpt->addColumn("وام گیرنده", "LoanPersonName");
 	$col->align = "center";
 	$col =$rpt->addColumn("مبلغ پرداختی وام", "PartAmount", "ReportMoneyRender");
+	$col->align = "center";
+	
+	$col = $rpt->addColumn("تاریخ تسویه", "DefrayDate","ReportDateRender");
+	$col->align = "center";
+	$col = $rpt->addColumn("تاریخ خاتمه", "EndDate","ReportDateRender");
 	$col->align = "center";
 	
 	/*$rpt->addColumn("تعداد اقساط", "InstallmentCount");
