@@ -74,6 +74,8 @@ function GetData(){
 	$totalRemain = 0;
 	$totalDelayed = 0;
 	$BadNPL = 0;
+	$BadNPLCnt = 0;
+	$totalLoanCnt = 0;
 	$BadPercent = 35;
 	while($row = $dt->fetch())
 	{
@@ -116,10 +118,12 @@ function GetData(){
 		}
 		
 		$row["NPL"] = $row["totalDebit"] == 0 ? 0 : round($sum*100/$row["totalDebit"], 2) . "%";
+		$totalLoanCnt++; 
 		
 		if($row["NPL"] > $BadPercent){
 			$BadNPL += $row["SumPayments"];
 			$row["IsBadNPL"] = "1";
+			$BadNPLCnt++;
 		}
 		else{
 			$row["IsBadNPL"] = "0";
@@ -136,6 +140,7 @@ function GetData(){
 		"totalDelayed" => $totalDelayed,
 		"totalRemain" => $totalRemain,
 		"CR" => round($BadNPL*100/$totalPayed, 2),
+		"CRCnt" => round($BadNPLCnt*100/$totalLoanCnt,2),
 		"CR2" => round($totalDelayed*100/$totalRemain,2)
 	);
 }	
@@ -268,6 +273,11 @@ function ListData($IsDashboard = false){
 				</td>
 				<td>جمع کل وام های نامطلوب :
 					<span class="blueText"><?= number_format($computes["BadNPL"])?></span>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="=3">درصد وام های نا مطلوب به کل وام ها: 
+					<span class="blueText"><?= $computes["CRCnt"] ?> %</span>
 				</td>
 			</tr>
 			<tr>
