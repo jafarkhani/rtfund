@@ -77,6 +77,7 @@ function GetData(){
 	$BadNPLCnt = 0;
 	$totalLoanCnt = 0;
 	$BadPercent = 35;
+	$totalWorldBadLoans = 0;
 	while($row = $dt->fetch())
 	{
 		$computeArr = LON_Computes::ComputePayments($row["RequestID"], $ComputeDate);
@@ -90,6 +91,20 @@ function GetData(){
 		$row["TotalRemainder"] = $TRemain;
 		$row["CurrentRemainder"] = $remain;
 		$row["totalDebit"] = $row["TotalInstallmentAmount"]*1;
+		
+		//--------------------------------------------------------
+		$row["WorldBadLoan"] = false;
+		$row["firstLoadDelayDays"] = 0;
+		if($remain > 0){
+			$inDT = LON_requests::GetMinNotPayedInstallment($row["RequestID"],$computeArr, false);
+			$delayDays = DateModules::GDateMinusGDate(DateModules::Now(), $inDT["RecordDate"]);
+			if($delayDays >= 90){
+				$totalWorldBadLoans++;
+				$row["WorldBadLoan"] = true;
+			}
+			$row["firstLoadDelayDays"] = $delayDays;
+		}
+		//--------------------------------------------------------
 		
 		$sum = 0;
 		$debtClass = LON_Computes::GetDebtClassificationInfo($row["RequestID"], $computeArr, $ComputeDate);
@@ -234,6 +249,9 @@ function ListData($IsDashboard = false){
 		$col->align = "center";
 	} 
 	$col = $rpt->addColumn("NPL", "NPL");
+	$col->align = "center";	
+	
+	$col = $rpt->addColumn("تعداد روز تاخیر", "firstLoadDelayDays");
 	$col->align = "center";	
 	
 	if(!$rpt->excel && !$IsDashboard)
