@@ -1177,7 +1177,7 @@ class LON_requests extends PdoDataAccess{
 	 * @param type $computeArr
 	 * @return gdate 
 	 */
-	static function GetMinNotPayedInstallment($RequestID, $computeArr=null){
+	static function GetMinNotPayedInstallment($RequestID, $computeArr=null, $applyMins = true){
 		
 		if($computeArr == null)
 			$computeArr = LON_Computes::ComputePayments($RequestID);
@@ -1189,6 +1189,9 @@ class LON_requests extends PdoDataAccess{
 				
 				if( $totalRemain != 0 ){
 
+					if(!$applyMins)
+						return $row;
+					
 					if($totalRemain < $row["RecordAmount"]*self::$MinPercentOfInstallmentToBeDelayed/100)
 						continue;
 
