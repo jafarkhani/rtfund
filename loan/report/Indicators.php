@@ -154,6 +154,7 @@ function GetData(){
 		"BadNPL" => $BadNPL,
 		"totalDelayed" => $totalDelayed,
 		"totalRemain" => $totalRemain,
+		"totalWorldBadLoans" => $totalWorldBadLoans,
 		"CR" => round($BadNPL*100/$totalPayed, 2),
 		"CRCnt" => round($BadNPLCnt*100/$totalLoanCnt,2),
 		"CR2" => round($totalDelayed*100/$totalRemain,2)
@@ -214,7 +215,7 @@ function ListData($IsDashboard = false){
 	$col->align = "center";
 	
 	function TotalRemainderRender($row,$value){
-		return "<a href=LoanPayment.php?show=tru&RequestID=" . $row["RequestID"] . 
+		return "<a href=DebitReport.php?show=tru&RequestID=" . $row["RequestID"] . 
 				" target=blank >" . number_format($value) . "</a>";
 	}
 	$col = $rpt->addColumn("کل مطالبات", "TotalRemainder","TotalRemainderRender");	
@@ -294,8 +295,12 @@ function ListData($IsDashboard = false){
 				</td>
 			</tr>
 			<tr>
-				<td colspan="=3">درصد وام های نا مطلوب به کل وام ها: 
+				<td>درصد وام های نا مطلوب به کل وام ها: 
 					<span class="blueText"><?= $computes["CRCnt"] ?> %</span>
+				</td>
+				<td>
+					تعداد وام هایی که بیش از 90 روز از بدهی آنها گذشته است:
+					<span class="blueText"><?= $computes["totalWorldBadLoans"] ?> </span>
 				</td>
 			</tr>
 			<tr>
