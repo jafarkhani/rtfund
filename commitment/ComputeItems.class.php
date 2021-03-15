@@ -185,10 +185,11 @@ class EventComputeItems {
 							if($PartObj->LatePercent*1 == 0)
 								return 0;
 							$lateAmount = $row["totallate"]*1;
-							if($lateAmount < 0)
+							if($lateAmount < 0 || $PartObj->CustomerWage == 0)
 								return 0;
-							$FundLate = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 ? $lateAmount : 
-								round(($PartObj->FundWage/$PartObj->CustomerWage)*$lateAmount);
+							$FundLate = $PartObj->FundWage*1 > $PartObj->CustomerWage*1 
+									? $lateAmount 
+									: round(($PartObj->FundWage/$PartObj->CustomerWage)*$lateAmount);
 							
 							$AgentLate = $lateAmount - $FundLate;
 							if($ItemID == 36)
