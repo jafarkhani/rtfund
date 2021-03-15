@@ -78,6 +78,7 @@ function GetData(){
 	$totalLoanCnt = 0;
 	$BadPercent = 35;
 	$totalWorldBadLoans = 0;
+	$totalLoanPayments = 0;
 	while($row = $dt->fetch())
 	{
 		$computeArr = LON_Computes::ComputePayments($row["RequestID"], $ComputeDate);
@@ -87,7 +88,7 @@ function GetData(){
 		$totalRemain += $TRemain;
 		$totalDelayed += $remain;
 		$totalPayed += $row["SumPayments"];
-		
+				
 		$row["TotalRemainder"] = $TRemain;
 		$row["CurrentRemainder"] = $remain;
 		$row["totalDebit"] = $row["TotalInstallmentAmount"]*1;
@@ -139,6 +140,7 @@ function GetData(){
 			$BadNPL += $row["SumPayments"];
 			$row["IsBadNPL"] = "1";
 			$BadNPLCnt++;
+			$totalLoanPayments += $row["PartAmount"];
 		}
 		else{
 			$row["IsBadNPL"] = "0";
@@ -155,6 +157,7 @@ function GetData(){
 		"totalDelayed" => $totalDelayed,
 		"totalRemain" => $totalRemain,
 		"totalWorldBadLoans" => $totalWorldBadLoans,
+		"totalLoanPayments" => $totalLoanPayments,
 		"CR" => round($BadNPL*100/$totalPayed, 2),
 		"CRCnt" => round($BadNPLCnt*100/$totalLoanCnt,2),
 		"CR2" => round($totalDelayed*100/$totalRemain,2)
@@ -203,11 +206,6 @@ function ListData($IsDashboard = false){
 	$rpt->addColumn("تاریخ اولین مرحله پرداخت وام", "firstPay","ReportDateRender");
 	$rpt->addColumn("تاریخ آخرین پرداخت مشتری", "MaxPayDate","ReportDateRender");
 	$rpt->addColumn("آخرین وضعیت پیگیری", "LatestFollowStatus");*/
-	
-	$col = $rpt->addColumn("مبلغ پرداختی وام", "SumPayments", "ReportMoneyRender");
-	$col->ExcelRender = false;
-	$col->EnableSummary();
-	$col->align = "center";
 	
 	$col = $rpt->addColumn("مبلغ پرداختی و کارمزد وام", "totalDebit", "ReportMoneyRender");
 	$col->ExcelRender = false;
@@ -283,9 +281,9 @@ function ListData($IsDashboard = false){
 		<table cellpadding="4px" style="border:2px groove #9BB1CD;border-collapse:collapse;width:100%;font-family: nazanin;
 			   font-size: 16px;line-height: 20px;">
 			<tr>
-				<td>ریسک اعتباری صندوق (CR) : 
+				<td>ریسک اعتباری صندوق (زیرشاخص اول) : 
 					<span class="blueText"><?= $computes["CR"] ?> %</span>
-					<span class="greenText">(حد مطلوب کمتر از 5%)</span>
+					<span class="greenText">(حد مطلوب کمتر از 3%)</span>
 				</td>
 				<td>جمع کل وام های پرداخت شده :
 					<span class="blueText"><?= number_format($computes["totalPayed"])?></span>
@@ -295,18 +293,24 @@ function ListData($IsDashboard = false){
 				</td>
 			</tr>
 			<tr>
-				<td>درصد وام های نا مطلوب به کل وام ها: 
+				<td>ریسک اعتباری صندوق (زیرشاخص دوم) : 
 					<span class="blueText"><?= $computes["CRCnt"] ?> %</span>
+					<span class="greenText">(حد مطلوب کمتر از 5%)</span>
 				</td>
 				<td>
 					تعداد وام هایی که بیش از 90 روز از بدهی آنها گذشته است:
 					<span class="blueText"><?= $computes["totalWorldBadLoans"] ?> </span>
 				</td>
+				<td>
+					مجموع مبلغ پرداختی بابت وام های نامطلوب : 
+					<span class="blueText"><?= number_format($computes["totalLoanPayments"]) ?> </span>
+					
+				</td>
 			</tr>
 			<tr>
 				<td>شاخص معوقات صندوق در هر روز : 
 					<span class="blueText"><?= $computes["CR2"] ?> %</span>
-					<span class="greenText">(حد مطلوب کمتر از 10%)</span>
+					<span class="greenText">(حد مطلوب کمتر از 5%)</span>
 				</td>
 				<td>مجموع کل مطالبات :
 					<span class="blueText"><?= number_format($computes["totalRemain"])?></span>
