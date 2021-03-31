@@ -138,6 +138,11 @@ function TestLoan(){
 				boxLabel : "فرمول صندوق نوآوری",
 				name : "ComputeMode",
 				inputValue : "NOAVARI"
+			},{
+				xtype : "radio",						
+				boxLabel : "فرمول درصدی",
+				name : "ComputeMode",
+				inputValue : "PERCENT"
 			}]
 		},{
 			xtype : "currencyfield",
