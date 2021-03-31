@@ -74,7 +74,7 @@ if(count($temp) > 0)
 <meta content='text/html; charset=utf-8' http-equiv='Content-Type'/>
 <link rel="stylesheet" type="text/css" href="/generalUI/fonts/fonts.css" />
 <style>
-	#header {border : 1px solid black;}
+	#header {border : 1px solid black;background-color: #ececec;}
 	 td { font-family: nazanin; font-size: 16px !important}
 	 font { font-family: nazanin; font-size: 16px !important}
 	.footer {

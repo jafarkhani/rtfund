@@ -88,8 +88,9 @@ class ReportGenerator {
         echo '<html>
 			<head>
 				<link rel="stylesheet" type="text/css" href="/generalUI/fonts/fonts.css" />
-				<META http-equiv=Content-Type content="text/html; charset=UTF-8" >
-			</head><body dir="rtl">';
+				<META http-equiv=Content-Type content="text/html; charset=UTF-8" >' .
+			'</head>
+			<body dir="rtl">';
     	}
     
 	public function ReportGenerator($MainForm = "", $ObjectName = "") {

@@ -246,6 +246,8 @@ WarrentyRequest.prototype.OperationMenu = function(e){
 		{
 			op_menu.add({text: 'ارسال ضمانت نامه',iconCls: 'refresh',
 			handler : function(){ return WarrentyRequestObject.StartFlow(); }});
+op_menu.add({text: '&#1575;&#1585;&#1587;&#1575;&#1604; &#1590;&#1605;&#1575;&#1606;&#1578; &#1606;&#1575;&#1605;&#1607; &#1570;&#1586;&#1605;&#1575;&#1740;&#1588;&#1740;',iconCls: 'refresh',
+               handler : function(){ return WarrentyRequestObject.StartFlowTest(); }});
 		
 			op_menu.add({text: 'ویرایش ضمانت نامه',iconCls: 'edit', 
 			handler : function(){ return WarrentyRequestObject.editRequest(); }});
@@ -495,6 +497,34 @@ WarrentyRequest.prototype.StartFlow = function(){
 			}
 		});
 	});
+}
+
+WarrentyRequest.prototype.StartFlowTest = function(){
+
+    Ext.MessageBox.confirm("","&#1570;&#1740;&#1575; &#1605;&#1575;&#1740;&#1604; &#1576;&#1607; &#1575;&#1585;&#1587;&#1575;&#1604; &#1590;&#1605;&#1575;&#1606;&#1578; &#1606;&#1575;&#1605;&#1607; &#1605;&#1740; &#1576;&#1575;&#1588;&#1740;&#1583;&#1567;",function(btn){
+
+        if(btn == "no")
+            return;
+
+        me = WarrentyRequestObject;
+        var record = me.grid.getSelectionModel().getLastSelected();
+
+        mask = new Ext.LoadMask(me.grid, {msg:'&#1583;&#1585; &#1581;&#1575;&#1604; &#1584;&#1582;&#1740;&#1585;&#1607; &#1587;&#1575;&#1586;&#1740; ...'});
+        mask.show();
+
+        Ext.Ajax.request({
+            url: me.address_prefix +'request.data.php',
+            method: "POST",
+            params: {
+                task: "NewStartWarrentyFlow",
+                RequestID : record.data.RequestID
+            },
+            success: function(response){
+                mask.hide();
+                WarrentyRequestObject.grid.getStore().load();
+            }
+        });
+    });
 }
 
 WarrentyRequest.prototype.ReturnStartFlow = function(){

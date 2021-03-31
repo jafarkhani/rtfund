@@ -10,6 +10,7 @@ require_once "ReportGenerator.class.php";
 $page_rpg = new ReportGenerator("mainForm","WarReport_tazaminObj");
 
 $page_rpg->addColumn("نوع تضمین", "DocumentTitle");
+$page_rpg->addColumn("صاحب تضمین", "DocumentOwner"); /*new added*/
 $page_rpg->addColumn("شماره سریال", "DocumentNo");
 $page_rpg->addColumn("مبلغ تضمین", "DocumentAmount");
 $page_rpg->addColumn("سایر اطلاعات تضمین", "DocumentOtherInfo");
@@ -103,6 +104,7 @@ function GetData($mode = "list"){
 				t_params.DocumentNo,
 				t_params.DocumentAmount,
 				t_params.DocumentOtherInfo,
+                       t_params.DocumentOwner,
 				
 				r.* , 
 				concat_ws(' ',fname,lname,CompanyName) fullname, 
@@ -118,6 +120,7 @@ function GetData($mode = "list"){
 				select DocumentID,
 					group_concat(if(KeyTitle='no',paramValue,'') separator '') DocumentNo,
 					group_concat(if(KeyTitle='amount',paramValue,'') separator '') DocumentAmount,
+                        group_concat(if(KeyTitle='Owner',paramValue,'') separator '') DocumentOwner,
 					group_concat(if((KeyTitle<>'amount' AND KeyTitle<>'no') or KeyTitle is null,
 						concat(ParamDesc,' : ', paramValue, '<br>'),'') separator '') DocumentOtherInfo
 					from DMS_DocParamValues 
@@ -163,6 +166,7 @@ function ListData($IsDashboard = false){
 	$rpg->addColumn("شماره تضمین", "RefRequestID");
 	
 	$rpg->addColumn("نوع تضمین", "DocumentTitle");
+    $rpg->addColumn("صاحب تضمین", "DocumentOwner"); /*new added*/
 	$rpg->addColumn("شماره سریال", "DocumentNo");
 	$rpg->addColumn("مبلغ تضمین", "DocumentAmount", "ReportMoneyRender");
 	$rpg->addColumn("سایر اطلاعات تضمین", "DocumentOtherInfo");

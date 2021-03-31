@@ -1,7 +1,7 @@
 <?php
 //-------------------------
-// programmer:	Jafarkhani
-// Create Date:	95.07
+// programmer:	Mokhtari
+// Create Date:	99.06
 //-------------------------
 require_once('../../header.inc.php');
 require_once inc_dataGrid;
@@ -12,53 +12,37 @@ $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
 
 $RequestID = $_REQUEST["RequestID"];
 
-$dg = new sadaf_datagrid("dg",$js_prefix_address . "request.data.php?task=GetEvents&RequestID=" .$RequestID,"grid_div");
+$dg = new sadaf_datagrid("dg",$js_prefix_address . "request.data.php?task=GetLonHistory&RequestID=" .$RequestID,"grid_div");
 
-$dg->addColumn("", "EventID","", true);
+$dg->addColumn("", "HistoryID","", true);
 $dg->addColumn("", "RequestID","", true);
-$dg->addColumn("", "EventTypeDesc","", true);
-$dg->addColumn("", "FollowUpFullname","", true);
 
-$col = $dg->addColumn("شرح رویداد", "EventTitle");
+
+$col = $dg->addColumn("عنوان سابقه", "HistoryTitle");
 $col->editor = ColumnEditor::TextField();
-	
-$col = $dg->addColumn("تاریخ رویداد", "EventDate", GridColumn::ColumnType_date);
-$col->editor = ColumnEditor::SHDateField();
-$col->width = 100;
+
+$col = $dg->addColumn("شرح سابقه", "HistoryDesc");
+$col->editor = ColumnEditor::TextArea();
+$col->width = 600;
 
 $col = $dg->addColumn("ثبت کننده", "RegFullname");
 $col->width = 100;
 
-$col = $dg->addColumn("شماره نامه", "LetterID");
-$col->renderer = "LoanEvent.LetterRender";
-$col->editor = ColumnEditor::NumberField(true);
-$col->width = 70;
-
-$col = $dg->addColumn("پیگیری کننده آینده", "FollowUpPersonID");
-$col->editor = "this.PersonCombo";
-$col->renderer = "function(v,p,r){return r.data.FollowUpFullname }";
-$col->width = 120;
-
-$col = $dg->addColumn("تاریخ پیگیری آینده", "FollowUpDate", GridColumn::ColumnType_date);
-$col->editor = ColumnEditor::SHDateField(true);
+$col = $dg->addColumn("تاریخ ثبت", "HistoryDate", GridColumn::ColumnType_date);
 $col->width = 100;
-
-$col = $dg->addColumn("شرح پیگیری آینده", "FollowUpDesc");
-$col->editor = ColumnEditor::TextField(true);
-$col->width = 200;
 
 if($accessObj->AddFlag)
 {
 	$dg->enableRowEdit = true;
-	$dg->rowEditOkHandler = "function(store,record){return LoanEventObject.SaveEvent(record);}";
+	$dg->rowEditOkHandler = "function(store,record){return LoanHistoryObject.SaveHistory(record);}";
 
-	$dg->addButton("AddBtn", "ایجاد رویداد", "add", "function(){LoanEventObject.AddEvent();}");
+	$dg->addButton("AddBtn", "ایجاد رویداد", "add", "function(){LoanHistoryObject.AddHistory();}");
 }
 if($accessObj->RemoveFlag)
 {
 	$col = $dg->addColumn("حذف", "");
 	$col->sortable = false;
-	$col->renderer = "function(v,p,r){return LoanEvent.DeleteRender(v,p,r);}";
+	$col->renderer = "function(v,p,r){return LoanHistory.DeleteRender(v,p,r);}";
 	$col->width = 35;
 }
 $dg->height = 336;
@@ -66,16 +50,16 @@ $dg->emptyTextOfHiddenColumns = true;
 $dg->EnableSearch = false;
 $dg->HeaderMenu = false;
 $dg->EnablePaging = false;
-$dg->DefaultSortField = "EventDate";
+$dg->DefaultSortField = "HistoryDate";
 $dg->DefaultSortDir = "ASC";
-$dg->autoExpandColumn = "EventTitle";
+$dg->autoExpandColumn = "HistoryTitle";
 
 $grid = $dg->makeGrid_returnObjects();
 
 ?>
 <script type="text/javascript">
 
-LoanEvent.prototype = {
+LoanHistory.prototype = {
 	TabID : '<?= $_REQUEST["ExtTabID"]?>',
 	address_prefix : "<?= $js_prefix_address?>",
 	
@@ -86,7 +70,7 @@ LoanEvent.prototype = {
 	}
 };
 
-function LoanEvent()
+function LoanHistory()
 {
 	this.PersonCombo = new Ext.form.ComboBox({
 		store: new Ext.data.Store({
@@ -105,28 +89,21 @@ function LoanEvent()
 	this.grid.render(this.get("div_grid"));	
 }
 
-LoanEvent.DeleteRender = function(v,p,r){
+LoanHistory.DeleteRender = function(v,p,r){
 	
-	if(r.data.EventRefNo != null &&  r.data.EventRefNo != "")
+	if(r.data.HistoryRefNo != null &&  r.data.HistoryRefNo != "")
 		return "";
 	
-	if(r.data.EventType == "9" && r.data.ChequeStatus != "1")
+	if(r.data.HistoryType == "9" && r.data.ChequeStatus != "1")
 		return "";
 	
 	return "<div align='center' title='حذف' class='remove' "+
-		"onclick='LoanEventObject.DeleteEvent();' " +
+		"onclick='LoanHistoryObject.DeleteHistory();' " +
 		"style='background-repeat:no-repeat;background-position:center;" +
 		"cursor:pointer;width:100%;height:16'></div>";
 }
-
-LoanEvent.LetterRender = function(v,p,r){
-	
-	if(v == null)
-		return "";
-	return "<a onclick='LoanEventObject.OpenLetter(" + v + ")' href=javascript:void(1) >" + v + "</a>";
-}
 		
-LoanEvent.prototype.SaveEvent = function(record){
+LoanHistory.prototype.SaveHistory = function(record){
 
 	mask = new Ext.LoadMask(this.grid, {msg:'در حال ذخیره سازی ...'});
 	mask.show();
@@ -135,7 +112,7 @@ LoanEvent.prototype.SaveEvent = function(record){
 		url: this.address_prefix +'request.data.php',
 		method: "POST",
 		params: {
-			task: "SaveEvents",
+			task: "SaveLonHistory",
 			record: Ext.encode(record.data)
 		},
 		success: function(response){
@@ -143,8 +120,8 @@ LoanEvent.prototype.SaveEvent = function(record){
 			var st = Ext.decode(response.responseText);
 
 			if(st.success)
-			{   
-				LoanEventObject.grid.getStore().load();
+			{
+                LoanHistoryObject.grid.getStore().load();
 			}
 			else
 			{
@@ -155,12 +132,12 @@ LoanEvent.prototype.SaveEvent = function(record){
 	});
 }
 
-LoanEvent.prototype.AddEvent = function(){
+LoanHistory.prototype.AddHistory = function(){
 
 
 	var modelClass = this.grid.getStore().model;
 	var record = new modelClass({
-		EventID: null,
+        HistoryID: null,
 		RequestID : this.RequestID
 	});
 
@@ -169,13 +146,13 @@ LoanEvent.prototype.AddEvent = function(){
 	this.grid.plugins[0].startEdit(0, 0);
 }
 
-LoanEvent.prototype.DeleteEvent = function(){
+LoanHistory.prototype.DeleteHistory = function(){
 	
 	Ext.MessageBox.confirm("","آیا مایل به حذف می باشید؟", function(btn){
 		if(btn == "no")
 			return;
 		
-		me = LoanEventObject;
+		me = LoanHistoryObject;
 		var record = me.grid.getSelectionModel().getLastSelected();
 		
 		mask = new Ext.LoadMask(me.grid, {msg:'در حال حذف ...'});
@@ -184,15 +161,15 @@ LoanEvent.prototype.DeleteEvent = function(){
 		Ext.Ajax.request({
 			url: me.address_prefix + 'request.data.php',
 			params:{
-				task: "DeleteEvents",
-				EventID : record.data.EventID
+				task: "DeleteLonHistory",
+                HistoryID : record.data.HistoryID
 			},
 			method: 'POST',
 
 			success: function(response,option){
 				result = Ext.decode(response.responseText);
 				if(result.success)
-					LoanEventObject.grid.getStore().load();
+                    LoanHistoryObject.grid.getStore().load();
 				else if(result.data == "")
 					Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
 				else
@@ -205,15 +182,8 @@ LoanEvent.prototype.DeleteEvent = function(){
 	});
 }
 
-LoanEvent.prototype.OpenLetter = function(LetterID){
-	
-	framework.OpenPage("/office/letter/LetterInfo.php", "مشخصات نامه", 
-	{
-		LetterID : LetterID
-	});
-}
 
-var LoanEventObject = new LoanEvent();
+var LoanHistoryObject = new LoanHistory();
 
 </script>
 <center>

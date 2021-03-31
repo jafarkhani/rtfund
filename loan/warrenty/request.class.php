@@ -206,6 +206,7 @@ class WAR_guarantors extends OperationClass{
 	
 	public $GuarantorID;
 	public $RequestID;
+        public $FormType;
 	public $sex;
 	public $fullname;
 	public $NationalCode;
@@ -217,6 +218,11 @@ class WAR_guarantors extends OperationClass{
 	public $phone;
 	public $mobile;
 	public $PersonType;
+    
+    public $EconomicID; //new added
+    public $email; //new added
+    public $PostalCode; //new added
+    public $NewspaperAdsNum; //new added
 	
 	function __construct($id = '') {
 		

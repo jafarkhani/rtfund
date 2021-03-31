@@ -35,9 +35,12 @@ if(isset($_REQUEST["show"]))
 	if($loanGetterType == 'company'){
 	    $CompanyTypeID=$person->CompanyType;
 	    $tempCmpType = PdoDataAccess::runquery_fetchMode("select InfoDesc from BaseInfo where typeID=14 AND IsActive='YES' AND InfoID=". $CompanyTypeID ." order by InfoDesc");
-	    $CompanyType = $tempCmpType->fetchAll();
-	    if(isset($CompanyType) && !empty($CompanyType))
-	    $CompanyTypeName = $CompanyType[0]['InfoDesc'];
+	    
+	    if(isset($CompanyType) && !empty($CompanyType)){
+$CompanyType = $tempCmpType->fetchAll();
+$CompanyTypeName = $CompanyType[0]['InfoDesc'];
+}
+	    
 	    $CompanyNationalID = $person->NationalID;
 	    $RegPlace = $person->RegPlace;
 	    $CompanyAddress = $person->address;
@@ -65,8 +68,13 @@ if(isset($_REQUEST["show"]))
 	    $LastInstallmentDate =  $InstallmentsAmounts[0]['LastInstallmentDate'];
 	}
 	
-	$secoundQuery = "select RequestID,sum(PayAmount) TotalPayAmount , max(PayDate) MaxPayDate ,PayAmount lastPayAmount
-				from LON_BackPays where RequestID=". $RequestID ." ";
+	/* $secoundQuery = "select RequestID,sum(PayAmount) TotalPayAmount , max(PayDate) MaxPayDate ,PayAmount lastPayAmount
+				from LON_BackPays where RequestID=". $RequestID ." "; */
+        $secoundQuery = "select RequestID,sum(PayAmount) TotalPayAmount , max(PayDate) MaxPayDate ,PayAmount
+				from LON_BackPays
+				left join ACC_IncomeCheques i using(IncomeChequeID)
+				where PayType= " . BACKPAY_PAYTYPE_CHEQUE . " AND ChequeStatus=".INCOMECHEQUE_VOSUL." AND RequestID=".$RequestID." 					
+				group by RequestID";
 	$secoundTemp = PdoDataAccess::runquery_fetchMode($secoundQuery);
 	$cnt = $secoundTemp->rowCount();
 	$BackPaysAmounts = $secoundTemp->fetchAll();
@@ -76,7 +84,7 @@ if(isset($_REQUEST["show"]))
 	if(!empty($BackPaysAmounts)){
 	    $MaxPayDate = $BackPaysAmounts[0]['MaxPayDate'];
 	    $TotalPayAmount = $BackPaysAmounts[0]['TotalPayAmount'];
-	    $lastPayAmount = $BackPaysAmounts[0]['lastPayAmount'];
+	    $lastPayAmount = $BackPaysAmounts[0]['PayAmount'];
 	}
 	
 	//............ get remain untill now ......................
@@ -110,7 +118,7 @@ if(isset($_REQUEST["show"]))
 	{
 		$CurrentRemain = number_format($CurrentRemain) . " ریال";
 		$TotalRemain = number_format($TotalRemain) . " ریال";
-		$DefrayAmount = number_format($DefrayAmount) . " ریال";
+		/*$DefrayAmount = number_format($DefrayAmount) . " ریال";*/
 	}
 	//............................................................
 	
@@ -188,11 +196,11 @@ if(isset($_REQUEST["show"]))
         <th style="background-color: rgb(189, 205, 229)" rowspan="8">اطلاعات قرارداد و متمم ها</th>
         <tr><th>موضوع طرح</th><td>  <?= $ReqObj->PlanTitle ?> </td></tr>
     
-        <tr><th>شماره قرارداد</th><td> <?= $RequestID ?> </td>
-        <th>تاریخ قرارداد</th><td> <?= DateModules::miladi_to_shamsi($partObj->PartDate) ?> </td></tr>
+        <tr><th>شماره وام</th><td> <?= $RequestID ?> </td>
+        <th>تاریخ پرداخت</th><td> <?= DateModules::miladi_to_shamsi($partObj->PartDate) ?> </td></tr>
         
         <tr><th>مبلغ تسهیلات پرداخت شده به ریال</th><td> <?= number_format($partObj->PartAmount) ?> </td>
-        <th>تاریخ پرداخت</th> <td> <?= DateModules::miladi_to_shamsi($partObj->PartDate) ?> </td></tr>
+        <th>مبلغ هر قسط</th> <td> <?= number_format($InstallmentsAmounts[0]['InstallmentAmount']) ?> </td></tr>
     
         <tr><th>مدت زمان تنفس</th><td> <?= $partObj->DelayMonths  ?>ماه و  <?= $partObj->DelayDays ?> روز </td>
         <th>تعداد اقساط</th> <td> <?= $partObj->InstallmentCount ?> </td></tr>
@@ -211,7 +219,7 @@ if(isset($_REQUEST["show"]))
     
     <tr>
       <th style="background-color: rgb(189, 205, 229)" rowspan="3">پرداختهای مشتری</th>
-        <tr><th>مبلغ کل پرداخت شده (ریال)</th><td> <?= number_format($TotalPayAmount) ?> </td>
+        <tr><th>مبلغ کل پرداخت شده (ریال)</th><td> <?= number_format($totalPayed) ?> </td>
 
         <th>تاریخ آخرین پرداخت </th><td> <?= DateModules::miladi_to_shamsi($MaxPayDate) ?> </td></tr>  
         
@@ -222,7 +230,7 @@ if(isset($_REQUEST["show"]))
     <tr>
       <th style="background-color: rgb(189, 205, 229)" rowspan="3">میزان بدهی ها</th>
         <tr><th> مبلغ بدهی سررسید گذشته (ریال)</th><td> <?= $CurrentRemain ?> </td>
-        <th>مبلغ پرداخت شده (ریال)</th><td> <?= number_format($TotalPayAmount) ?> </td></tr>  
+        <th>مبلغ پرداخت شده (ریال)</th><td> <?= number_format($totalPayed) ?> </td></tr>  
         
         <tr><th>مانده تا انتها(ریال)</th><td> <?= $TotalRemain ?> </td>
         <th>مانده جریمه تاخیر(ریال)</th><td> <?= number_format($remains["remain_pnlt"]) ?> </td></tr>       

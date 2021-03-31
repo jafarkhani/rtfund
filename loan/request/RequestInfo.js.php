@@ -1243,7 +1243,7 @@ RequestInfo.prototype.CustomizeForm = function(record){
 				this.companyPanel.getComponent("cmp_requester").setReadOnly(true);
 				this.companyPanel.getComponent("cmp_subAgent").setReadOnly(true);
 				this.companyPanel.down("[name=LoanPersonID]").setReadOnly(true);
-				this.companyPanel.down("[name=LoanID]").setReadOnly(true);
+				/*this.companyPanel.down("[name=LoanID]").setReadOnly(true);*/
 				this.companyPanel.down("[name=BorrowerDesc]").setReadOnly(true);
 				this.companyPanel.down("[name=BorrowerID]").setReadOnly(true);
 				this.companyPanel.down("[name=BorrowerMobile]").setReadOnly(true);
@@ -1261,7 +1261,7 @@ RequestInfo.prototype.CustomizeForm = function(record){
 						this.companyPanel.getComponent("cmp_requester").setReadOnly(true);
 						this.companyPanel.getComponent("cmp_subAgent").setReadOnly(true);
 						this.companyPanel.down("[name=LoanPersonID]").setReadOnly(true);
-						this.companyPanel.down("[name=LoanID]").setReadOnly(true);
+						/*this.companyPanel.down("[name=LoanID]").setReadOnly(true);*/
 						this.companyPanel.down("[name=BorrowerDesc]").setReadOnly(true);
 						this.companyPanel.down("[name=BorrowerID]").setReadOnly(true);
 						this.companyPanel.down("[name=BorrowerMobile]").setReadOnly(true);

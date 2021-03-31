@@ -13,7 +13,9 @@ $access = false;
 $obj = new LON_requests($RequsetID);
 if($_SESSION["USER"]["IsCustomer"] == "YES" && in_array($obj->StatusID, array("40","60")) )
 	$access = true;
-if($_SESSION["USER"]["IsStaff"] == "YES" && $obj->StatusID != LON_REQ_STATUS_CONFIRM)
+/*if($_SESSION["USER"]["IsStaff"] == "YES" && $obj->StatusID != LON_REQ_STATUS_CONFIRM)
+	$access = true;*/
+if($_SESSION["USER"]["IsStaff"] == "YES")
 	$access = true;
 
 $dg = new sadaf_datagrid("dg", $js_prefix_address . "request.data.php?task=GetGuarantors&FormType=1&RequestID="
@@ -27,6 +29,7 @@ $dg->addColumn("", "ShNo", "", true);
 $dg->addColumn("", "ShCity", "", true);
 $dg->addColumn("", "BirthDate", "", true);
 $dg->addColumn("", "phone", "", true);
+
 
 $col = $dg->addColumn("نوع فرد", "PersonType", "");
 $col->renderer = "function(v){return v == 'GUARANTOR' ? 'ضامن' : 'وثیقه گذار';}";
@@ -76,6 +79,11 @@ $dg1->addColumn("", "ShNo", "", true);
 $dg1->addColumn("", "ShCity", "", true);
 $dg1->addColumn("", "BirthDate", "", true);
 $dg1->addColumn("", "phone", "", true);
+$dg1->addColumn("", "FormType", "", true);
+$dg1->addColumn("", "EconomicID", "", true);
+$dg1->addColumn("", "email", "", true);
+$dg1->addColumn("", "PostalCode", "", true);
+$dg1->addColumn("", "NewspaperAdsNum", "", true);
 
 $col = $dg1->addColumn("نوع فرد", "PersonType", "");
 $col->renderer = "function(v){return v == 'GUARANTOR' ? 'ضامن' : 'وثیقه گذار';}";

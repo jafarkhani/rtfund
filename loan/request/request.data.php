@@ -541,22 +541,40 @@ function SavePart(){
 	PdoDataAccess::FillObjectByArray($obj, $_POST);
 	
 	//---------------- copy payments for test loan -----------------------------
-	if($obj->RequestID == 0)
-	{
-		PdoDataAccess::runquery("delete from LON_payments where RequestID=0");
-		$pobj = new LON_payments();
-		$pobj->PayAmount = $_POST["PartAmount"];
-		$pobj->PayDate = $_POST["PartDate"];
-		$pobj->RequestID = 0;
-		$pobj->PayID = "";
-		$pobj->Add();
+
+	if ($obj->RequestID == 0) {
 		
-		$result = $obj->EditPart();
+		PdoDataAccess::runquery("delete from LON_ReqParts where RequestID=0");
+		unset($obj->PartID);
+		$result = $obj->AddPart();
+
+		
+		PdoDataAccess::runquery("delete from LON_payments where RequestID=0");
+		$SrcRequestID = $_POST["SrcRequestID"];
+		if ($SrcRequestID > 0) {
+
+			PdoDataAccess::runquery(
+				"insert into LON_payments(RequestID, PayDate, RealPayedDate, PayAmount, OldFundDelayAmount, OldAgentDelayAmount, OldFundWage, OldAgentWage) 
+				select 0,PayDate, RealPayedDate, PayAmount, OldFundDelayAmount, OldAgentDelayAmount, OldFundWage, OldAgentWage from  LON_payments 
+				where RequestID=:srcid",
+				array("srcid" => $SrcRequestID)
+			);
+
+		} else {
+			$pobj = new LON_payments();
+			$pobj->PayAmount = $_POST["PartAmount"];
+			$pobj->PayDate = $_POST["PartDate"];
+			$pobj->RequestID = 0;
+			$pobj->PayID = "";
+			$pobj->Add();
+		}
+		
 		LON_installments::ComputeInstallments($obj->RequestID);
 		
 		echo Response::createObjectiveResponse(true, "");
 		die();
-	}	
+	}
+	
 	//--------------------------------------------------------------------------
 	
 	$pdo = PdoDataAccess::getPdoObject();
