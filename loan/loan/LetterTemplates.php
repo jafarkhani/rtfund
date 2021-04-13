@@ -116,6 +116,8 @@ function LetterTemplate(){
 					["#PartAmount#" , "مبلغ وام" ],
 					["#amount_char#" , "مبلغ حروفی وام" ],	
 					["#PartDate#" , "تاریخ وام" ],
+					["#DefrayDate#" , "تاریخ تسویه" ],
+					["#EndDate#" , "تاریخ خاتمه" ],
 					["#LoanFullname#" , "مشتری" ],
 					["#NationalID#" , "شناسه ملی مشتری / کدملی" ],
 					["#address#" , "نشانی مشتری" ],

@@ -4109,6 +4109,8 @@ class LON_Letters extends OperationClass{
 		$LoanRecord["amount_char"] = CurrencyModulesclass::CurrencyToString($LoanRecord["PartAmount"]);
 		$LoanRecord["totalRemain"] = number_format(LON_Computes::GetCurrentRemainAmount($RequestID));
 		$LoanRecord["PartDate"] = DateModules::miladi_to_shamsi($LoanRecord["PartDate"]);
+		$LoanRecord["DefrayDate"] = DateModules::miladi_to_shamsi($LoanRecord["DefrayDate"]);
+		$LoanRecord["EndDate"] = DateModules::miladi_to_shamsi($LoanRecord["EndDate"]);
 		$LoanRecord["PartAmount"] = number_format($LoanRecord["PartAmount"]);
 
 		$content = $TemplateObj->LetterContent;
