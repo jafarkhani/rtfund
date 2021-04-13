@@ -80,7 +80,7 @@ function MakeWhere(&$where, &$whereParam){
 		$where .= $where_temp;
 		$whereParam[":$key"] = $value;
 	}
-        if(!empty($_POST["fromEndReqDate"]) || !empty($_POST["toEndReqDate"]))
+    if(!empty($_POST["fromEndReqDate"]) || !empty($_POST["toEndReqDate"]))
 	{
             $where .= " AND (EndDate is null or EndDate='0000-00-00' ";
             if(!empty($_POST["fromEndReqDate"]))
@@ -94,6 +94,17 @@ function MakeWhere(&$where, &$whereParam){
                     $whereParam[":toEndReqDate"] = DateModules::shamsi_to_miladi($_POST["toEndReqDate"], "-");				
             }
             $where .= " )";
+	}
+	
+	$ComputeDate = $_REQUEST["ComputeDate"];
+	if(!empty($ComputeDate)){
+		$where .= " AND case r.StatusID when " . LON_REQ_STATUS_CONFIRM . " then 1=1
+										when " . LON_REQ_STATUS_DEFRAY . " then DefrayDate > :cd 
+										when " . LON_REQ_STATUS_ENDED . "  then EndDate > :cd 
+										else 1=0 end				
+				AND ReqDate < :cd";
+
+		$whereParam[":cd"] = DateModules::shamsi_to_miladi($ComputeDate,"-");
 	}
 	
 }	
@@ -121,7 +132,7 @@ function showReport(){
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
 		//ini_set("display_errors", "On");
-		//echo PdoDataAccess::GetLatestQueryString();
+		echo PdoDataAccess::GetLatestQueryString();
 		//print_r(ExceptionHandler::PopAllExceptions());
 	}
 	
@@ -137,10 +148,11 @@ function showReport(){
 		$CurrentRemain = LON_Computes::GetCurrentRemainAmount($RequestID, $ComputeArr);
 		$TotalRemain = LON_Computes::GetTotalRemainAmount($RequestID, $ComputeArr);
 		
-		$returnArr[] = array(
+		$row = array(
 			"RequestID" => $RequestID,
-                        "StatusDesc" =>  $row["StatusDesc"],
-                        "EndDate" =>  $row["EndDate"],
+			"StatusDesc" =>  $row["StatusDesc"],
+			"EndDate" =>  $row["EndDate"],
+			"DefrayDate" =>  $row["DefrayDate"],
 			"ComputeMode" => $row["ComputeMode"],
 			"ReqFullname" => $row["ReqFullname"],
 			"LoanFullname" => $row["LoanFullname"],
@@ -149,6 +161,52 @@ function showReport(){
 			"TotalRemain" => $TotalRemain,
 			"DefrayAmount" => 0//$DefrayAmount
 		);
+		
+		$totalCompute = array(
+			"pure" => 0,
+			"wage" => 0,
+			"late" => 0,
+			"pnlt" => 0
+		);
+		$totalPay = array(
+			"pure" => 0,
+			"wage" => 0,
+			"late" => 0,
+			"pnlt" => 0
+		);
+		for($i=0; $i<count($ComputeArr); $i++)
+		{
+			if($ComputeArr[$i]["type"] == "pay")
+			{
+				$totalPay["pure"] += $ComputeArr[$i]["pure"];
+				$totalPay["wage"] += $ComputeArr[$i]["wage"];
+				$totalPay["late"] += $ComputeArr[$i]["totallate"];
+				$totalPay["pnlt"] += $ComputeArr[$i]["totalpnlt"];
+				continue;
+			}			
+			
+			$totalCompute["pure"] += $ComputeArr[$i]["pure"];
+			$totalCompute["wage"] += $ComputeArr[$i]["wage"];
+			$totalCompute["late"] += $ComputeArr[$i]["totallate"];
+			$totalCompute["pnlt"] += $ComputeArr[$i]["totalpnlt"];
+			
+		}
+		$row["compute_pure"] = $totalCompute["pure"];
+		$row["compute_wage"] = $totalCompute["wage"];
+		$row["compute_late"] = $totalCompute["late"];
+		$row["compute_pnlt"] = $totalCompute["pnlt"];
+		
+		$row["pay_pure"] = $totalPay["pure"];
+		$row["pay_wage"] = $totalPay["wage"];
+		$row["pay_late"] = $totalPay["late"];
+		$row["pay_pnlt"] = $totalPay["pnlt"];
+		
+		$row["remain_pure"] = $totalCompute["pure"] - $totalPay["pure"];
+		$row["remain_wage"] = $totalCompute["wage"] - $totalPay["wage"];
+		$row["remain_late"] = $totalCompute["late"] - $totalPay["late"];
+		$row["remain_pnlt"] = $totalCompute["pnlt"] - $totalPay["pnlt"];
+		
+		$returnArr[] = $row;
 	}
 
 	$rpg = new ReportGenerator();
@@ -179,15 +237,80 @@ function showReport(){
 	$rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 	$rpg->addColumn("مشتری", "LoanFullname");
 	$rpg->addColumn('مبنای محاسبه', "ComputeMode", "ComputeRender");
-        $rpg->addColumn("وضعیت", "StatusDesc");
-        $rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
+    $rpg->addColumn("وضعیت", "StatusDesc");
+    $rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
+	$rpg->addColumn("تاریخ تسویه", "DefrayDate", "ReportDateRender");
+	
 	$col = $rpg->addColumn("مبلغ وام", "PartAmount","ReportMoneyRender");
 	$col->EnableSummary();
 	$col = $rpg->addColumn("مانده قابل پرداخت معوقه", "CurrentRemain", "ReportMoneyRender");
 	$col->EnableSummary();
 	$col = $rpg->addColumn("مانده تا انتها", "TotalRemain", "ReportMoneyRender");
 	$col->EnableSummary();
-	$rpg->addColumn("مبلغ قابل پرداخت در صورت تسویه وام ", "DefrayAmount", "ReportMoneyRender");
+	
+	$col = $rpg->addColumn("اصل", "compute_pure","ReportMoneyRender");
+	$col->GroupHeader = "جمع محاسبه شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#a2ff9c";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("کارمزد", "compute_wage","ReportMoneyRender");
+	$col->GroupHeader = "جمع محاسبه شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#a2ff9c";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("تاخیر", "compute_late","ReportMoneyRender");
+	$col->GroupHeader = "جمع محاسبه شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#a2ff9c";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("جریمه", "compute_pnlt","ReportMoneyRender");
+	$col->GroupHeader = "جمع محاسبه شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#a2ff9c";
+	$col->EnableSummary();
+	
+	//.............................
+	
+	$col = $rpg->addColumn("اصل", "pay_pure","ReportMoneyRender");
+	$col->GroupHeader = "جمع پرداخت شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#b0edff";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("کارمزد", "pay_wage","ReportMoneyRender");
+	$col->GroupHeader = "جمع پرداخت شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#b0edff";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("تاخیر", "pay_late","ReportMoneyRender");
+	$col->GroupHeader = "جمع پرداخت شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#b0edff";
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("جریمه", "pay_pnlt","ReportMoneyRender");
+	$col->GroupHeader = "جمع پرداخت شده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#b0edff";
+	$col->EnableSummary();
+	
+	//.............................
+	
+	$col = $rpg->addColumn("اصل", "remain_pure","ReportMoneyRender");
+	$col->GroupHeader = "مانده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#fdff9c";	
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("کارمزد", "remain_wage","ReportMoneyRender");
+	$col->GroupHeader = "مانده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#fdff9c";	
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("تاخیر", "remain_late","ReportMoneyRender");
+	$col->GroupHeader = "مانده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#fdff9c";	
+	$col->EnableSummary();
+	
+	$col = $rpg->addColumn("جریمه", "remain_pnlt","ReportMoneyRender");
+	$col->GroupHeader = "مانده طبق زیرسیستم تسهیلات";
+	$col->headerColor = "#fdff9c";	
+	$col->EnableSummary();
 	
 	if(!$rpg->excel)
 	{

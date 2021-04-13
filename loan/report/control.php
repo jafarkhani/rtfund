@@ -76,6 +76,17 @@ function MakeWhere(&$where, &$whereParam){
 			$where .= " AND " . $prefix . $key . " = :$key";
 		$whereParam[":$key"] = $value;
 	}
+			
+	$ComputeDate = $_REQUEST["ComputeDate"];
+	if(!empty($ComputeDate)){
+		$where .= " AND case r.StatusID when " . LON_REQ_STATUS_CONFIRM . " then 1=1
+										when " . LON_REQ_STATUS_DEFRAY . " then DefrayDate > :cd 
+										when " . LON_REQ_STATUS_ENDED . "  then EndDate > :cd 
+										else 1=0 end				
+				AND ReqDate < :cd";
+
+		$whereParam[":cd"] = DateModules::shamsi_to_miladi($ComputeDate,"-");
+	}
 
 }	
 
@@ -109,6 +120,8 @@ function GetData(){
 	$dt = PdoDataAccess::runquery($query, $whereParam);
 	//print_r(ExceptionHandler::PopAllExceptions());
 	//echo PdoDataAccess::GetLatestQueryString();die();
+	
+	
 	//------------ get all involved costs -------------------
 	global $c_dt;
 	$c_dt = PdoDataAccess::runquery("
@@ -127,6 +140,7 @@ function GetData(){
 			. "cc.param3=".ACC_COST_PARAM_LOAN_RequestID.")
 		 group by CostID
 		 having sum(DebtorAmount-CreditorAmount)<>0");
+	
 	//-------------------------------------------------------
 	for($i=0; $i<count($dt); $i++){
 		
@@ -204,6 +218,7 @@ function GetData(){
 						if(cc.param3=".ACC_COST_PARAM_LOAN_RequestID.",di.param3=:r,1=0)
 					)" . $where . "						
 				group by CostID", $params);
+		
 		$cv_ref = array();
 		foreach($cv_dt as $cv_row)
 			$cv_ref[ $cv_row["CostID"] ] = $cv_row["remainCost"];
@@ -385,6 +400,8 @@ LoanReport_control.prototype = {
 
 LoanReport_control.prototype.showReport = function(btn, e)
 {
+	
+	
 	this.form = this.get("mainForm")
 	this.form.target = "_blank";
 	this.form.method = "POST";
@@ -529,7 +546,7 @@ function LoanReport_control()
 			fieldLabel : "تا تاریخ"
 		},{
 			xtype : "shdatefield",
-			name : "ComputeDate",
+			name : "FromComputeDate",
 			fieldLabel : "محاسبه تا تاریخ"
 		},{
 			xtype : "combo",

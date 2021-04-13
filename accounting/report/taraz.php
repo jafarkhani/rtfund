@@ -462,6 +462,11 @@ function GetData(&$rpg){
 	
 	$query .= " order by tbl.BlockCode1,tbl.BlockCode2,tbl.BlockCode3,tbl.BlockCode4,tbl.TafsiliID,tbl.TafsiliID2";
 
+	if($_SESSION["USER"]["UserName"] == "admin")
+	{
+		echo $query;
+		//die();
+	}
 	$dt = PdoDataAccess::runquery($query, $whereParam);
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{

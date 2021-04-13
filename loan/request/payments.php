@@ -13,8 +13,6 @@ $accessObj = FRW_access::GetAccess($_POST["MenuID"]);
 //...................................................
 
 $RequestID = $_REQUEST["RequestID"];
-if(empty($RequestID))
-	die();
 $editable = true;
 
 $obj = new LON_requests($RequestID);
@@ -39,46 +37,47 @@ $col->summaryType = GridColumn::SummeryType_sum;
 $col->summaryRenderer = "function(v){return Ext.util.Format.Money(v);}";
 $col->align = "center";
 
-$col = $dg->addColumn("کسورات صندوق", "OldFundDelayAmount", GridColumn::ColumnType_money);
-$col->width = 120;
-$col->summaryType = GridColumn::SummeryType_sum;
-$col->renderer = "function(v,p,r){return Ext.util.Format.Money(v + r.data.OldFundWage);}";
-$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
-$col->align = "center";
+if($RequestID > 0){
+	$col = $dg->addColumn("کسورات صندوق", "OldFundDelayAmount", GridColumn::ColumnType_money);
+	$col->width = 120;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->renderer = "function(v,p,r){return Ext.util.Format.Money(v + r.data.OldFundWage);}";
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
+	$col->align = "center";
 
-$col = $dg->addColumn("کسورات سرمایه گذار", "OldAgentDelayAmount", GridColumn::ColumnType_money);
-$col->width = 120;
-$col->summaryType = GridColumn::SummeryType_sum;
-$col->renderer = "function(v,p,r){return Ext.util.Format.Money(v + r.data.OldAgentWage);}";
-$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
-$col->align = "center";
+	$col = $dg->addColumn("کسورات سرمایه گذار", "OldAgentDelayAmount", GridColumn::ColumnType_money);
+	$col->width = 120;
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->renderer = "function(v,p,r){return Ext.util.Format.Money(v + r.data.OldAgentWage);}";
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
+	$col->align = "center";
 
-$col = $dg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate", GridColumn::ColumnType_date);
-$col->width = 120;
-$col->renderer = "function(v,p,r){ return MiladiToShamsi(v);}";
-$col->align = "center";
+	$col = $dg->addColumn("تاریخ پرداخت به مشتری", "RealPayedDate", GridColumn::ColumnType_date);
+	$col->width = 120;
+	$col->renderer = "function(v,p,r){ return MiladiToShamsi(v);}";
+	$col->align = "center";
 
-$col = $dg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", GridColumn::ColumnType_money);
-$col->width = 120;
-$col->align = "center";
-$col->summaryType = GridColumn::SummeryType_sum;
-$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
-
-if(session::IsFramework())
+	$col = $dg->addColumn("مبلغ پرداخت به مشتری", "PurePayAmount", GridColumn::ColumnType_money);
+	$col->width = 120;
+	$col->align = "center";
+	$col->summaryType = GridColumn::SummeryType_sum;
+	$col->summaryRenderer = "function(v){return Ext.util.Format.Money(v );}";
+}
+if(session::IsFramework() && $RequestID > 0)
 {
 	$col = $dg->addColumn("شماره سند حسابداری", "LocalNo");
 	$col->align = "center";
 	$col->renderer = "function(v,p,r){return PartPayment.DocRender(v,p,r);}";
 	$col->width = 120;
 }
-if($editable && $accessObj->AddFlag)
+if(($editable && $accessObj->AddFlag) || $RequestID == 0)
 {
 	$dg->enableRowEdit = true;
 	$dg->rowEditOkHandler = "function(store,record){return PartPaymentObject.SavePartPayment(record);}";
 	
 	$dg->addButton("AddBtn", "ایجاد ردیف پرداخت", "add", "function(){PartPaymentObject.AddPay();}");
 	
-	if($accessObj->RemoveFlag)
+	if($accessObj->RemoveFlag || $RequestID == 0)
 	{
 		$col = $dg->addColumn("حذف", "");
 		$col->sortable = false;

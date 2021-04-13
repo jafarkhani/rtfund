@@ -418,6 +418,11 @@ ManageRequest.prototype.OperationMenu = function(e){
 				iconCls : "process",
 				itemId : "cmp_follows",
 				handler : function(){ ManageRequestObject.ShowFollows(); }
+			},{
+				text : 'نامه های مرتبط با وام',
+				iconCls : "letter",
+				itemId : "cmp_letters",
+				handler : function(){ ManageRequestObject.ShowLetters(); }
 			});
 	
 	
@@ -874,6 +879,43 @@ ManageRequest.prototype.ShowFollows = function(){
 		params : {
 			MenuID : this.MenuID,
 			ExtTabID : this.FollowWin.getEl().id,
+			RequestID : this.grid.getSelectionModel().getLastSelected().data.RequestID
+		}
+	});
+}
+
+ManageRequest.prototype.ShowLetters = function(){
+
+	if(!this.LetterWin)
+	{
+		this.LetterWin = new Ext.window.Window({
+			title: 'نامه های مرتبط با وام',
+			modal : true,
+			autoScroll : true,
+			width: 1000,
+			height : 400,
+			bodyStyle : "background-color:white",
+			closeAction : "hide",
+			loader : {
+				url : this.address_prefix + "LoanLetters.php",
+				scripts : true
+			},
+			buttons : [{
+				text : "بازگشت",
+				iconCls : "undo",
+				handler : function(){
+					this.up('window').hide();
+				}
+			}]
+		});
+		Ext.getCmp(this.TabID).add(this.LetterWin);
+	}
+	this.LetterWin.show();
+	this.LetterWin.center();	
+	this.LetterWin.loader.load({
+		params : {
+			MenuID : this.MenuID,
+			ExtTabID : this.LetterWin.getEl().id,
 			RequestID : this.grid.getSelectionModel().getLastSelected().data.RequestID
 		}
 	});

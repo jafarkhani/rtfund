@@ -133,4 +133,21 @@ class LON_loans extends PdoDataAccess
 	}
 }
 
+class LON_LetterTemplates extends OperationClass{
+	
+	const TableName = "LON_LetterTemplates";
+	const TableKey = "TemplateID";
+	
+	public $TemplateID;
+	public $TemplateDesc;
+	public $LetterSubject;
+	public $LetterContent;
+	
+	function __construct($id = '') {
+		
+		parent::__construct($id);
+	}
+	
+}
+
 ?>
