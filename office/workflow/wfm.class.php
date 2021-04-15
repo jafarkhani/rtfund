@@ -11,9 +11,9 @@ class WFM_flows extends PdoDataAccess {
 	public $FlowID;
 	public $ObjectType;
 	public $FlowDesc;
-	public $IsSystemic;
-
+	public $IsSystemic;	
 	public $_ObjectType;
+	public $IsTree;
 	
 	function __construct($FlowID = "") {
 		if($FlowID != "")
@@ -31,6 +31,8 @@ class WFM_flows extends PdoDataAccess {
 		
 		$query .= ($where != "") ? " where " . $where : "";
 		
+		$query .= " order by FlowID DESC " ; 
+			
 		return parent::runquery_fetchMode($query, $whereParam);
 	}
 
@@ -97,6 +99,7 @@ class WFM_FlowSteps extends PdoDataAccess {
 	public $JobID;
 	public $IsActive;
 	public $IsOuter;
+	public $StepParentID;
 
 	static function GetAll($where = "", $whereParam = array()) {
 		
@@ -114,12 +117,12 @@ class WFM_FlowSteps extends PdoDataAccess {
 
 	function AddFlowStep($pdo = null) {
 		
-		if (!parent::insert("WFM_FlowSteps", $this, $pdo)) {
+		if (!parent::insert("WFM_FlowSteps", $this, $pdo)) {			
 			return false;
 		}
 
 		$this->StepRowID = parent::InsertID($pdo);
-		
+	
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_add;
 		$daObj->MainObjectID = $this->StepRowID;
@@ -133,7 +136,7 @@ class WFM_FlowSteps extends PdoDataAccess {
 	function EditFlowStep($pdo = null) {
 		
 		if (parent::update("WFM_FlowSteps", $this, " StepRowID=:srid", 
-				array(":srid" => $this->StepRowID), $pdo) === false)
+				array(":srid" => $this->StepRowID), $pdo) === false) 
 			return false;
 
 		$daObj = new DataAudit();

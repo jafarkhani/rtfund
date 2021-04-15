@@ -41,6 +41,7 @@ function SaveFlow(){
 		$result = $obj->EditFlow();
 	else
 	{
+			
 		if($obj->ObjectType != SOURCETYPE_FORM)
 		{
 			$dt = PdoDataAccess::runquery("select * from WFM_flows where ObjectType=?", array($obj->ObjectType));
@@ -103,7 +104,15 @@ function SelectSteps(){
 function SaveStep(){
 	
 	$obj = new WFM_FlowSteps();
-	PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
+	
+	if(empty($_POST['StepParentID'])) {
+		PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
+	
+	}	
+	else {
+		PdoDataAccess::FillObjectByArray($obj, $_POST);
+		
+	}
 	
 	if($obj->PersonID == null)
 		$obj->PersonID = PDONULL;
@@ -116,6 +125,7 @@ function SaveStep(){
 		$result = $obj->EditFlowStep();
 	else
 	{
+		
 		$dt = PdoDataAccess::runquery("select ifnull(max(StepID),0) from WFM_FlowSteps where FlowID=? AND IsActive='YES' AND IsOuter='NO'", 
 				array($obj->FlowID));
 		$obj->StepID = $dt[0][0]*1 + 1;
