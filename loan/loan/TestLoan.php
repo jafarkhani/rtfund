@@ -81,7 +81,7 @@ function TestLoan(){
 						record = this.getAt(0);
 						me.InfoPanel.loadRecord(record);
 						me.InfoPanel.down("[name=PartDate]").setValue(MiladiToShamsi(record.data.PartDate));
-						me.InfoPanel.down("[name=SourceRequestID]").setValue(record.data.RequestID);						
+						me.InfoPanel.down("[name=SourceRequestID]").setValue(record.data.RequestID);							
 						me.SavePart();
 					}
 				});
@@ -102,12 +102,12 @@ function TestLoan(){
 	});
 	
 	this.InfoPanel = new Ext.form.Panel({
-		width : 700,
+		width : 750,
 		frame : true,
 		renderTo : this.get("divPanel"),
 		layout : {
 			type : "table",
-			columns : 2
+			columns : 3
 		},
 		defaults : {
 			xtype : "numberfield",
@@ -143,6 +143,78 @@ function TestLoan(){
 				boxLabel : "فرمول درصدی",
 				name : "ComputeMode",
 				inputValue : "PERCENT"
+			}]
+		},{
+			xtype : "fieldset",
+			itemId : "fs_WageCompute",
+			title : "نحوه دریافت کارمزد صندوق",
+			width : 220,
+			style : "margin-right:10px",
+			items : [{
+				xtype : "radio",
+				boxLabel : "پرداخت کارمزد طی اقساط",
+				name : "WageReturn",
+				inputValue : "INSTALLMENT",
+				checked : true
+			},{
+				xtype : "radio",						
+				boxLabel : "پرداخت کارمزد هنگام پرداخت وام",
+				name : "WageReturn",
+				inputValue : "CUSTOMER"
+			}]
+		},{
+			xtype : "fieldset",
+			itemId : "fs_DelayCompute",
+			title : "نحوه دریافت تنفس صندوق",
+			width : 220,
+			style : "margin-right:10px",
+			items : [{
+				xtype : "radio",						
+				boxLabel : "هنگام پرداخت وام",
+				name : "DelayReturn",
+				inputValue : "CUSTOMER",
+				checked : true
+			},{
+				xtype : "radio",
+				boxLabel : "طی اقساط",
+				name : "DelayReturn",
+				inputValue : "INSTALLMENT"
+			}]
+		},{
+			xtype : "fieldset",
+			itemId : "fs_AgentWageCompute",
+			title : "نحوه دریافت کارمزد سرمایه گذار",
+			width : 220,
+			style : "margin-right:10px",
+			items : [{
+				xtype : "radio",
+				boxLabel : "پرداخت کارمزد طی اقساط",
+				name : "AgentReturn",
+				inputValue : "INSTALLMENT",
+				checked : true
+			},{
+				xtype : "radio",						
+				boxLabel : "پرداخت کارمزد هنگام پرداخت وام",
+				name : "AgentReturn",
+				inputValue : "CUSTOMER"
+			}]
+		},{
+			xtype : "fieldset",
+			itemId : "fs_AgentDelayCompute",
+			title : "نحوه دریافت تنفس سرمایه گذار",
+			width : 220,
+			style : "margin-right:10px",
+			items : [{
+				xtype : "radio",						
+				boxLabel : "هنگام پرداخت وام",
+				name : "AgentDelayReturn",
+				inputValue : "CUSTOMER",
+				checked : true
+			},{
+				xtype : "radio",
+				boxLabel : "طی اقساط",
+				name : "AgentDelayReturn",
+				inputValue : "INSTALLMENT"
 			}]
 		},{
 			xtype : "currencyfield",
@@ -219,79 +291,25 @@ function TestLoan(){
 			name: 'LatePercent'
 		},{
 			fieldLabel: 'درصد جریمه',
-			name: 'ForfeitPercent'
+			name: 'ForfeitPercent',
+			colspan: 3
 		},{
-			xtype : "fieldset",
-			itemId : "fs_WageCompute",
-			title : "نحوه دریافت کارمزد صندوق",
-			width : 220,
-			style : "margin-right:10px",
-			items : [{
-				xtype : "radio",
-				boxLabel : "پرداخت کارمزد طی اقساط",
-				name : "WageReturn",
-				inputValue : "INSTALLMENT",
-				checked : true
-			},{
-				xtype : "radio",						
-				boxLabel : "پرداخت کارمزد هنگام پرداخت وام",
-				name : "WageReturn",
-				inputValue : "CUSTOMER"
-			}]
-		},{
-			xtype : "fieldset",
-			itemId : "fs_DelayCompute",
-			title : "نحوه دریافت تنفس صندوق",
-			width : 220,
-			style : "margin-right:10px",
-			items : [{
-				xtype : "radio",						
-				boxLabel : "هنگام پرداخت وام",
-				name : "DelayReturn",
-				inputValue : "CUSTOMER",
-				checked : true
-			},{
-				xtype : "radio",
-				boxLabel : "طی اقساط",
-				name : "DelayReturn",
-				inputValue : "INSTALLMENT"
-			}]
-		},{
-			xtype : "fieldset",
-			itemId : "fs_AgentWageCompute",
-			title : "نحوه دریافت کارمزد سرمایه گذار",
-			width : 220,
-			style : "margin-right:10px",
-			items : [{
-				xtype : "radio",
-				boxLabel : "پرداخت کارمزد طی اقساط",
-				name : "AgentReturn",
-				inputValue : "INSTALLMENT",
-				checked : true
-			},{
-				xtype : "radio",						
-				boxLabel : "پرداخت کارمزد هنگام پرداخت وام",
-				name : "AgentReturn",
-				inputValue : "CUSTOMER"
-			}]
-		},{
-			xtype : "fieldset",
-			itemId : "fs_AgentDelayCompute",
-			title : "نحوه دریافت تنفس سرمایه گذار",
-			width : 220,
-			style : "margin-right:10px",
-			items : [{
-				xtype : "radio",						
-				boxLabel : "هنگام پرداخت وام",
-				name : "AgentDelayReturn",
-				inputValue : "CUSTOMER",
-				checked : true
-			},{
-				xtype : "radio",
-				boxLabel : "طی اقساط",
-				name : "AgentDelayReturn",
-				inputValue : "INSTALLMENT"
-			}]
+			xtype : "panel",
+			width: 700,
+			colspan: 3,
+			autoHeight : true,
+			loader : {
+				url : this.address_prefix + "../request/payments.php",
+				method : "post",
+				autoLoad : true,
+				scripts : true,
+				params : {
+					MenuID : this.MenuID,
+					ExtTabID : this.TabID,
+					RequestID : 0
+				}
+			}
+			
 		},{
 			xtype : "hidden",
 			name : "PartID",
@@ -351,6 +369,9 @@ TestLoan.prototype.SavePart = function(){
 		success: function(form,action){
 			mask.hide();
 			TestLoanObject.PartStore.load();
+			PartPaymentObject.grid.getStore().load();
+			me.InfoPanel.down("[name=SourceRequestID]").setValue();
+
 		},
 		failure: function(form,action){
 			mask.hide();

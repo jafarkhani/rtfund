@@ -99,6 +99,8 @@ switch($task)
 	case "GetFollowsToDo":	
 	case "DoFollow":
 		
+	case "GetLoanLetters":
+	case "RegisterLoanLetter":
 		$task();
 }
 
@@ -548,25 +550,15 @@ function SavePart(){
 		unset($obj->PartID);
 		$result = $obj->AddPart();
 
-		
-		PdoDataAccess::runquery("delete from LON_payments where RequestID=0");
-		$SrcRequestID = $_POST["SrcRequestID"];
-		if ($SrcRequestID > 0) {
-
+		$SrcRequestID = $_POST["SourceRequestID"];
+		if(!empty($SrcRequestID)){
+			PdoDataAccess::runquery("delete from LON_payments where RequestID=0");
 			PdoDataAccess::runquery(
 				"insert into LON_payments(RequestID, PayDate, RealPayedDate, PayAmount, OldFundDelayAmount, OldAgentDelayAmount, OldFundWage, OldAgentWage) 
 				select 0,PayDate, RealPayedDate, PayAmount, OldFundDelayAmount, OldAgentDelayAmount, OldFundWage, OldAgentWage from  LON_payments 
 				where RequestID=:srcid",
 				array("srcid" => $SrcRequestID)
 			);
-
-		} else {
-			$pobj = new LON_payments();
-			$pobj->PayAmount = $_POST["PartAmount"];
-			$pobj->PayDate = $_POST["PartDate"];
-			$pobj->RequestID = 0;
-			$pobj->PayID = "";
-			$pobj->Add();
 		}
 		
 		LON_installments::ComputeInstallments($obj->RequestID);
@@ -2327,10 +2319,6 @@ function ComputeManualInstallments(){
 
 //------------------------------------------------
 
-
-
-//------------------------------------------------
-	
 function CustomerDefrayRequest(){
 	
 	$RequestID = (int)$_POST["RequestID"];
@@ -2374,5 +2362,30 @@ function CustomerDefrayRequest(){
 	echo Response::createObjectiveResponse(true,$dt[0]["RequestID"]);
 	die();
 }
+
+//------------------------------------------------
+
+function GetLoanLetters(){
 	
+	$temp = LON_Letters::Get(" AND RequestID=?", array($_REQUEST["RequestID"]));
+	print_r(ExceptionHandler::PopAllExceptions());
+	$res = $temp->fetchAll();
+	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
+	die();
+}
+
+function RegisterLoanLetter(){
+	
+	$TemplateID = $_POST["TemplateID"];
+	$RequestID = $_POST["RequestID"];
+	
+	$LetterID = LON_Letters::AddLetter($RequestID, $TemplateID);
+	if(!$LetterID)
+	{
+		echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+		die();
+	}
+	echo Response::createObjectiveResponse(true, $LetterID);
+	die();
+}
 ?>

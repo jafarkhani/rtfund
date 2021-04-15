@@ -5,6 +5,7 @@
 //---------------------------
 
 require_once DOCUMENT_ROOT . '/office/dms/dms.class.php';
+require_once DOCUMENT_ROOT . '/loan/loan/loan.class.php';
 
 class LON_requests extends PdoDataAccess{
 	
@@ -4051,6 +4052,133 @@ class LON_guarantors extends OperationClass{
 		$this->DT_BirthDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		
 		parent::__construct($id);
+	}
+}
+
+class LON_Letters extends OperationClass{
+	
+	const TableName = "LON_letters";
+	const TableKey = "RowID";
+	
+	public $RowID;
+	public $RequestID;
+	public $TemplateID;
+	public $RegPersonID;
+	public $RegDate;
+	public $LetterID;
+	
+	function __construct($id = '') {
+		
+		$this->DT_RegDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		
+		parent::__construct($id);
+	}
+	
+	static function Get($where = '', $whereParams = array(), $pdo = null) {
+		return PdoDataAccess::runquery_fetchMode("
+			select l.* ,TemplateDesc,concat_ws(' ', fname,lname,CompanyName) RegPersonName
+			from LON_letters l 
+			join LON_LetterTemplates lt using(TemplateID)
+			join BSC_persons on(PersonID=RegPersonID)
+			join OFC_letters using(LetterID) 
+			where 1=1 " . $where, $whereParams, $pdo);
+	}
+	
+	static function AddLetter($RequestID, $TemplateID){
+		
+		$pdo = PdoDataAccess::getPdoObject();
+		$pdo->beginTransaction();
+		
+		$TemplateObj = new LON_LetterTemplates($TemplateID);
+		$LoanObj = new LON_requests($RequestID);
+	
+		$dt = PdoDataAccess::runquery("
+			select r.*,p.*,p2.*,
+				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
+				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
+
+			from LON_requests r 
+			left join LON_ReqParts p on(r.RequestID=p.RequestID AND IsHistory='NO')
+			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
+			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
+
+			where r.RequestID=?", array($RequestID));
+		$LoanRecord = $dt[0];
+		//--------------- create letter content --------------------
+
+		$LoanRecord["amount_char"] = CurrencyModulesclass::CurrencyToString($LoanRecord["PartAmount"]);
+		$LoanRecord["totalRemain"] = number_format(LON_Computes::GetCurrentRemainAmount($RequestID));
+		$LoanRecord["PartDate"] = DateModules::miladi_to_shamsi($LoanRecord["PartDate"]);
+		$LoanRecord["DefrayDate"] = DateModules::miladi_to_shamsi($LoanRecord["DefrayDate"]);
+		$LoanRecord["EndDate"] = DateModules::miladi_to_shamsi($LoanRecord["EndDate"]);
+		$LoanRecord["PartAmount"] = number_format($LoanRecord["PartAmount"]);
+
+		$content = $TemplateObj->LetterContent;
+		$contentArr = explode("#", $content);
+		$content = "";
+		for ($i = 0; $i < count($contentArr); $i++) {
+			if ($i % 2 == 0) 
+			{
+				$content .= $contentArr[$i];
+				continue;
+			}
+
+			$content .=  $LoanRecord[ $contentArr[$i] ];
+		}
+		//----------------------------------------------------------
+
+		$LetterObj = new OFC_letters();
+		$LetterObj->LetterType = "OUTCOME";
+		$LetterObj->LetterTitle = $TemplateObj->LetterSubject;
+		$LetterObj->LetterDate = PDONOW;
+		$LetterObj->RegDate = PDONOW;
+		$LetterObj->PersonID = $_SESSION["USER"]["PersonID"];
+		$LetterObj->context = $content;
+		$LetterObj->OuterCopies = $LoanObj->_ReqPersonFullname;
+		$LetterObj->organization = $LoanObj->_LoanPersonFullname;
+		if(!$LetterObj->AddLetter($pdo))
+		{
+			ExceptionHandler::PushException("خطا در ثبت  نامه");
+			$pdo->rollBack();
+			return false;
+		}
+
+		$Cobj = new OFC_LetterCustomers();
+		$Cobj->LetterID = $LetterObj->LetterID;
+		$Cobj->PersonID = $LoanObj->LoanPersonID;
+		$Cobj->IsHide = "NO";
+		$Cobj->LetterTitle = $TemplateObj->LetterSubject;
+		if(!$Cobj->Add($pdo))
+		{
+			ExceptionHandler::PushException("خطا در ثبت ذینفع نامه");
+			$pdo->rollBack();
+			return false;
+		}
+		if($LoanObj->ReqPersonID*1 > 0)
+		{
+			$Cobj = new OFC_LetterCustomers();
+			$Cobj->LetterID = $LetterObj->LetterID;
+			$Cobj->PersonID = $LoanObj->ReqPersonID;
+			$Cobj->IsHide = "NO";
+			$Cobj->LetterTitle = $TemplateObj->LetterSubject;
+			if(!$Cobj->Add($pdo))
+			{
+				ExceptionHandler::PushException("خطا در ثبت ذینفع نامه");
+				$pdo->rollBack();
+				return false;
+			}
+		}
+
+		$obj = new LON_letters();
+		$obj->RequestID = $LoanObj->RequestID;
+		$obj->TemplateID = $TemplateObj->TemplateID;
+		$obj->LetterID = $LetterObj->LetterID;
+		$obj->RegDate = PDONOW;
+		$obj->RegPersonID = $_SESSION["USER"]["PersonID"];
+		$obj->Add($pdo);
+		
+		$pdo->commit();
+		return $LetterObj->LetterID;
 	}
 }
 

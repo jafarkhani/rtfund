@@ -157,4 +157,42 @@ function GetAllPayTypes(){
 	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
 	die();
 }
+
+
+function GetLetterTemplates(){
+	
+	$temp = LON_LetterTemplates::Get();
+	$res = $temp->fetchAll();
+	echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
+	die();
+}
+
+function SaveLetterTemplates(){
+	
+	$obj = new LON_LetterTemplates();
+	PdoDataAccess::FillObjectByArray($obj, $_POST);
+	
+	if(empty($obj->TemplateID))
+	{
+		$result = $obj->Add();
+	}
+	else
+		$result = $obj->Edit();
+	
+	//print_r(ExceptionHandler::PopAllExceptions());
+	if(!$result)
+		echo Response::createObjectiveResponse(false, "خطا در ثبت ردیف");
+	else
+		echo Response::createObjectiveResponse(true, "");
+	die();
+}
+
+function DeleteLetterTemplates(){
+	
+	$obj = new LON_LetterTemplates($_POST["TemplateID"]);
+	$result = $obj->Remove();
+	echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+	die();	
+}
+
 ?>
