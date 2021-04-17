@@ -42,6 +42,11 @@ $col->renderer ="function(v){return (v=='1') ? 'ضعیف' : (v=='2') ? 'متوس
 /*$col=$dg->addColumn("جنسیت","sex","string");
 $col->renderer ="function(v){return (v=='MALE') ? 'مرد' : (v=='FEMALE') ? 'زن' : '' ;}";*/
 
+$col = $dg->addColumn('&#1578;&#1589;&#1608;&#1740;&#1585;&#1606;&#1575;&#1605;&#1607; &#1583;&#1585;&#1582;&#1608;&#1575;&#1587;&#1578;', 'LetterPic', '');
+$col->renderer = "Request.LetterPicRender";
+$col->width = 70;
+$col->align = "center";
+
 $col = $dg->addColumn('عملیات', '', 'string');
 $col->renderer = "Request.OperationRender";
 $col->width = 50;
@@ -60,10 +65,10 @@ $dg->addObject("RequestObject.FilterObj");
 $dg->EnableSearch = true;
 $dg->height = 500;
 $dg->pageSize = 15;
-$dg->width = 880;
-/*$dg->DefaultSortField = "PID";
-$dg->DefaultSortDir = "ASC";
-$dg->autoExpandColumn = "PID";*/
+$dg->width = 950;
+/*$dg->autoExpandColumn = "PID";*/
+$dg->DefaultSortField = "IDReq";
+$dg->DefaultSortDir = "desc";
 $dg->emptyTextOfHiddenColumns = true;
 
 $grid = $dg->makeGrid_returnObjects();
