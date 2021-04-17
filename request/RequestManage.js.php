@@ -237,6 +237,13 @@ function Request()
 	});*/
 }
 
+Request.LetterPicRender = function(v,p,record){
+    return "<div  title='&#1578;&#1589;&#1608;&#1740;&#1585; &#1606;&#1575;&#1605;&#1607;' class='info2' " +
+    "onclick='Request.ShowFile(" + record.data.IDReq + ");' " +
+    "style='background-repeat:no-repeat;background-position:center;" +
+    "cursor:pointer;width:16px;height:16;float:right'></div>";
+    }
+
     Request.deleteRender = function(v,p,r)
     {
         /*if(r.data.IsActive == "NO")
@@ -245,6 +252,8 @@ function Request()
         "style='background-repeat:no-repeat;background-position:center;" +
         "cursor:pointer;width:100%;height:16'></div>";
     }
+
+
 
 Request.OpenLetter = function(LetterID){
 
@@ -257,6 +266,11 @@ Request.OpenLetter = function(LetterID){
     /*return "<a href=javascript:void() onclick=Request.OpenLetter("+v+");>شماره نامه : "+v+"</a>";*/
     return "<a href=javascript:void() onclick=Request.OpenLetter("+v+");> "+v+"</a>";
 
+}
+
+Request.ShowFile = function(IDReq){
+
+    window.open("/request/showImage.php?IDReq=" + IDReq);
 }
 
     Request.prototype.Deleting = function()

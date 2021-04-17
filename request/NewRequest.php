@@ -382,11 +382,11 @@ function NewServiceRequest(){
                             valueField : "InfoDesc",
                             name : "serviceType"
                         },{
-                            xtype : "textfield",
+                            xtype : "textarea",
                             fieldLabel : "شرح خدمت",
                             name : "otherService",
                             itemId : "otherService",
-                            width : 250
+                            width : 300
                         },
                         {
                             xtype: 'radio',
@@ -397,12 +397,12 @@ function NewServiceRequest(){
                             inputValue:'Info'
 
                         },{
-                            xtype : "textfield",
+                            xtype : "textarea",
                             fieldLabel : "شرح اطلاعات",
                             name : "InformationDesc",
                             itemId : "InformationDesc",
                             disabled : true,
-                            width : 250
+                            width : 300
                         },
 
                         {
@@ -469,11 +469,11 @@ function NewServiceRequest(){
 
                         }
                         ,{
-                            xtype : "textfield",
+                            xtype : "textarea",
                             fieldLabel : "شرح ارجاع",
                             name : "referDesc",
                             itemId : "referDesc",
-                            width : 250
+                            width : 300
                         },
                         {
                             xtype: 'radiogroup',
@@ -537,8 +537,7 @@ function NewServiceRequest(){
                                 NewServiceRequestObject.planFS.getForm().reset();
                                 Ext.MessageBox.alert("Success", "عملیات مورد نظر با موفقیت شد");
                                 /*framework.CloseTab(NewAlterPersonObject.TabID);*/
-                                framework.OpenPage("request/RequestManage.php", "مدیریت درخواست ها", {
-                                });
+                                framework.OpenPage("request/RequestManage.php", "مدیریت درخواست ها", {MenuID : NewServiceRequestObject.MenuID});
                                 /*framework.OpenPage("plan/plan/PlanInfo.php", "جداول اطلاعاتی طرح", {
                                     MenuID : NewAlterPersonObject.MenuID,
                                     PlanID : result.data});*/

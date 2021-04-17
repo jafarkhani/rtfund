@@ -18,6 +18,86 @@ switch ($task) {
 		eval($task. "();");
 }
 
+function SelectReceivedRequestss($returnCount = false){
+	
+	$where = "StatusID in (10,50)";
+	 
+	$branches = FRW_access::GetAccessBranches();
+	$where .= " AND BranchID in(" . implode(",", $branches) . ")";
+	
+	$dt = LON_requests::SelectAll($where . dataReader::makeOrder());
+	
+	if($returnCount)
+		return $dt->rowCount();
+	
+	echo dataReader::getJsonData($dt->fetchAll(), $dt->rowCount(), $_GET["callback"]);
+	die();
+}
+function SaveCustomerRequest(){
+    $obj = new request();
+    PdoDataAccess::FillObjectByArray($obj, $_POST);
+   
+        $obj->PersonID = $_SESSION["USER"]["PersonID"];
+        $date=date("Y-m-d");
+        $time=date("H");
+        $obj->referalDate = $date;
+        $obj->referalTime = $time;
+        $obj->StatusID = 2;
+        $obj->IsRegister = 'Yes';
+        $obj->IsPresent = 'No';
+        /*$obj->IsInfoORService = 'Service';*/
+
+    if($obj->IDReq > 0){
+        $result = $obj->EditReq();
+    }
+    else{
+        $result = $obj->AddReq();
+    }
+//-----------  save Letter pic ----------------
+    if(!empty($_FILES['LetterPic']['tmp_name']))
+    {
+        if($_FILES['LetterPic']['size'] > 200000)
+        {
+            echo Response::createObjectiveResponse(false, "&#1581;&#1583;&#1575;&#1705;&#1579;&#1585; &#1581;&#1580;&#1605; &#1605;&#1580;&#1575;&#1586; &#1601;&#1575;&#1740;&#1604; 200 &#1705;&#1740;&#1604;&#1608;&#1576;&#1575;&#1740;&#1578; &#1605;&#1740; &#1576;&#1575;&#1588;&#1583;");
+            die();
+        }
+        $st = preg_split("/\./", $_FILES['LetterPic']['name']);
+        $extension = strtolower($st [count($st) - 1]);
+        if(array_search($extension, array("gif","jpg","jpeg","png","pdf")) === false)
+        {
+            echo Response::createObjectiveResponse(false, "&#1601;&#1602;&#1591; &#1605;&#1608;&#1575;&#1585;&#1583; &#1586;&#1740;&#1585; &#1576;&#1585;&#1575;&#1740; &#1606;&#1608;&#1593; &#1601;&#1575;&#1740;&#1604; &#1605;&#1580;&#1575;&#1586; &#1605;&#1740; &#1576;&#1575;&#1588;&#1583;: <br>" .
+                "gif , jpg , jpeg , png , pdf");
+            die();
+        }
+        if(!empty($_FILES['LetterPic']['tmp_name']))
+        {
+            PdoDataAccess::runquery_photo("update request set LetterPic=:pdata where IDReq=:p",
+                array(":pdata" => fread(fopen($_FILES['LetterPic']['tmp_name'], 'r' ),$_FILES['LetterPic']['size'])),
+                array(":p" => $obj->IDReq));
+        }
+    }
+
+    echo Response::createObjectiveResponse($result, !$result ? ExceptionHandler::GetExceptionsToString() : "");
+
+}
+function SelectReceivedRequests($returnCount = false){
+
+    $where = "1=1";
+    $param = array();
+    
+    $where .= " AND StatusID=2 AND referPersonID=0";
+    $temp = request::SelectAll($where . dataReader::makeOrder(), $param);
+    
+    if($returnCount)
+		return $temp->rowCount();
+   
+    $no = $temp->rowCount();
+    $temp = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);
+
+    echo dataReader::getJsonData($temp, $no, $_GET["callback"]);
+    die();
+}
+
 function SaveNewRequest(){
 
 
@@ -113,7 +193,7 @@ function selectAllRequest(){
         $param[":p"] = "%" . $_REQUEST["query"] . "%";
     }
     
-    $temp = request::SelectAll($where . dataReader::makeOrder(), $param);
+    $temp = request::SelectAll($where.dataReader::makeOrder(),$param);
 
     $no = $temp->rowCount();
     

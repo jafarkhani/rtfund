@@ -25,6 +25,8 @@ class request extends PdoDataAccess{
     public $referPersonID;
     public $referDesc;
     public $Poll;
+public $LetterPic;
+
 
 	function __construct($IDReq = "") {
         $this->DT_referalDate = DataMember::CreateDMA(DataMember::DT_DATE);
@@ -83,19 +85,43 @@ class request extends PdoDataAccess{
         return true;
     }
 
+    static function SelectAl($where = "", $param = array(), $order= ""){
+
+        return PdoDataAccess::runquery_fetchMode("
+        select f.*, concat_ws(' ',b1.fname, b1.lname, b1.CompanyName) fullname , mobile MobCustomer
+        , concat_ws(' ',b2.fname, b2.lname, b2.CompanyName) refername        	
+			from request f 
+				left join BSC_persons b1 using(PersonID)
+				left join BSC_persons b2 ON (f.referPersonID = b2.PersonID)
+				left join askerperson a using (askerID)
+				
+			where " . $where . $order , $param);
+    }
     static function SelectAll($where = "", $param = array(), $order= ""){
+
+        return PdoDataAccess::runquery_fetchMode("
+        select f.* , concat_ws(' ',b1.fname, b1.lname, b1.CompanyName) fullname , null LetterPic    
+, concat_ws(' ',b2.fname, b2.lname, b2.CompanyName) refername ,askerName, askerMob, b1.mobile MobCustomer          	
+			from request f 
+				left join BSC_persons b1 using(PersonID)
+                                left join BSC_persons b2 ON (f.referPersonID = b2.PersonID)
+                                left join askerperson a using (askerID)
+				
+			where " . $where . $order , $param);
+    }
+    static function SelectAlll($where = "", $param = array(), $order= ""){
 
         return PdoDataAccess::runquery_fetchMode("
         select tTable.*, askerName, askerMob from 
 			(select fTable.*, concat_ws(' ',fname, lname,CompanyName) refername
 			 FROM (select f.*,
-				concat_ws(' ',fname, lname,CompanyName) fullname 
+				concat_ws(' ',fname, lname,CompanyName) fullname , mobile MobCustomer
 			from request f 
 				left join BSC_persons b using(PersonID)) AS fTable
 				left join BSC_persons b ON fTable.referPersonID = b.PersonID) AS tTable
 				left join askerperson a ON tTable.askerID = a.askerID
 				
-			where " . $where . $order, $param);
+			where " . $where . $order , $param);
     }
 
     static function DeleteRequest($IDReq){

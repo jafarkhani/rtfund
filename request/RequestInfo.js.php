@@ -28,7 +28,7 @@ function RequestInfo()
 			url: this.address_prefix + "Request.data.php?task=selectRequests&PersonID=" + this.PersonID ,
 			reader: {root: 'rows',totalProperty: 'totalCount'}
 		},
-		fields : ["IDReq","IsRegister","PersonID","askerName","askerMob","askerID","IsPresent","referalDate","referalTime","LetterID" ,"IsInfoORService","serviceType","otherService","InformationDesc","IsRelated","referPersonID","referDesc","Poll"],
+		fields : ["IDReq","IsRegister","PersonID","MobCustomer","askerName","askerMob","askerID","IsPresent","referalDate","referalTime","LetterID" ,"IsInfoORService","serviceType","otherService","InformationDesc","IsRelated","referPersonID","referDesc","Poll"],
 		autoLoad : true,
 		listeners :{
 			load : function(){
@@ -125,20 +125,24 @@ RequestInfo.prototype.MakeInfoPanel = function(RequestRecord){
     store : new Ext.data.SimpleStore({
     proxy: {
     type: 'jsonp',
-    url: this.address_prefix + '../../framework/person/persons.data.php?' +
-    "task=selectPersons&UserType=IsCustomer",
+    /*url: this.address_prefix + '../../framework/person/persons.data.php?' +
+    "task=selectPersons&UserType=IsCustomer",*/
+    url: this.address_prefix + '../../framework/person/persons.data.php?task=SearchPersons&UserTypes=IsCustomer',
     reader: {root: 'rows',totalProperty: 'totalCount'}
 },
-    fields : ['PersonID','fullname','mobile']
+    /*fields : ['PersonID','fullname','mobile']*/
+    fields : ['PersonID','name','mobile'],
+    autoLoad : true
 }),
     fieldLabel : "نام ذینفع",
-    displayField : "fullname",
+    displayField : "name",
     pageSize : 20,
     width : 250,
     valueField : "PersonID",
     name : "PersonID",
     listeners : {
-    select :function  (combo, records, index, eOpts ){
+    function  (combo, records, index, eOpts ){
+        console.log(record);
     Ext.getCmp('MobCustomer').setValue(records[0].get('mobile'))
 }
 }
@@ -196,7 +200,7 @@ RequestInfo.prototype.MakeInfoPanel = function(RequestRecord){
     xtype: 'radiofield',
     boxLabel: 'غیرحضوری',
     name: 'IsPresent',
-    inputValue: 'NO'
+    inputValue: 'No'
 }
     ]
 }
@@ -315,11 +319,11 @@ RequestInfo.prototype.MakeInfoPanel = function(RequestRecord){
     valueField : "InfoDesc",
     name : "serviceType"
 },{
-    xtype : "textfield",
+    xtype : "textarea",
     fieldLabel : "شرح خدمت",
     name : "otherService",
     itemId : "otherService",
-    width : 250
+    width : 300
 },
 {
     xtype: 'radio',
@@ -330,12 +334,12 @@ RequestInfo.prototype.MakeInfoPanel = function(RequestRecord){
     inputValue:'Info'
 
 },{
-    xtype : "textfield",
+    xtype : "textarea",
     fieldLabel : "شرح اطلاعات",
     name : "InformationDesc",
     itemId : "InformationDesc",
     disabled : true,
-    width : 250
+    width : 300
 },
 
 {
@@ -378,7 +382,7 @@ RequestInfo.prototype.MakeInfoPanel = function(RequestRecord){
     xtype: 'radiofield',
     boxLabel: 'خیر',
     name: 'IsRelated',
-    inputValue: 'NO'
+    inputValue: 'No'
 }
     ]
 },
@@ -388,25 +392,28 @@ RequestInfo.prototype.MakeInfoPanel = function(RequestRecord){
     store : new Ext.data.SimpleStore({
     proxy: {
     type: 'jsonp',
-    url: this.address_prefix + '../../framework/person/persons.data.php?' +
-    "task=selectPersons&UserType=IsStaff",
+    /*url: this.address_prefix + '../../framework/person/persons.data.php?' +
+    "task=selectPersons&UserType=IsStaff",*/
+    url: this.address_prefix + '../../framework/person/persons.data.php?task=SearchPersons&UserTypes=IsCustomer',
     reader: {root: 'rows',totalProperty: 'totalCount'}
 },
-    fields : ['PersonID','fullname']
+    /*fields : ['PersonID','fullname']*/
+    fields : ['PersonID','name'],
+    autoLoad : true
 }),
     fieldLabel : "نام کارشناس ارجاعی",
-    displayField : "fullname",
+    displayField : "name",
     pageSize : 20,
     width : 250,
     valueField : "PersonID"
 
 }
     ,{
-    xtype : "textfield",
+    xtype : "textarea",
     fieldLabel : "شرح ارجاع",
     name : "referDesc",
     itemId : "referDesc",
-    width : 250
+    width : 300
 },
 {
     xtype: 'radiogroup',
