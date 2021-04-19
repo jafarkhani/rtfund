@@ -101,8 +101,7 @@ function MakeWhere(&$where, &$whereParam){
 		$where .= " AND case r.StatusID when " . LON_REQ_STATUS_CONFIRM . " then 1=1
 										when " . LON_REQ_STATUS_DEFRAY . " then DefrayDate > :cd 
 										when " . LON_REQ_STATUS_ENDED . "  then EndDate > :cd 
-										else 1=0 end				
-				AND ReqDate < :cd";
+										else 1=0 end";
 
 		$whereParam[":cd"] = DateModules::shamsi_to_miladi($ComputeDate,"-");
 	}
@@ -115,16 +114,54 @@ function showReport(){
 	$whereParam = array();
 	MakeWhere($where, $whereParam);
 	
+	$ComputeDate = !empty($_POST["ComputeDate"]) ? 
+				DateModules::shamsi_to_miladi($_POST["ComputeDate"],"-") : DateModules::Now();
+	
+	$whereParam[":computedate"] = $ComputeDate;
+	
 	$dt = PdoDataAccess::runquery("
 		select r.*,p.*,
-                        bi.InfoDesc StatusDesc,
+            bi.InfoDesc StatusDesc,
+			l.LoanDesc,
 			concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
-			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname
+			concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
+			pays.maxPaydate,
+			ins.minInstallmentDate,
+			t2.tazamin,
+			t2.tazminAmount
+				
 		from LON_requests r
-                        left join BaseInfo bi on(bi.TypeID=5 AND bi.InfoID=StatusID)
+			left join LON_loans l using(LoanID)
+            left join BaseInfo bi on(bi.TypeID=5 AND bi.InfoID=StatusID)
 			join LON_ReqParts p on(r.RequestID=p.RequestID AND p.IsHistory='NO')
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
+			left join (select RequestID,max(PayDate) maxPaydate from LON_BackPays
+						left join ACC_IncomeCheques i using(IncomeChequeID)
+						where if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)
+							AND payDate <= :computedate
+						group by RequestID
+				)pays on(r.RequestID=pays.RequestID)
+			left join (select RequestID,min(InstallmentDate) minInstallmentDate from LON_installments
+						where history='NO' AND IsDelayed='NO'
+						group by RequestID
+				)ins on(r.RequestID=ins.RequestID)
+			left join (
+				select ObjectID,group_concat(title,' به شماره سريال ',num, ' و مبلغ ', 
+					format(amount,2) separator '<br>') tazamin, sum(ifnull(amount,0)) tazminAmount
+				from (	
+					select ObjectID,InfoDesc title,group_concat(if(KeyTitle='no',paramValue,'') separator '') num,
+					group_concat(if(KeyTitle='amount',paramValue,'') separator '') amount
+					from DMS_documents d
+					join BaseInfo b1 on(InfoID=d.DocType AND TypeID=8)
+					join DMS_DocParamValues dv  using(DocumentID)
+					join DMS_DocParams using(ParamID)
+				    where ObjectType='loan' AND b1.param1=1
+					group by ObjectID, DocumentID
+				)t
+				group by ObjectID
+			)t2 on(t2.ObjectID=r.RequestID)
+			
 		where r.RequestID>0 $where
 		group by r.RequestID ,p.PartID
 		order by r.RequestID", $whereParam);
@@ -136,31 +173,45 @@ function showReport(){
 		//print_r(ExceptionHandler::PopAllExceptions());
 	}
 	
+	$levels = PdoDataAccess::runquery("select * from ACC_CostCodeParamItems where ParamID=" . ACC_COST_PARAM_LOAN_LEVEL);
+	
 	$returnArr = array();
 	foreach($dt as $row)
 	{
 		$RequestID = $row["RequestID"];
-		$ComputeDate = !empty($_POST["ComputeDate"]) ? 
-				DateModules::shamsi_to_miladi($_POST["ComputeDate"],"-") : DateModules::Now();
-		
+				
 		$ComputeArr = LON_Computes::ComputePayments($RequestID, $ComputeDate);
 		//............ get remain untill now ......................
 		$CurrentRemain = LON_Computes::GetCurrentRemainAmount($RequestID, $ComputeArr);
 		$TotalRemain = LON_Computes::GetTotalRemainAmount($RequestID, $ComputeArr);
 		
-		$row = array(
-			"RequestID" => $RequestID,
-			"StatusDesc" =>  $row["StatusDesc"],
-			"EndDate" =>  $row["EndDate"],
-			"DefrayDate" =>  $row["DefrayDate"],
-			"ComputeMode" => $row["ComputeMode"],
-			"ReqFullname" => $row["ReqFullname"],
-			"LoanFullname" => $row["LoanFullname"],
-			"PartAmount" => $row["PartAmount"],
-			"CurrentRemain" => $CurrentRemain,
-			"TotalRemain" => $TotalRemain,
-			"DefrayAmount" => 0//$DefrayAmount
-		);
+		//.............. compute load level ......................
+		//$record = LON_requests::GetRequestLevel($RequestID);
+		$LoanLevel = "";
+		$levelComputeDate = "";
+		if($row["maxPaydate"] != "")
+			$levelComputeDate = $row["maxPaydate"];
+		else
+			$levelComputeDate = $row["minInstallmentDate"];
+		$diff = DateModules::GDateMinusGDate($ComputeDate, $levelComputeDate);
+		if($diff < 0)
+			$diffInMonth = 0;
+		else
+			$diffInMonth = round($diff/30, 2);
+		
+		foreach($levels as $lrow)
+		{
+			if($diffInMonth >= $lrow["f1"]*1 && $diffInMonth <= $lrow["f2"]*1){
+				$LoanLevel = $lrow["ParamValue"];
+				break;
+			}
+		}
+		//.......................................................
+		
+		$row["CurrentRemain"] = $CurrentRemain;
+		$row["TotalRemain"] = $TotalRemain;
+		$row["LoanLevel"] = $LoanLevel;
+		$row["DefrayAmount"] = 0;//$DefrayAmount
 		
 		$totalCompute = array(
 			"pure" => 0,
@@ -234,17 +285,21 @@ function showReport(){
 
 	$col = $rpg->addColumn("شماره وام", "RequestID", "reportRender");
 	$col->ExcelRender = false;
+	$col = $rpg->addColumn("نوع وام", "LoanDesc");
 	$rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 	$rpg->addColumn("مشتری", "LoanFullname");
 	$rpg->addColumn('مبنای محاسبه', "ComputeMode", "ComputeRender");
     $rpg->addColumn("وضعیت", "StatusDesc");
     $rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
 	$rpg->addColumn("تاریخ تسویه", "DefrayDate", "ReportDateRender");
+	$col = $rpg->addColumn("تضامین", "tazamin");
+	$col = $rpg->addColumn("جمع مبالغ تضامین", "tazminAmount","ReportMoneyRender");
 	
 	$col = $rpg->addColumn("مبلغ وام", "PartAmount","ReportMoneyRender");
 	$col->EnableSummary();
 	$col = $rpg->addColumn("مانده قابل پرداخت معوقه", "CurrentRemain", "ReportMoneyRender");
 	$col->EnableSummary();
+	$col = $rpg->addColumn("طبقه وام", "LoanLevel");
 	$col = $rpg->addColumn("مانده تا انتها", "TotalRemain", "ReportMoneyRender");
 	$col->EnableSummary();
 	
