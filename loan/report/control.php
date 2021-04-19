@@ -105,7 +105,9 @@ function GetData(){
 	$query = "select r.RequestID,r.*,l.*,p.*,bi.InfoDesc StatusDesc,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
-				BranchName
+				BranchName,
+				t2.tazamin,
+				t2.tazminAmount
 				
 			from LON_requests r 
 			left join BaseInfo bi on(bi.TypeID=5 AND bi.InfoID=StatusID)
@@ -114,6 +116,21 @@ function GetData(){
 			join BSC_branches using(BranchID)
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
+			left join (
+				select ObjectID,group_concat(title,' به شماره سريال ',num, ' و مبلغ ', 
+					format(amount,2) separator '<br>') tazamin, sum(ifnull(amount,0)) tazminAmount
+				from (	
+					select ObjectID,InfoDesc title,group_concat(if(KeyTitle='no',paramValue,'') separator '') num,
+					group_concat(if(KeyTitle='amount',paramValue,'') separator '') amount
+					from DMS_documents d
+					join BaseInfo b1 on(InfoID=d.DocType AND TypeID=8)
+					join DMS_DocParamValues dv  using(DocumentID)
+					join DMS_DocParams using(ParamID)
+				    where ObjectType='loan' AND b1.param1=1
+					group by ObjectID, DocumentID
+				)t
+				group by ObjectID
+			)t2 on(t2.ObjectID=r.RequestID)
 						
 			where 1=1 " . $where . " order by r.RequestID";
 	
@@ -261,6 +278,10 @@ function ListData($IsDashboard = false){
 	$rpg->addColumn("وضعیت", "StatusDesc");
 	$rpg->addColumn("تاریخ خاتمه", "EndDate", "ReportDateRender");
 	$rpg->addColumn("تاریخ تسویه", "DefrayDate", "ReportDateRender");	
+	
+	$col = $rpg->addColumn("تضامین", "tazamin");
+	$col = $rpg->addColumn("جمع مبالغ تضامین", "tazminAmount","ReportMoneyRender");
+
 	//.............................
 	
 	$col = $rpg->addColumn("اصل", "compute_pure","ReportMoneyRender");
