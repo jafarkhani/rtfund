@@ -105,12 +105,18 @@ function SaveStep(){
 	
 	$obj = new WFM_FlowSteps();
 	
-	if(empty($_POST['StepParentID'])) {
-		PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
-	
+	if(empty($_POST['StepParentID'])) {		
+		PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);			
 	}	
 	else {
 		PdoDataAccess::FillObjectByArray($obj, $_POST);
+		
+		if($_POST['StepParentID'] == 'src' ) {
+			
+			$PID = PdoDataAccess::runquery("select StepParentID from WFM_FlowSteps where FlowID=? AND StepID = 0 ", 
+											array($obj->FlowID));
+			$obj->StepParentID = $PID[0]['StepParentID']; 
+		}
 		
 	}
 	
@@ -124,8 +130,7 @@ function SaveStep(){
 	if($obj->StepRowID > 0)
 		$result = $obj->EditFlowStep();
 	else
-	{
-		
+	{		
 		$dt = PdoDataAccess::runquery("select ifnull(max(StepID),0) from WFM_FlowSteps where FlowID=? AND IsActive='YES' AND IsOuter='NO'", 
 				array($obj->FlowID));
 		$obj->StepID = $dt[0][0]*1 + 1;
@@ -190,7 +195,7 @@ function SelectAllForms(){
 			when b.param4='warrenty' 
 				then concat_ws(' ','ضمانت نامه [',wr.RefRequestID,'] ', 
 				wp.CompanyName,wp.fname,wp.lname, 'به مبلغ ',
-				format(wr.amount,0),'از تاریخ',g2j(wr.StartDate),'تا تاریخ',g2j(wr.EndDate))
+				format(wr.amount,0),'از تاریخ',/*g2j*/(wr.StartDate),'تا تاریخ',/*g2j*/(wr.EndDate))
 			
 			when b.param4='form' 
 				then concat_ws(' ',wfmf.FormTitle,'به شماره فرم ',wfmr.RequestNo,if(wfmf.DescItemID>0,concat('[ ',wfi.ItemName,' : ',wri.ItemValue,' ]'),'')) 
@@ -199,7 +204,7 @@ function SelectAllForms(){
 				concat_ws(' ','فرایند ',process.ProcessTitle,pperson.CompanyName,pperson.fname,pperson.lname)
 			
 			when b.param4 in('CORRECT','DayOFF','OFF','DayMISSION','MISSION','EXTRA','CHANGE_SHIFT')
-				then concat_ws(' ','درخواست ',ap.CompanyName,ap.fname,ap.lname,'مربوط به تاریخ', g2j(ar.FromDate))
+				then concat_ws(' ','درخواست ',ap.CompanyName,ap.fname,ap.lname,'مربوط به تاریخ', /*g2j*/(ar.FromDate))
 				
 			when b.param4='accdoc' 
 				then concat_ws(' ','سند شماره',ad.LocalNo,adb.BranchName)
@@ -236,6 +241,7 @@ function SelectAllForms(){
 			where s.IsActive='YES' AND j.PersonID=:pid
 
 			", array(":pid" => $_SESSION["USER"]["PersonID"]));
+		
 		if(count($dt) == 0)
 		{
 			echo dataReader::getJsonData(array(), 0, $_GET["callback"]);
@@ -294,7 +300,7 @@ function SelectAllForms(){
 				left join BSC_persons pp on(lr.LoanPersonID=pp.PersonID)
 
 				left join CNT_contracts c on(b.param4='contract' AND fr.ObjectID=c.ContractID)
-				left join BaseInfo cbf on(cbf.TypeID=18 AND cbf.InfoID=ContractType)
+				left join BaseInfo cbf on(cbf.TypeID=18 AND cbf.InfoID=c.ContractType)
 				left join BSC_persons cp on(cp.PersonID=c.PersonID)
 
 				left join WAR_requests wr on(b.param4='warrenty' AND wr.RequestID=fr.ObjectID)
@@ -317,8 +323,10 @@ function SelectAllForms(){
 	
 				where fr.IsLastRow='YES' " . $where . dataReader::makeOrder();
 	$temp = PdoDataAccess::runquery_fetchMode($query, $param);
-	//echo PdoDataAccess::GetLatestQueryString();
-	//print_r(ExceptionHandler::PopAllExceptions());
+	
+	/*echo PdoDataAccess::GetLatestQueryString();
+	print_r(ExceptionHandler::PopAllExceptions());*/
+	
 	$no = $temp->rowCount();
 	$temp = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);
 	
@@ -333,7 +341,20 @@ function SelectAllForms(){
 		$dt = PdoDataAccess::runquery("SELECT ItemValue 
             FROM WFM_RequestItems join WFM_FormItems using(FormItemID)
             where ItemType='loan'  AND RequestID=?", array($temp[$i]['ObjectID']));
-		$temp[$i]["LoanRequestID"] = count($dt) > 0 ? $dt[0][0] : "0";			
+		$temp[$i]["LoanRequestID"] = count($dt) > 0 ? $dt[0][0] : "0";	
+		
+		/*******************************get childs*******************/		
+		$AllChild = "";
+		$ChildDt = PdoDataAccess::runquery(" select StepRowID, StepDesc from WFM_FlowSteps where StepParentID = ? " , array($temp[$i]['StepRowID']) ) ; 
+				
+		for($j=0;$j<count($ChildDt);$j++) 
+		{
+			$AllChild .= $ChildDt[$j]['StepRowID'].'-'.$ChildDt[$j]['StepDesc']."," ; 
+		}
+				
+		$temp[$i]["childs"] = substr($AllChild,0,-1) ;	
+		
+		/************************************************************/
 	}
 	//------------------------------------------------------------
 	
@@ -360,7 +381,7 @@ function ChangeStatus(){
 		$mode = $_REQUEST["mode"];
 		$SourceObj = new WFM_FlowRows($RowID);
 		$FlowObj = new WFM_flows($SourceObj->FlowID);
-
+ 
 		$newObj = new WFM_FlowRows();
 		$newObj->FlowID = $SourceObj->FlowID;
 		$newObj->ObjectID = $SourceObj->ObjectID;
@@ -370,19 +391,38 @@ function ChangeStatus(){
 		$newObj->ActionDate = PDONOW;
 		$newObj->ActionComment = $_POST["ActionComment"];
 		//.............................................
+		
 		if(isset($_POST["StepID"]))
 			$StepID = $_POST["StepID"];
+		if($_POST["ChildID"] > 0 ) 
+		{			
+			$resStep = PdoDataAccess::runquery(" select fs.StepID StepID , LastStep, bfs.StepID PStepID
+												 from WFM_FlowSteps fs
+															inner join WFM_FlowSteps fst on fs.StepParentID = fst.StepRowID
+															left join WFM_FlowSteps bfs on bfs.StepRowID = fst.StepParentID
+
+												 where fs.StepRowID = ? " , array($_POST["ChildID"])) ;	
+			
+			echo PdoDataAccess::GetLatestQueryString() ;
+			die() ; 
+			
+			$StepID = $SourceObj->ActionType == "CONFIRM" ? $resStep[0]['StepID'] : $resStep[0]['PStepID'];
+			
+			if( $resStep[0]['LastStep'] == 1 ) 
+				$newObj->IsEnded = "YES";
+		}			
 		else 
 			$StepID = $SourceObj->ActionType == "CONFIRM" ? $SourceObj->_StepID+1 : $SourceObj->_StepID-1;
 
 		//.............................................
-		if($newObj->ActionType == "CONFIRM")
+		if($newObj->ActionType == "CONFIRM" && $_POST["ChildID"] == 0 )
 		{
 			$dt = PdoDataAccess::runquery("select Max(StepID) maxStepID from WFM_FlowSteps 
-				where IsActive='YES' AND FlowID=? AND IsOuter='NO'" , array($newObj->FlowID));
+										   where IsActive='YES' AND FlowID=? AND IsOuter='NO'" , array($newObj->FlowID));
 			if($dt[0][0] == $StepID)
 				$newObj->IsEnded = "YES";
 		}
+		
 		//.............................................
 		$result = $newObj->AddFlowRow($StepID, $pdo);	
 		if(!$result)
