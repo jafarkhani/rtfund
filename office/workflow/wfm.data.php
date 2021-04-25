@@ -323,10 +323,10 @@ function SelectAllForms(){
 	
 				where fr.IsLastRow='YES' " . $where . dataReader::makeOrder();
 	$temp = PdoDataAccess::runquery_fetchMode($query, $param);
-	
-	/*echo PdoDataAccess::GetLatestQueryString();
-	print_r(ExceptionHandler::PopAllExceptions());*/
-	
+	/*
+	echo PdoDataAccess::GetLatestQueryString();
+	print_r(ExceptionHandler::PopAllExceptions());
+	*/
 	$no = $temp->rowCount();
 	$temp = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);
 	
@@ -396,15 +396,13 @@ function ChangeStatus(){
 			$StepID = $_POST["StepID"];
 		if($_POST["ChildID"] > 0 ) 
 		{			
-			$resStep = PdoDataAccess::runquery(" select fs.StepID StepID , LastStep, bfs.StepID PStepID
+			
+			$resStep = PdoDataAccess::runquery(" select fs.StepID StepID , fs.LastStep, bfs.StepID PStepID
 												 from WFM_FlowSteps fs
 															inner join WFM_FlowSteps fst on fs.StepParentID = fst.StepRowID
 															left join WFM_FlowSteps bfs on bfs.StepRowID = fst.StepParentID
 
 												 where fs.StepRowID = ? " , array($_POST["ChildID"])) ;	
-			
-			echo PdoDataAccess::GetLatestQueryString() ;
-			die() ; 
 			
 			$StepID = $SourceObj->ActionType == "CONFIRM" ? $resStep[0]['StepID'] : $resStep[0]['PStepID'];
 			
@@ -424,7 +422,8 @@ function ChangeStatus(){
 		}
 		
 		//.............................................
-		$result = $newObj->AddFlowRow($StepID, $pdo);	
+		$result = $newObj->AddFlowRow($StepID, $pdo , $_POST["ChildID"] );	
+		
 		if(!$result)
 		{
 			$pdo->rollBack();
