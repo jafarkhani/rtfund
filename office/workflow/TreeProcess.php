@@ -250,18 +250,21 @@ require_once("../header.inc.php");
         var record = this.ProcessTree.getSelectionModel().getSelection()[0];
 		
         if (record.data.id != 'src')
-        {           
+        {    			
             this.ProcessPanel.down("[itemId=StepRowID]").setValue(record.data.id);
         } else
-        {
+        {			
             this.ProcessPanel.down("[itemId=StepRowID]").setValue(record.data.id);
         }
+		
+		alert(record.data.parentId) ;
+		
         if (record.data.parentId != 'src')
         {
 			this.ProcessPanel.down("[itemId=StepParentID]").setValue(record.data.parentId);            
         } 
 		else
-        {
+        { 
 			this.ProcessPanel.down("[itemId=StepParentID]").setValue(record.data.parentId);            
         }
 		
