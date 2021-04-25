@@ -136,7 +136,7 @@ class WFM_FlowSteps extends PdoDataAccess {
 	function EditFlowStep($pdo = null) {
 		
 		if (parent::update("WFM_FlowSteps", $this, " StepRowID=:srid", 
-				array(":srid" => $this->StepRowID), $pdo) === false) 
+				array(":srid" => $this->StepRowID), $pdo) === false) 				
 			return false;
 
 		$daObj = new DataAudit();
@@ -222,7 +222,7 @@ class WFM_FlowRows extends PdoDataAccess {
 	}
 
 	function UpdateSourceStatus($StepID){
-		
+				
 		switch($this->FlowID)
 		{
 			case "4":
@@ -246,15 +246,17 @@ class WFM_FlowRows extends PdoDataAccess {
 		}
 	}
 	
-	function AddFlowRow($StepID , $pdo = null) {
+	function AddFlowRow($StepID , $pdo = null , $ChildID = null ) {
 		
 		PdoDataAccess::runquery("update WFM_FlowRows set IsLastRow='NO' "
 				. " where FlowID=? AND ObjectID=? AND ObjectID2=?", 
 				array($this->FlowID, $this->ObjectID, $this->ObjectID2), $pdo);
+		
 		/*var_dump($this->FlowID);var_dump($StepID);*/
 		//.......... get StepRowID ...................
 		$dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
 			where IsActive='YES' AND FlowID=? AND StepID=?" , array($this->FlowID, $StepID));
+		
 		if(count($dt) == 0)
 		{
 			ExceptionHandler::PushException("خطا در تعریف وضعیت ها");
@@ -270,8 +272,7 @@ class WFM_FlowRows extends PdoDataAccess {
 
 		$this->UpdateSourceStatus($StepID);
 		
-		$this->RowID = parent::InsertID($pdo);
-		
+		$this->RowID = parent::InsertID($pdo);		
 		
 			/*$PersonID=$_SESSION["USER"]["PersonID"];
         $queryString="select r.PersonID,r.RequestID,fr.ObjectID 
@@ -283,14 +284,27 @@ class WFM_FlowRows extends PdoDataAccess {
               from WFM_FlowRows 
               where IsLastRow='YES' AND IsEnded='YES' AND ObjectID=?";
         $findEnd1 = PdoDataAccess::runquery_fetchMode($queryString1, array($this->ObjectID));
+ 		
         if ($findEnd1->rowCount() >0){
            $result = $findEnd1->fetchAll();
            $RequestID=$result[0]['ObjectID'];
-            $queryString2="select RequestNo,PersonID,f.FormTitle
-              from WFM_requests r
-              join WFM_forms f using(FormID) 
-              where r.RequestID=?";
+		   
+		   if($ChildID > 0 ) 
+			{
+			   $queryString2="  select IDReq RequestNo,PersonID, 'فرم شماره یک' FormTitle
+								from request r								
+								where r.IDReq =? ";
+			}
+			else 
+			{
+				$queryString2=" select RequestNo,PersonID,f.FormTitle
+								from WFM_requests r
+								join WFM_forms f using(FormID) 
+								where r.RequestID=?";
+			}
+            
             $findEnd2 = PdoDataAccess::runquery_fetchMode($queryString2, array($RequestID));
+			
             if ($findEnd2->rowCount() > 0){
                 $resultant = $findEnd2->fetchAll();
                 $RequestNo=$resultant[0]['RequestNo'];
