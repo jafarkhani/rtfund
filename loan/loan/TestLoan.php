@@ -278,6 +278,9 @@ function TestLoan(){
 			name: 'InstallmentCount',
 			width : 200
 		},{
+			fieldLabel: 'دوره پرداخت(ماه)',
+			name: 'PayDuration',
+		},{
 			fieldLabel: 'کارمزد مشتری',
 			name: 'CustomerWage'	
 		},{
