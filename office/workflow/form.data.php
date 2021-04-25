@@ -666,6 +666,7 @@ function SaveRequest() {
 		else
 		{
 			$dt = WFM_FlowRows::GetFlowInfo($formObj->FlowID, $ReqObj->RequestID);
+			
 			if(!$dt["IsStarted"])
 				$result = WFM_FlowRows::StartFlow($formObj->FlowID, $ReqObj->RequestID);
 			else
