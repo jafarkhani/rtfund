@@ -51,7 +51,6 @@ function GetTreeNodes()
 												
 												where  wf1.FlowID = ". $_REQUEST['ParentID'] );
 	
-	
 	$cur_level_uids = "";
     $returnArray = $nodes;
 	$ref_cur_level_nodes = array(); 
@@ -95,10 +94,10 @@ function GetTreeNodes()
 														   (" . $cur_level_uids . ")
 
 											order by u.StepRowID");
-	/* 
+	/*
 		  echo PdoDataAccess::GetLatestQueryString();
 	      print_r(ExceptionHandler::PopAllExceptions()); 
-*/
+    */
 		if(count($nodes) == 0)
 			break;
 		//............ add current level nodes to returnArray ................
