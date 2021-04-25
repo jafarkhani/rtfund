@@ -18,6 +18,13 @@ $dg->addColumn("","ObjectType","string",true);
 $col = $dg->addColumn("عنوان گردش","FlowDesc","string");
 $col->editor = ColumnEditor::TextField();
 
+$col = $dg->addColumn("نوع فرآیند","IsTree","string");
+$col->editor = ColumnEditor::ComboBox(array(
+									  array("id"=>'NO',"title"=>'لیستی'),
+									  array("id"=>"YES",'title'=>"درختی")), 
+											"id", "title");
+$col->width = 100;
+
 $col = $dg->addColumn("آیتم مورد نظر", "ObjectDesc", "string");
 
 $col = $dg->addColumn("مراحل","","");
@@ -182,7 +189,7 @@ WFM.deleteRender = function(v,p,r){
 
 WFM.StepsRender = function(v,p,r){
 	
-	return "<div align='center' title='حذف ' class='step' onclick='WFMObject.Steps();' " +
+	return "<div align='center' title='مراحل ' class='step' onclick='WFMObject.Steps();' " +
 		"style='background-repeat:no-repeat;background-position:center;" +
 		"cursor:pointer;width:100%;height:16'></div>";
 }
@@ -263,28 +270,63 @@ WFM.prototype.Steps = function(){
 	this.StepsGrid.getStore().proxy.extraParams = {
 		FlowID : record.data.FlowID
 	};
-	if(!this.stepsWin)
+	
+	if(record.data.IsTree === 'YES' ) 
 	{
-		this.stepsWin = new Ext.window.Window({
-			width : 710,
-			title : "مراحل گردش",
-			height : 460,
-			modal : true,
-			closeAction : "hide",
-			items : [this.StepsGrid],
-			buttons :[{
-				text : "بازگشت",
-				iconCls : "undo",
-				handler : function(){this.up('window').hide();}
-			}]
-		});
-		Ext.getCmp(this.TabID).add(this.stepsWin);
+		if (!this.ProcessBlockWin)
+        {
+            this.ProcessBlockWin = new Ext.form.Panel({
+                width: 800,
+                height: 514,
+                title: 'گامهای فرایند',
+                floating: true,
+                renderTo: document.getElementById('mainTab'),
+                autoScroll: true,
+                closable: true,
+                loader: {
+                    autoLoad: true,
+                    scripts: true,
+					url: "/office/workflow/TreeProcess.php?ParentID=" + record.data.FlowID
+                    //url: '/process/baseinfo/Process/ProcessesTree.php?FromNonExtPage=0&AfterSendHandler=ProcessDuty_OnProcessSelected&ExtTabID=mainForm&AccessCheck=false'
+                },
+                listeners: {
+                    close: function () {
+                        Ext.getBody().unmask();
+                    }
+                }
+            });
+        }
+        this.ProcessBlockWin.show();
+        Ext.getBody().mask();
+		
 	}
-	else
-		this.StepsGrid.getStore().load();
-
+	else {
+		if(!this.stepsWin )
+		{
+			this.stepsWin = new Ext.window.Window({
+				width : 710,
+				title : "مراحل گردش",
+				height : 460,
+				modal : true,
+				closeAction : "hide",
+				items : [this.StepsGrid],
+				buttons :[{
+					text : "بازگشت",
+					iconCls : "undo",
+					handler : function(){this.up('window').hide();}
+				}]
+			});
+			Ext.getCmp(this.TabID).add(this.stepsWin);
+		}
+		else
+			this.StepsGrid.getStore().load();
+		
 	this.stepsWin.show();
 	this.stepsWin.center();
+	
+	}
+	
+	
 }
 
 //----------------------------------------------------------
