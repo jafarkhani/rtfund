@@ -27,6 +27,8 @@ $dg->addColumn("", "target", "", true);
 $dg->addColumn("", "param4", "", true);
 $dg->addColumn("", "LoanRequestID", "", true);
 $dg->addColumn("", "IsEnded", "", true);
+$dg->addColumn("", "StepRowID", "", true);
+$dg->addColumn("", "childs", "", true);
 
 if(!$IsSend)
 {
@@ -139,16 +141,28 @@ MyForm.prototype.OperationMenu = function(e){
 
 	record = this.grid.getSelectionModel().getLastSelected();
 	var op_menu = new Ext.menu.Menu();
-	
+	 
 	op_menu.add({text: 'اطلاعات آیتم',iconCls: 'info2', 
 		handler : function(){ return MyFormObject.FormInfo(); }});
-	if(!this.IsSend)
+	if(!this.IsSend && record.data.childs === false)
 	{
 		op_menu.add({text: 'تایید درخواست',iconCls: 'tick', 
 		handler : function(){ return MyFormObject.beforeChangeStatus('CONFIRM'); }});
 
 		op_menu.add({text: 'رد درخواست',iconCls: 'cross',
 		handler : function(){ return MyFormObject.beforeChangeStatus('REJECT'); }});
+	}
+	else if(!this.IsSend) {
+		
+		var pc = record.data.childs ; 
+		var res = pc.split(","); 
+		for(var t=0 ; t < res.length ; t++ )
+		{			
+			var res2 = res[t].split("-") ;
+			
+			op_menu.add({text: res2[1] ,iconCls: 'tick', 
+				handler : function(){ return MyFormObject.beforeChangeStatus('CONFIRM',res2[0]); }});
+		}				
 	}
 	op_menu.add({text: 'پیوستها',iconCls: 'attach', 
 		handler : function(){ return MyFormObject.ShowAttaches(); }});
@@ -159,7 +173,7 @@ MyForm.prototype.OperationMenu = function(e){
 	op_menu.showAt(e.pageX-120, e.pageY);
 }
 
-MyForm.prototype.beforeChangeStatus = function(mode){
+MyForm.prototype.beforeChangeStatus = function(mode,childID){
 	
 	if(mode == "CONFIRM")
 	{
@@ -167,7 +181,7 @@ MyForm.prototype.beforeChangeStatus = function(mode){
 			if(btn == "no")
 				return;
 			
-			MyFormObject.ChangeStatus(mode, "");
+			MyFormObject.ChangeStatus(mode, "", childID);
 		});
 		return;
 	}
@@ -205,7 +219,7 @@ MyForm.prototype.beforeChangeStatus = function(mode){
 	this.commentWin.center();
 }
 
-MyForm.prototype.ChangeStatus = function(mode, ActionComment){
+MyForm.prototype.ChangeStatus = function(mode, ActionComment, childID){
 	
 	record = this.grid.getSelectionModel().getLastSelected();
 	
@@ -219,6 +233,7 @@ MyForm.prototype.ChangeStatus = function(mode, ActionComment){
 		params : {
 			task : "ChangeStatus",
 			RowID : record ? record.data.RowID : "",
+			ChildID : childID, 
 			mode : mode,
 			ActionComment : ActionComment
 		},
