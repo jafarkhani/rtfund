@@ -119,6 +119,28 @@ function showReport(){
 	
 	$whereParam[":computedate"] = $ComputeDate;
 	
+	
+	/*
+	$whereParam[":cycle"] = $_SESSION["accounting"]["CycleID"];
+left join (
+				select case when cc.param1 = ".ACC_COST_PARAM_LOAN_RequestID." then di.param1
+							when cc.param2=".ACC_COST_PARAM_LOAN_RequestID." then di.param2
+							when cc.param3=".ACC_COST_PARAM_LOAN_RequestID." then di.param3 end as RequestID, 
+						sum(CreditorAmount-DebtorAmount)*if(b1.essence='DEBTOR',-1,1) amount
+						
+				from ACC_docs d join ACC_DocItems di using(DocID)
+					join ACC_CostCodes cc using(CostID)
+					join ACC_blocks b1 on(level1=b1.BlockID)
+				where CycleID=:cycle AND 
+					(cc.param1 = ".ACC_COST_PARAM_LOAN_RequestID." or "
+					. "cc.param2=".ACC_COST_PARAM_LOAN_RequestID." or "
+					. "cc.param3=".ACC_COST_PARAM_LOAN_RequestID.")
+					AND CostID in(1032,1033,1034,1035)
+				
+				group by RequestID
+
+			)docs on(docs.RequestID=r.RequestID)	 */
+	
 	$dt = PdoDataAccess::runquery("
 		select r.*,p.*,
             bi.InfoDesc StatusDesc,
@@ -160,8 +182,8 @@ function showReport(){
 					group by ObjectID, DocumentID
 				)t
 				group by ObjectID
-			)t2 on(t2.ObjectID=r.RequestID)
-			
+			)t2 on(t2.ObjectID=r.RequestID)	
+
 		where r.RequestID>0 $where
 		group by r.RequestID ,p.PartID
 		order by r.RequestID", $whereParam);
@@ -170,7 +192,7 @@ function showReport(){
 	{
 		//ini_set("display_errors", "On");
 		echo PdoDataAccess::GetLatestQueryString();
-		//print_r(ExceptionHandler::PopAllExceptions());
+		print_r(ExceptionHandler::PopAllExceptions());
 	}
 	
 	$levels = PdoDataAccess::runquery("select * from ACC_CostCodeParamItems where ParamID=" . ACC_COST_PARAM_LOAN_LEVEL);
