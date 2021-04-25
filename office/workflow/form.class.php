@@ -323,21 +323,35 @@ class WFM_requests extends OperationClass {
 		return $returnDT;
 	}			
 	
-	static function ConfirmRequest($RequestID, $mode = "CONFIRM", $pdo = null){
+	static function ConfirmRequest($RequestID, $mode = "CONFIRM", $ISStatic="false", $pdo = null){
 		
-		$ReqObj = new WFM_requests($RequestID);
-		$flowRowObj = WFM_FlowRows::GetlatestFlowRow($ReqObj->_FlowID, $RequestID);
-		$FlowObj = new WFM_flows($ReqObj->_FlowID);
+		if($ISStatic == "true")	{			
+			$ReqObj = new request($RequestID);		
+			$FlowID = $ReqObj->FlowID ; 
+		}
+		else {
+			$ReqObj = new WFM_requests($RequestID);
+			$FlowID = $ReqObj->_FlowID ; 
+		}
+		$flowRowObj = WFM_FlowRows::GetlatestFlowRow($FlowID, $RequestID);
+		
+		$FlowObj = new WFM_flows($FlowID);
 
 		$newObj = new WFM_FlowRows();
-		$newObj->FlowID = $ReqObj->_FlowID;
+		$newObj->FlowID = $FlowID;
 		$newObj->ObjectID = $RequestID;
 		$newObj->ObjectID2 = 0;
 		$newObj->PersonID = $_SESSION["USER"]["PersonID"];
 		$newObj->ActionType = $mode;
 		$newObj->ActionDate = PDONOW;
-		//.............................................
-		$StepID = $mode == "CONFIRM" ? $flowRowObj->_StepID+1 : $flowRowObj->_StepID-1;
+				
+		//.............................................		
+		if($ISStatic == "true"  )	{			
+			$StepID = 0 ; 
+		}
+		else 
+			$StepID = $mode == "CONFIRM" ? $flowRowObj->_StepID+1 : $flowRowObj->_StepID-1;
+	
 		//.............................................
 		if($mode == "CONFIRM")
 		{
