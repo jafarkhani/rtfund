@@ -18,12 +18,12 @@ $query = "select sum(CreditorAmount-DebtorAmount) amount,
 				IsGovermental,
 				round(sum(CreditorAmount-DebtorAmount) /" . ShareBaseAmount . ") shareCount
 				
-	from ACC_DocItems 
+	from ACC_DocItems di
 		join ACC_docs using(DocID)
-		join ACC_tafsilis using(TafsiliID)
+		join ACC_tafsilis t on(t.TafsiliID=di.TafsiliID2)
 		join BSC_persons on(ObjectID=PersonID)
 	where CostID=" . COSTID_share . " AND CycleID=" . $_SESSION["accounting"]["CycleID"] . 
-	" group by TafsiliID having shareCount > 0";
+	" group by di.TafsiliID2 having shareCount > 0";
 
 $query .= " order by amount desc";
 $dataTable = PdoDataAccess::runquery($query);
