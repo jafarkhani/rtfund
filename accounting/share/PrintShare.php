@@ -28,7 +28,7 @@ if(isset($_REQUEST["print"]))
 				
 	from ACC_DocItems 
 		join ACC_docs using(DocID)
-		where CostID=" . COSTID_share; /*" AND CycleID=" . $CycleID*/
+		where CostID=" . COSTID_share . " AND CycleID=" . $CycleID;
 	$sumRecord = PdoDataAccess::runquery($query, $param);
 
 
@@ -39,8 +39,8 @@ if(isset($_REQUEST["print"]))
 	}
 	$sumRecord = $sumRecord[0];
 
-$TotalRegisteredCapital=102647600000;
-    $TotalRegisteredShares=93316;
+	$TotalRegisteredCapital = $sumRecord["amount"];
+    $TotalRegisteredShares = $sumRecord["shareCount"];
 
 	//------------------------------------------
 	
