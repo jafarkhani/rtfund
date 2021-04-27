@@ -205,7 +205,7 @@ left join (
 	
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		ini_set("display_errors", "On");
+		//ini_set("display_errors", "On");
 		//ini_set("display_errors", "On");
 		//echo PdoDataAccess::GetLatestQueryString();die();
 		//print_r(ExceptionHandler::PopAllExceptions());
