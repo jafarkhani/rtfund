@@ -167,6 +167,7 @@ left join (
 			t2.tazminAmount
 				
 		from LON_requests r
+			left join aa on(r.RequestID=aa.id)
 			left join LON_loans l using(LoanID)
             left join BaseInfo bi on(bi.TypeID=5 AND bi.InfoID=StatusID)
 			join LON_ReqParts p on(r.RequestID=p.RequestID AND p.IsHistory='NO')
@@ -198,13 +199,13 @@ left join (
 				group by ObjectID
 			)t2 on(t2.ObjectID=r.RequestID)	
 
-		where r.RequestID>0 $where
+		where r.RequestID>0 AND aa.id is null $where
 		group by r.RequestID 
 		order by r.RequestID", $whereParam);
 	
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
-		//ini_set("display_errors", "On");
+		ini_set("display_errors", "On");
 		//ini_set("display_errors", "On");
 		//echo PdoDataAccess::GetLatestQueryString();die();
 		//print_r(ExceptionHandler::PopAllExceptions());
@@ -369,7 +370,7 @@ left join (
 		//------------------------------------------------------------------------
 		$returnArr[] = $row;
 		
-		PdoDataAccess::runquery("insert into aa(id,am1,am2,am3) values(?,?,?)", array(
+		PdoDataAccess::runquery("insert into aa(id,am1,am2,am3) values(?,?,?,?)", array(
 			$RequestID,
 			$row["totalWage"],
 			$row["totalLate"],
