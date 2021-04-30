@@ -76,7 +76,7 @@ define("COSTID_Fund", "1");
 define("COSTID_Wage", "470"); // 550
 define("COSTID_DepositeWage", "418"); // 750-09
 define("COSTID_Bank", "1001");
-define("COSTID_share", "313"); 
+define("COSTID_share", "1134"); 
 define("COSTID_ShareProfit", "167");
 define("COSTID_Commitment", "165");
 define("COSTID_saving", "1114");

@@ -10,7 +10,7 @@ require_once "ReportGenerator.class.php";
 $query = "select di.*,d.DocDate								
 	from ACC_DocItems di
 		join ACC_docs d using(DocID)
-		join ACC_tafsilis using(TafsiliID)
+		join ACC_tafsilis t on(t.TafsiliID=di.TafsiliID2)
 		join BSC_persons on(ObjectID=PersonID)
 	where CostID=" . COSTID_ShareProfit . " AND PersonID= " . $_SESSION["USER"]["PersonID"]
 	. " order by DocDate";
