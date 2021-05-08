@@ -280,7 +280,6 @@ WFM.prototype.Steps = function(){
                 height: 514,
                 title: 'گامهای فرایند',
                 floating: true,
-                renderTo: document.getElementById('mainTab'),
                 autoScroll: true,
                 closable: true,
                 loader: {
@@ -295,6 +294,7 @@ WFM.prototype.Steps = function(){
                     }
                 }
             });
+			Ext.getCmp(this.TabID).add(this.ProcessBlockWin);
         }
         this.ProcessBlockWin.show();
         Ext.getBody().mask();
