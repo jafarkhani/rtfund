@@ -275,13 +275,12 @@ WFM.prototype.Steps = function(){
 	{
 		if (!this.ProcessBlockWin)
         {
-            this.ProcessBlockWin = new Ext.form.Panel({
+            this.ProcessBlockWin = new Ext.window.Window({
                 width: 800,
                 height: 514,
                 title: 'گامهای فرایند',
-                floating: true,
-                autoScroll: true,
-                closable: true,
+                modal : true,
+				closeAction : "hide",
                 loader: {
                     autoLoad: true,
                     scripts: true,
