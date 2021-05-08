@@ -52,7 +52,7 @@ insert into sajakrrt_rtfund.ACC_DocItems(DocID,CostID,TafsiliType,TafsiliID,Tafs
 
 
 $reqs = PdoDataAccess::runquery_fetchMode(" select c1 as RequestID from aaa 
-		where regDoc=0
+		where regDoc=0 
 		order by c1");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
@@ -96,13 +96,13 @@ while($requset=$reqs->fetch())
 			$pdo->rollBack();
 		continue;
 	}
-	$result = DailyWage($reqObj, $partObj, $pdo);
+	/*$result = DailyWage($reqObj, $partObj, $pdo);
 	if(!$result)
 	{
 		if($pdo->inTransaction())
 			$pdo->rollBack();
 		continue;
-	}
+	}*/
 	
 	//--------------------------------------------------
 	PdoDataAccess::runquery_fetchMode(" update aaa set regDoc=1 where c1=?", array($reqObj->RequestID), $pdo);
@@ -225,31 +225,39 @@ function DailyIncome($reqObj , $partObj, $pdo){
 	$EventObj->ComputedItems[ "81" ] = 0;
 	unset($EventObj->EventFunction);
 	
-	$PureArr = LON_requests::ComputePures($reqObj->RequestID);
-	$ComputeDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
-	if($ComputeDate < $GFromDate)
-		$ComputeDate = $GFromDate;
-
-	$result = true;
-	$days = 0;
+	$StartComputeDate = $GFromDate;
+	$PureArr = LON_Computes::ComputePures($reqObj->RequestID);
+	$StartDate = $StartComputeDate == "" ? DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1) : $StartComputeDate;
+	$toDate = $GToDate;
+	$prevDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
+	$totalfundWage = $totalAgentWage = 0;
 	for($i=1; $i < count($PureArr);$i++)
 	{
-		if($ComputeDate > $GToDate)
+		if($prevDate > $toDate){
 			break;
-		$days = DateModules::GDateMinusGDate(min($GToDate, $PureArr[$i]["InstallmentDate"]),$ComputeDate);
-		if($days < 0)
-			break;
-		$totalDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$ComputeDate);
-		$wage = round(($PureArr[$i]["wage"]/$totalDays)*$days);
-		$FundWage = round(($partObj->FundWage/$partObj->CustomerWage)*$wage);
+		}
+
+		if($StartDate > $PureArr[$i]["InstallmentDate"]){
+			$prevDate = DateModules::AddToGDate($PureArr[$i]["InstallmentDate"],1);
+			continue;
+		}
+
+		$tDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$prevDate);
+		$wage = round(($PureArr[$i]["wage"]/$tDays));
+		$FundWage = round(($partObj->FundWage/$partObj->CustomerWage))*$wage;
 		$AgentWage = $wage - $FundWage;
-		$EventObj->ComputedItems[ "80" ] += $FundWage;
-		$EventObj->ComputedItems[ "81" ] += $AgentWage;
-		$ComputeDate = min($GToDate, $PureArr[$i]["InstallmentDate"]);
+		$startDay = max($prevDate,$StartDate);
+		$enDay = min($PureArr[$i]["InstallmentDate"], $toDate);
+		$tDays = DateModules::GDateMinusGDate($enDay,$startDay);
+
+		$totalfundWage += $FundWage*$tDays;
+		$totalAgentWage += $AgentWage*$tDays;				
+		$prevDate = DateModules::AddToGDate($PureArr[$i]["InstallmentDate"],1);
 	}
-	
+	$EventObj->ComputedItems[ "80" ] = $totalfundWage;
+	$EventObj->ComputedItems[ "81" ] = $totalAgentWage;
 	$result = $EventObj->RegisterEventDoc($pdo);
-	echo "روزانه : " . $days . " days " . ($result ? "true" : "false") . "<br>";
+	echo "روزانه : " . $tDays . " days " . ($result ? "true" : "false") . "<br>";
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
 		print_r(ExceptionHandler::PopAllExceptions());

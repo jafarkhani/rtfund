@@ -199,13 +199,14 @@ left join (
 				group by ObjectID
 			)t2 on(t2.ObjectID=r.RequestID)	
 
-		where r.RequestID>0 AND aa.id is null $where
+		where r.RequestID>0 $where
 		group by r.RequestID 
 		order by r.RequestID", $whereParam);
 	
 	if($_SESSION["USER"]["UserName"] == "admin")
 	{
 		//ini_set("display_errors", "On");
+		//print_r($dt);
 		//ini_set("display_errors", "On");
 		//echo PdoDataAccess::GetLatestQueryString();die();
 		//print_r(ExceptionHandler::PopAllExceptions());
@@ -325,7 +326,7 @@ left join (
 			
 			$tDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$prevDate);
 			$wage = round(($PureArr[$i]["wage"]/$tDays));
-			$FundWage = round(($partObj->FundWage/$partObj->CustomerWage));
+			$FundWage = round(($partObj->FundWage/$partObj->CustomerWage))*$wage;
 			$AgentWage = $wage - $FundWage;
 			$startDay = max($prevDate,$StartDate);
 			$enDay = min($PureArr[$i]["InstallmentDate"], $toDate);
@@ -369,16 +370,8 @@ left join (
 		$row["totalPenalty"] = $totalPenalty;
 		//------------------------------------------------------------------------
 		$returnArr[] = $row;
-		
-		PdoDataAccess::runquery("insert into aa(id,am1,am2,am3) values(?,?,?,?)", array(
-			$RequestID,
-			$row["totalWage"],
-			$row["totalLate"],
-			$row["totalPenalty"]
-		));
 	}
 	
-	die();
 
 	$rpg = new ReportGenerator();
 	$rpg->excel = !empty($_POST["excel"]);
