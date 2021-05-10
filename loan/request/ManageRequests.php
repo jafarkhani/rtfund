@@ -42,6 +42,12 @@ $col->width = 100;
 $col = $dg->addColumn("تاریخ", "ReqDate", GridColumn::ColumnType_date);
 $col->width = 80;
 
+$col = $dg->addColumn("تاریخ تسویه", "DefrayDate", GridColumn::ColumnType_date);
+$col->width = 80;
+
+$col = $dg->addColumn("تاریخ خاتمه", "EndDate", GridColumn::ColumnType_date);
+$col->width = 80;
+
 $col = $dg->addColumn("مبلغ درخواست", "ReqAmount", GridColumn::ColumnType_money);
 $col->width = 100;
 
