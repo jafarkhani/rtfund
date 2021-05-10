@@ -31,20 +31,14 @@ switch ($task)
 //-------------------------------------------------------------------
 
 function GetTreeNodes() {
-   $dt = PdoDataAccess::runquery("
-		SELECT 
-			ParentID,FolderID id,FolderName as text,'true' as leaf, f.*
-		FROM OFC_archive f
-		where PersonID=?
-		order by ParentID,FolderName", array($_SESSION["USER"]["PersonID"]));
-   /*
+   
    $dt = PdoDataAccess::runquery("
 		SELECT 
 			StepParentID ParentID,StepRowID id,StepDesc as text,'true' as leaf, f.*
 		FROM WFM_flowsteps f
 		where FlowID=?
 		order by StepParentID,StepDesc", array($_REQUEST['ParentID']));
-   */ 
+   
     $returnArray = array();
     $refArray = array();
 
