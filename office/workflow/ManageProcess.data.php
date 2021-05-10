@@ -29,7 +29,57 @@ switch ($task)
 }
 
 //-------------------------------------------------------------------
-function GetTreeNodes()
+
+function GetTreeNodes() {
+   $dt = PdoDataAccess::runquery("
+		SELECT 
+			ParentID,FolderID id,FolderName as text,'true' as leaf, f.*
+		FROM OFC_archive f
+		where PersonID=?
+		order by ParentID,FolderName", array($_SESSION["USER"]["PersonID"]));
+   /*
+   $dt = PdoDataAccess::runquery("
+		SELECT 
+			StepParentID ParentID,StepRowID id,StepDesc as text,'true' as leaf, f.*
+		FROM WFM_flowsteps f
+		where FlowID=?
+		order by StepParentID,StepDesc", array($_REQUEST['ParentID']));
+   */ 
+    $returnArray = array();
+    $refArray = array();
+
+    foreach ($dt as $row) {
+        if ($row["ParentID"] == 0) {
+            $returnArray[] = $row;
+            $refArray[$row["id"]] = &$returnArray[count($returnArray) - 1];
+            continue;
+        }
+
+        $parentNode = &$refArray[$row["ParentID"]];
+
+        if (!isset($parentNode["children"])) {
+            $parentNode["children"] = array();
+            $parentNode["leaf"] = "false";
+        }
+        $lastIndex = count($parentNode["children"]);
+        $parentNode["children"][$lastIndex] = $row;
+        $refArray[$row["id"]] = &$parentNode["children"][$lastIndex];
+    }
+
+    $str = json_encode($returnArray);
+
+    $str = str_replace('"children"', 'children', $str);
+    $str = str_replace('"leaf"', 'leaf', $str);
+    $str = str_replace('"text"', 'text', $str);
+    $str = str_replace('"id"', 'id', $str);
+    $str = str_replace('"true"', 'true', $str);
+    $str = str_replace('"false"', 'false', $str);
+
+    echo $str;
+    die();
+}
+
+function GetTreeNodes22()
 {
 	
 	$nodes = PdoDataAccess::runquery("SELECT    wf1.StepRowID as id ,
