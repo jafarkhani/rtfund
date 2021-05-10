@@ -282,10 +282,8 @@ WFM.prototype.Steps = function(){
                 modal : true,
 				closeAction : "hide",
                 loader: {
-                    autoLoad: true,
+					url: "/office/workflow/TreeProcess.php",
                     scripts: true,
-					url: "/office/workflow/TreeProcess.php?ParentID=" + record.data.FlowID
-                    //url: '/process/baseinfo/Process/ProcessesTree.php?FromNonExtPage=0&AfterSendHandler=ProcessDuty_OnProcessSelected&ExtTabID=mainForm&AccessCheck=false'
                 },
                 listeners: {
                     close: function () {
@@ -295,8 +293,16 @@ WFM.prototype.Steps = function(){
             });
 			Ext.getCmp(this.TabID).add(this.ProcessBlockWin);
         }
+		
         this.ProcessBlockWin.show();
         Ext.getBody().mask();
+		this.ProcessBlockWin.loader.load({
+			params : { 
+				ExtTabID : this.ProcessBlockWin.getEl().id,
+				MenuID : <?= $_REQUEST["MenuID"] ?>,
+				ParentID: record.data.FlowID
+			}
+		});
 		
 	}
 	else {
