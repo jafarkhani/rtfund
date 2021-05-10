@@ -40,16 +40,17 @@ function GetTreeNodes()
 												wf1.StepID as sid ,
 												wf1.IsActive,
 												wf1.IsOuter,
-												wf1.JobID,
-												wf1.PostID,
-												wf1.PersonID,
-												wf1.customer
+												wf1.JobID jid,
+												wf1.PostID poid,
+												wf1.PersonID pid,
+												wf1.customer cusid
 												
 												FROM WFM_flowsteps wf1 
 															inner join WFM_flowsteps wf 
 															    on  wf.StepID = 0 and wf.StepRowID = wf1.StepParentID
 												
 												where  wf1.FlowID = ". $_REQUEST['ParentID'] );
+	
 	
 	$cur_level_uids = "";
     $returnArray = $nodes;
