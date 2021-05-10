@@ -29,7 +29,7 @@ require_once("../header.inc.php");
 	ManageProcess.prototype = {	
 		address_prefix : "<?= $js_prefix_address?>",
 		ProcessTree: "",
-		FlowID: <?= $_REQUEST['ParentID']?>
+		FlowID: <?= $_REQUEST['ParentID']?>,
 		
 		get : function(elementID){
 			return findChild(this.TabID, elementID);
