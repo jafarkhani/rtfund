@@ -31,7 +31,9 @@ require_once("../header.inc.php");
 		ProcessTree: "",
 		FlowID: <?= $_REQUEST['ParentID']?>
 		
-
+		get : function(elementID){
+			return findChild(this.TabID, elementID);
+		}
 	}
 		
 	function ManageProcess() {
