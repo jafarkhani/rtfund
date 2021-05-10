@@ -33,7 +33,7 @@ require_once("../header.inc.php");
 		
 		get : function(elementID){
 			return findChild(this.TabID, elementID);
-		}
+		} 
 	}
 		
 	function ManageProcess() {
