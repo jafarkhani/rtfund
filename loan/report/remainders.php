@@ -98,7 +98,7 @@ function MakeWhere(&$where, &$whereParam){
             $where .= " )";
 	}
 	
-	if(!empty($_REQUEST["StartComputeDate"])){
+	/*if(!empty($_REQUEST["StartComputeDate"])){
 		$where .= " AND case r.StatusID when " . LON_REQ_STATUS_CONFIRM . " then 1=1
 										when " . LON_REQ_STATUS_DEFRAY . " then DefrayDate > :cd 
 										when " . LON_REQ_STATUS_ENDED . "  then EndDate > :cd 
@@ -113,7 +113,7 @@ function MakeWhere(&$where, &$whereParam){
 										else 1=0 end";
 
 		$whereParam[":cd"] = DateModules::shamsi_to_miladi($_REQUEST["ComputeDate"],"-");
-	}
+	}*/
 	
 }	
 
@@ -508,8 +508,16 @@ left join (
 		echo "<table style='border:2px groove #9BB1CD;border-collapse:collapse;width:100%'><tr>
 				<td width=60px><img src='/framework/icons/logo.jpg' style='width:120px'></td>
 				<td align='center' style='height:100px;vertical-align:middle;font-family:titr;font-size:15px'>
-					گزارش مانده وام ها
-				</td>
+					گزارش مانده وام ها";
+		
+		if(!empty($_REQUEST["StartComputeDate"])){
+			echo "<br>محاسبه از تاریخ " . $_REQUEST["StartComputeDate"];
+		}
+		if(!empty($_REQUEST["ComputeDate"])){
+			echo "<br>محاسبه تا تاریخ " . $_REQUEST["ComputeDate"];
+		}
+		
+		echo "</td>
 				<td width='200px' align='center' style='font-family:tahoma;font-size:11px'>تاریخ تهیه گزارش : " 
 			. DateModules::shNow() . "<br>";
 		if(!empty($_POST["fromReqDate"]))
@@ -758,15 +766,11 @@ function LoanReport_remainders()
 			fieldLabel : "وضعیت وام",
 			queryMode : 'local',
 			width : 370,
+			colspan: 2,
+			value : "70,101,95",
 			displayField : "InfoDesc",
 			valueField : "InfoID",
 			hiddenName : "StatusID"
-		},{
-			xtype : "container",
-			html : "وضعیت خاتمه&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
-				"<input name=IsEnded type=radio value='YES' > خاتمه یافته &nbsp;&nbsp;" +
-				"<input name=IsEnded type=radio value='NO' > جاری &nbsp;&nbsp;" +
-				"<input name=IsEnded type=radio value='' checked > هردو " 
 		},{
 			xtype : "shdatefield",
 			name : "fromEndReqDate",
