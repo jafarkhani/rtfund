@@ -25,6 +25,9 @@ switch ($task)
 	case "PersonStore" :
 		  PersonStore() ;
 		
+	case "GetRec" :
+		  GetRec();
+		
 	    
 }
 
@@ -104,6 +107,21 @@ function JobStore() {
 	
 	$dt = PdoDataAccess::runquery(" select JobID,concat(JobID,'-',PostName) title from BSC_jobs join BSC_posts using(PostID) " , array());
 	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
+	die();
+}
+
+function GetRec()
+{
+	
+	echo $_POST["STID"].'----' ; 
+	die(); 
+	
+	$ret = manage_writ::IssueWrit($_POST["staff_id"], $_POST["writ_type_id"], $_POST["writ_subtype_id"],
+								  $_POST["execute_date"], $_POST['person_type'] ,$_POST["issue_date"], $history_only, false,
+								  null, null, null,$_POST["contract_start_date"],$_POST["contract_end_date"],"indiv");
+   
+	
+	Response::createObjectiveResponse(true, "{WID:" . $ret->writ_id . ",WVER:" . $ret->writ_ver . ",STID:" . $ret->staff_id . "}");
 	die();
 }
 
