@@ -246,35 +246,14 @@ require_once("../header.inc.php");
 			this.ProcessPanel.down("[itemId=StepRowID]").setValue(record.data.id);
 			this.ProcessPanel.down("[itemId=StepDesc]").setValue(record.data.text);
 			this.ProcessPanel.down("[itemId=StepParentID]").setValue(record.data.parentId);
-			
-			Ext.Ajax.request({
-                url: this.address_prefix + "ManageProcess.data.php?task=GetRec",
-                method: "POST",
-                params : {
-					STID : record.data.id
-				},
-                success: function(response){
-					var st = Ext.decode(response.responseText);
-					if(st.success){
-						
-						
-						alert(st.data.PID); 
-						alert(st.data.POID); 
-						alert(st.data.JID); 
-						
-						ManageProcessObj.ProcessPanel.down("[itemId=PersonID]").setValue(st.data.PID);
-						ManageProcessObj.PersonStore.load();	
-						
-						ManageProcessObj.ProcessPanel.down("[itemId=PostID]").setValue(st.data.POID);
-						ManageProcessObj.PostStore.load();
-						
-						ManageProcessObj.ProcessPanel.down("[itemId=JobID]").setValue(st.data.JID);
-						ManageProcessObj.JobStore.load();	
-					}
-				},
-				failure: function(){}
-				
-            });
+			ManageProcessObj.ProcessPanel.down("[itemId=PersonID]").setValue(record.raw.PersonID);
+			ManageProcessObj.PersonStore.load();	
+
+			ManageProcessObj.ProcessPanel.down("[itemId=PostID]").setValue(record.raw.PostID);
+			ManageProcessObj.PostStore.load();
+
+			ManageProcessObj.ProcessPanel.down("[itemId=JobID]").setValue(record.raw.JobID);
+			ManageProcessObj.JobStore.load();	
 			
 		}
 
@@ -325,6 +304,7 @@ require_once("../header.inc.php");
             this.ProcessPanel.down("[itemId=StepParentID]").setValue(record.data.parentId);
         }
 
+		console.log(record)
         this.ProcessPanel.down("[itemId=FlowID]").setValue(this.FlowID);
         this.ProcessPanel.down("[itemId=StepDesc]").setValue(record.data.text);
         this.ProcessPanel.down("[itemId=PersonID]").setValue(record.data.pid);
