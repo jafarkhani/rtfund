@@ -188,19 +188,19 @@ require_once("../header.inc.php");
                     width: 280,
                     valueField: 'PersonID',
                     displayField: 'fullname'
-                }/*,
+                },
                 {
                     xtype: "treecombo",
                     selectChildren: true,
                     canSelectFolders: true,
                     multiselect: false,
-                    hiddenName: "ReturnStep",
+                    name: "ReturnStep",
                     itemId: "ReturnStep",
                     colspan: 2,
                     width: 420,
                     fieldLabel: "چرخه فرآیند",
-                    store: this.TreeStore
-                }*/
+                    store: this.tree.store
+                }
 
 
             ],
@@ -254,6 +254,8 @@ require_once("../header.inc.php");
 
 			ManageProcessObj.ProcessPanel.down("[itemId=JobID]").setValue(record.raw.JobID);
 			ManageProcessObj.JobStore.load();	
+			console.log(record.raw.ReturnStep);
+			ManageProcessObj.ProcessPanel.down("[itemId=ReturnStep]").setValue(record.raw.ReturnStep);
 			
 		}
 
