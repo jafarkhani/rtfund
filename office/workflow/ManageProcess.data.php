@@ -7,6 +7,7 @@ ini_set('display_errors', 'on');
 require_once '../header.inc.php';
 require_once inc_response;
 require_once inc_dataReader;
+require_once 'TreeModules.class.php';
 
 
 $task = isset($_POST["task"]) ? $_POST["task"] : (isset($_GET["task"]) ? $_GET["task"] : "");
@@ -32,6 +33,17 @@ switch ($task)
 
 function GetTreeNodes() {
    
+	$nodes = PdoDataAccess::runquery("
+			select * from WFM_FlowSteps 
+			where FlowID=?
+			order by StepParentID,StepDesc", array($_REQUEST['ParentID']));
+	$returnArr = TreeModulesclass::MakeHierarchyArray($nodes, "StepParentID", "StepRowID", "StepDesc", true);
+	echo json_encode($returnArr);
+	die();
+	
+	
+	
+	
    $dt = PdoDataAccess::runquery("
 		SELECT 
 			StepParentID ParentID,StepRowID id,StepDesc as text,'true' as leaf, f.*
