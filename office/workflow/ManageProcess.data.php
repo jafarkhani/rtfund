@@ -7,6 +7,7 @@ ini_set('display_errors', 'on');
 require_once '../header.inc.php';
 require_once inc_response;
 require_once inc_dataReader;
+require_once 'TreeModules.class.php';
 
 
 $task = isset($_POST["task"]) ? $_POST["task"] : (isset($_GET["task"]) ? $_GET["task"] : "");
@@ -25,9 +26,6 @@ switch ($task)
 	case "PersonStore" :
 		  PersonStore() ;
 		
-	case "GetRec" :
-		  GetRec();
-		
 	    
 }
 
@@ -35,6 +33,17 @@ switch ($task)
 
 function GetTreeNodes() {
    
+	$nodes = PdoDataAccess::runquery("
+			select * from WFM_FlowSteps 
+			where FlowID=?
+			order by StepParentID,StepDesc", array($_REQUEST['ParentID']));
+	$returnArr = TreeModulesclass::MakeHierarchyArray($nodes, "StepParentID", "StepRowID", "StepDesc", true);
+	echo json_encode($returnArr);
+	die();
+	
+	
+	
+	
    $dt = PdoDataAccess::runquery("
 		SELECT 
 			StepParentID ParentID,StepRowID id,StepDesc as text,'true' as leaf, f.*
@@ -107,21 +116,6 @@ function JobStore() {
 	
 	$dt = PdoDataAccess::runquery(" select JobID,concat(JobID,'-',PostName) title from BSC_jobs join BSC_posts using(PostID) " , array());
 	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
-	die();
-}
-
-function GetRec()
-{
-	
-	echo $_POST["STID"].'----' ; 
-	die(); 
-	
-	$ret = manage_writ::IssueWrit($_POST["staff_id"], $_POST["writ_type_id"], $_POST["writ_subtype_id"],
-								  $_POST["execute_date"], $_POST['person_type'] ,$_POST["issue_date"], $history_only, false,
-								  null, null, null,$_POST["contract_start_date"],$_POST["contract_end_date"],"indiv");
-   
-	
-	Response::createObjectiveResponse(true, "{WID:" . $ret->writ_id . ",WVER:" . $ret->writ_ver . ",STID:" . $ret->staff_id . "}");
 	die();
 }
 
