@@ -3,7 +3,6 @@
 //	Programmer	: SH.Jafarkhani
 //	Date		: 1394.07
 //-----------------------------
-
 require_once '../header.inc.php';
 require_once inc_dataGrid;
 
@@ -156,12 +155,24 @@ MyForm.prototype.OperationMenu = function(e){
 		
 		var pc = record.data.childs ; 
 		var res = pc.split(","); 
+				
 		for(var t=0 ; t < res.length ; t++ )
 		{			
 			var res2 = res[t].split("-") ;
 			
-			op_menu.add({text: res2[1] ,iconCls: 'tick', 
-				handler : function(){ return MyFormObject.beforeChangeStatus('CONFIRM',res2[0]); }});
+			
+			if(res2[2] == 'CONFIRM')
+				op_menu.add({text: res2[1] ,iconCls: 'tick', 
+					handler : function(){ return MyFormObject.beforeChangeStatus('CONFIRM',res2[0]); }});	
+			
+			else if (res2[2] == 'RETURN') 
+				op_menu.add({text: res2[1] ,iconCls: 'tick', 
+					handler : function(){ return MyFormObject.beforeChangeStatus('RETURN',397/*res2[0]*/); }});
+			
+			else if (res2[2] == 'REJECT') 
+				op_menu.add({text: res2[1] ,iconCls: 'tick', 
+					handler : function(){ return MyFormObject.beforeChangeStatus('REJECT',res2[0]); }});
+			
 		}				
 	}
 	op_menu.add({text: 'پیوستها',iconCls: 'attach', 
@@ -174,9 +185,9 @@ MyForm.prototype.OperationMenu = function(e){
 }
 
 MyForm.prototype.beforeChangeStatus = function(mode,childID){
-	
+	 
 	if(mode == "CONFIRM")
-	{
+	{		
 		Ext.MessageBox.confirm("","آیا مایل به تایید می باشید؟", function(btn){
 			if(btn == "no")
 				return;
@@ -185,6 +196,7 @@ MyForm.prototype.beforeChangeStatus = function(mode,childID){
 		});
 		return;
 	}
+	
 	if(!this.commentWin)
 	{
 		this.commentWin = new Ext.window.Window({
@@ -213,8 +225,9 @@ MyForm.prototype.beforeChangeStatus = function(mode,childID){
 		
 		Ext.getCmp(this.TabID).add(this.commentWin);
 	}
-	this.commentWin.down("[itemId=btn_save]").setHandler(function(){
-		MyFormObject.ChangeStatus(mode, this.up('window').down("[name=ActionComment]").getValue());});
+	
+	this.commentWin.down("[itemId=btn_save]").setHandler(function(){ 
+		MyFormObject.ChangeStatus(mode, this.up('window').down("[name=ActionComment]").getValue(), childID);});
 	this.commentWin.show();
 	this.commentWin.center();
 }
