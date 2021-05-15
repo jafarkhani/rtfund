@@ -356,7 +356,7 @@ function GetData(&$rpg){
 		if(!empty($_POST["level3s"]))
 		{
 			$level3s = preg_replace("/[^0-9,]+/", "", $_POST["level3s"]);
-			$level3s = substr($level3s, 0, strlen($level3s)-1);
+			$level3s = trim($level3s, ",");
             $where .= " AND cc.level3 in( " . $level3s . ")";
 		}
 		//----------------------------------------------
