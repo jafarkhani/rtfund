@@ -40,83 +40,22 @@ require_once("../header.inc.php");
     function ManageProcess() {
 
         this.form = "mainForm";
-        /*
-         this.ProcessTree = new Ext.create('Ext.tree.TreePanel'
-         , {
-         plugins: [new Ext.tree.Search()],
-         store: new Ext.data.TreeStore({
-         proxy: {
-         type: 'ajax',
-         url: "/office/workflow/ManageProcess.data.php?task=GetTreeNodes&ParentID=" + this.FlowID ,
-         }
-         })
-         , root: {
-         text: 'ارسال اولیه',
-         id: 'src',
-         expanded: true
-         }
-         , title: "فرآیند"
-         , autoScroll: true
-         , width: 300
-         , itemId: 'Treeprocess'
-         , minHeight: 700
-         , listeners: {
-         itemappend(selfi, node, index, eOpts) {
-         node.set('FlowID', node.raw.FlowID);
-         node.set('ptext', node.raw.ptext);
-         node.set('active', node.raw.active);
-         node.set('iout', node.raw.iout);
-         node.set('jid', node.raw.jid);
-         node.set('poid', node.raw.poid);
-         node.set('pid', node.raw.pid);
-         node.set('sid', node.raw.sid);
-         node.set('cusid', node.raw.cusid);
-         },
-         itemcontextmenu: function (view, record, item, index, e) {
-         e.stopEvent();
-         e.preventDefault();
-         view.select(index);
-         this.Menu = new Ext.menu.Menu();
-         //							if (record.data.id != 'src') {
-         this.Menu.add({
-         text: 'ایجاد گام فرآیند',
-         iconCls: 'add',
-         handler: function () {
-         ManageProcessObj.AddStep();
-         }
-         });
-         
-         this.Menu.add({
-         text: 'ویرایش گام فرآیند',
-         iconCls: 'edit',
-         handler: function () {
-         ManageProcessObj.EditStep();
-         }
-         });
-         
-         var coords = e.getXY();
-         this.Menu.showAt([coords[0] - 120, coords[1]]);
-         }
-         },
-         renderTo: document.getElementById("tree-div")
-         });
-         */
-
+      
         this.tree = Ext.create('Ext.tree.Panel', {
-				title: "بایگانی شخصی",
+				title: "گردش فرآیند",
 				store: new Ext.data.TreeStore({
 					proxy: {
 						type: 'ajax',						
 						url: this.address_prefix + "ManageProcess.data.php?task=GetTreeNodes&ParentID=" + this.FlowID ,
 					},
 					root: {
-						text: 'بایگانی شخصی',
+						text: 'گردش فرایند',
 						id: 'src',
 						expanded: true
 					}
 				}),
-				width:  750,
-				height: 200,
+				width:  350,
+				height: 550,
 				renderTo: this.get("tree-div")
         });
 		
@@ -150,18 +89,39 @@ require_once("../header.inc.php");
             fields: ['PersonID', 'fullname'],
             pageSize: 50
         });
+		
+		this.tree.on("itemcontextmenu", function(view, record, item, index, e)
+		{
+			e.stopEvent();
+			e.preventDefault();
+			view.select(index);
 
-        this.TreeStore = new Ext.data.TreeStore({
-            proxy: {
-                type: 'ajax',
-                url: "/office/workflow/ManageProcess.data.php?task=GetTreeNodes&ParentID=" + this.FlowID,
-            },
-            root: {
-                text: "ارسال اولیه",
-                id: 'src',
-                expanded: true
-            }
-        });
+			this.Menu = new Ext.menu.Menu();
+
+			this.Menu.add({
+				text: 'ایجاد زیر پوشه',
+				iconCls: 'add',
+				handler : function(){ManageProcessObj.BeforeSaveFolder(false);}
+			});
+
+			if(record.data.id != "src")
+			{
+				this.Menu.add({
+					text: 'ویرایش عنوان',
+					iconCls: 'edit',
+					handler : function(){ManageProcessObj.BeforeSaveFolder(true);}
+				});
+
+				this.Menu.add({
+					text: 'حذف پوشه',
+					iconCls: 'remove',
+					handler : function(){ManageProcessObj.DeleteFolder();}
+				});
+			}
+
+			var coords = e.getXY();
+			this.Menu.showAt([coords[0]-120, coords[1]]);
+		});
 
         this.ProcessPanel = new Ext.form.Panel({
             frame: true,
@@ -201,7 +161,7 @@ require_once("../header.inc.php");
                 },
                 {
                     xtype: "combo",
-                    hiddenName: "PostID",
+                    name: "PostID",
                     fieldLabel: "پست مربوطه ",
                     itemId: "PostID",
                     store: this.PostStore,
@@ -211,7 +171,7 @@ require_once("../header.inc.php");
                 },
                 {
                     xtype: "combo",
-                    hiddenName: "JobID",
+                    name: "JobID",
                     fieldLabel: " شغل مربوطه",
                     itemId: "JobID",
                     store: this.JobStore,
@@ -221,14 +181,14 @@ require_once("../header.inc.php");
                 },
                 {
                     xtype: "combo",
-                    hiddenName: "PersonID",
+                    name: "PersonID",
                     fieldLabel: " شخص مربوطه",
                     itemId: "PersonID",
                     store: this.PersonStore,
                     width: 280,
                     valueField: 'PersonID',
                     displayField: 'fullname'
-                },
+                }/*,
                 {
                     xtype: "treecombo",
                     selectChildren: true,
@@ -240,7 +200,7 @@ require_once("../header.inc.php");
                     width: 420,
                     fieldLabel: "چرخه فرآیند",
                     store: this.TreeStore
-                }
+                }*/
 
 
             ],
@@ -267,6 +227,58 @@ require_once("../header.inc.php");
     }
 
     var ManageProcessObj = new ManageProcess();
+
+	
+	ManageProcess.prototype.BeforeSaveFolder = function(EditMode){
+		
+		this.ProcessPanel.hide();
+		var record = this.tree.getSelectionModel().getSelection()[0];
+		ManageProcessObj.ProcessPanel.getForm().reset();
+		this.ProcessPanel.down("[itemId=FlowID]").setValue(this.FlowID);		
+		this.ProcessPanel.down("[itemId=StepID]").setValue('');
+		this.ProcessPanel.down("[itemId=StepParentID]").setValue('');
+		this.ProcessPanel.show();
+		
+		this.ProcessPanel.down("[itemId=StepParentID]").setValue(record.data.id);
+
+		if(EditMode)
+		{	
+			this.ProcessPanel.down("[itemId=StepRowID]").setValue(record.data.id);
+			this.ProcessPanel.down("[itemId=StepDesc]").setValue(record.data.text);
+			this.ProcessPanel.down("[itemId=StepParentID]").setValue(record.data.parentId);
+			
+			Ext.Ajax.request({
+                url: this.address_prefix + "ManageProcess.data.php?task=GetRec",
+                method: "POST",
+                params : {
+					STID : record.data.id
+				},
+                success: function(response){
+					var st = Ext.decode(response.responseText);
+					if(st.success){
+						
+						
+						alert(st.data.PID); 
+						alert(st.data.POID); 
+						alert(st.data.JID); 
+						
+						ManageProcessObj.ProcessPanel.down("[itemId=PersonID]").setValue(st.data.PID);
+						ManageProcessObj.PersonStore.load();	
+						
+						ManageProcessObj.ProcessPanel.down("[itemId=PostID]").setValue(st.data.POID);
+						ManageProcessObj.PostStore.load();
+						
+						ManageProcessObj.ProcessPanel.down("[itemId=JobID]").setValue(st.data.JID);
+						ManageProcessObj.JobStore.load();	
+					}
+				},
+				failure: function(){}
+				
+            });
+			
+		}
+
+	}
 
     ManageProcess.prototype.AddStep = function ()
     {
@@ -329,30 +341,52 @@ require_once("../header.inc.php");
 
     ManageProcess.prototype.SaveUnit = function ()
     {
-        Ext.Ajax.request({
-            url: "/office/workflow/wfm.data.php",
-            method: "POST",
-            form: this.form,
-            params: {
-                task: "SaveStep"
-            },
-            success: function (response) {
-                var st = Ext.decode(response.responseText);
+		
+		mask = new Ext.LoadMask(Ext.getCmp(this.TabID), {msg:'در حال ذخيره سازي...'});
+		mask.show();
 
-                if (st.success === true)
-                {
-                    Ext.MessageBox.alert("پیام", "اطلاعات به درستی ذخیره شد.");
-                    ManageProcessObj.ProcessTree.getStore().load();
-                    ManageProcessObj.ProcessPanel.hide();
+		ManageProcessObj.ProcessPanel.getForm().submit({
+			clientValidation: true,
+			url: this.address_prefix + 'wfm.data.php?task=SaveStep',
+			method : "POST",
+			success : function(form,action){                
 
-                } else
-                {
-                    Ext.MessageBox.alert("پیام", ("خطا در ثبت اطلاعات"));
-                }
-            },
-            failure: function () {
-            }
-        });
+				me = ManageProcessObj;				
+				StepRowID = me.ProcessPanel.down("[itemId=StepRowID]").getValue();
+				mode = StepRowID == "" ? "new" : "edit";
+
+				if(mode == "new")
+				{					
+					ParentID = me.ProcessPanel.down("[itemId=StepParentID]").getValue();
+					Parent = ParentID == "src" ? me.tree.getRootNode() :
+												 me.tree.getRootNode().findChild("id",ParentID,true);
+					Parent.set('leaf', false);
+					Parent.appendChild({
+						id : action.result.data,
+						text :  me.ProcessPanel.down("[itemId=StepDesc]").getValue(),
+						leaf : true
+					});  
+					Parent.expand();
+				}
+				else
+				{
+					node = me.tree.getRootNode().findChild("id", StepRowID, true);
+					node.set('text', me.ProcessPanel.down("[itemId=StepDesc]").getValue());
+				}
+
+				me.ProcessPanel.getForm().reset();
+				me.ProcessPanel.hide();
+
+				mask.hide();
+
+			},
+			failure : function(form,action)
+			{
+				Ext.MessageBox.alert("Error","عملیات مورد نظر با شکست مواجه شد");
+				mask.hide();
+			}
+		});
+	
     }
 
 
