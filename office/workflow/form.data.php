@@ -665,6 +665,8 @@ function SaveRequest() {
 		}
 		else
 		{
+			
+			// baharee 
 			$dt = WFM_FlowRows::GetFlowInfo($formObj->FlowID, $ReqObj->RequestID);
 			
 			if(!$dt["IsStarted"])
