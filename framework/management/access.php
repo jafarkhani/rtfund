@@ -4,12 +4,20 @@
 // create Date: 97.11
 //-----------------------------
 require_once '../../header.inc.php';
- 
+
+//................  GET ACCESS  .....................
+$accessObj = FRW_access::GetAccess($_POST["MenuID"]);
+//...................................................
+
 ?>
 <script>
 FRW_access.prototype = {
 	TabID : '<?= $_REQUEST["ExtTabID"] ?>',
 	address_prefix : "<?= $js_prefix_address ?>",
+	
+	AddAccess : <?= $accessObj->AddFlag ? "true" : "false" ?>,
+	EditAccess : <?= $accessObj->EditFlag ? "true" : "false" ?>,
+	RemoveAccess : <?= $accessObj->RemoveFlag ? "true" : "false" ?>,
 
 	get : function(elementID){
 		return findChild(this.TabID, elementID);
@@ -82,6 +90,7 @@ function FRW_access()
 		buttons : [{
             xtype: "button",
             iconCls: "save",
+			hidden: !this.AddAccess,
             text: "ذخیره دسترسی ها",
             handler: function () {
 				FRW_accessObject.saveAction();
@@ -118,6 +127,7 @@ function FRW_access()
             width : 80,
             dataIndex: 'ViewFlag',
 			renderer : function(v,p,r){
+				
 				if(r.data.MenuPath == null)
 					return;
 				str = '<input type="checkbox" id="fullChk_' + r.data.MenuID +
