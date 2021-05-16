@@ -51,9 +51,8 @@ insert into sajakrrt_rtfund.ACC_DocItems(DocID,CostID,TafsiliType,TafsiliID,Tafs
             from sajakrrt_oldcomputes.ACC_DocItems where DociD=67130 */
 
 
-$reqs = PdoDataAccess::runquery_fetchMode(" select c1 as RequestID from aaa 
-		where regDoc=0 
-		order by c1");
+$reqs = PdoDataAccess::runquery_fetchMode(" select RequestID from LON_requests 
+		where RequestID in(1985,2215,1905,1972,2212,1969,2240,2019,1951,2017,2042,2062,1899,2150,1777,1987)");
 //echo PdoDataAccess::GetLatestQueryString();
 $pdo = PdoDataAccess::getPdoObject();
 
@@ -256,7 +255,9 @@ function DailyIncome($reqObj , $partObj, $pdo){
 	}
 	$EventObj->ComputedItems[ "80" ] = $totalfundWage;
 	$EventObj->ComputedItems[ "81" ] = $totalAgentWage;
-	$result = $EventObj->RegisterEventDoc($pdo);
+	
+	echo $totalfundWage . "<br>" . $totalAgentWage;
+	//$result = $EventObj->RegisterEventDoc($pdo);
 	echo "روزانه : " . $tDays . " days " . ($result ? "true" : "false") . "<br>";
 	if(ExceptionHandler::GetExceptionCount() > 0)
 	{
