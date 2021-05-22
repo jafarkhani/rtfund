@@ -17,6 +17,7 @@ $col = $page_rpg->addColumn("شماره وام", "RRequestID");
 $col->queryField = "r.RequestID";
 $page_rpg->addColumn("نوع وام", "LoanDesc");
 $page_rpg->addColumn("حوزه فعالیت", "DomainDesc");
+$page_rpg->addColumn("عنوان طرح", "PlanTitle");
 $page_rpg->addColumn("منبع", "ReqFullname", "ReqPersonRender"); 
 $page_rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
 $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
@@ -97,7 +98,7 @@ function GetData(){
 	$query = "select py.*,r.*,l.*,p.*,
 				r.RequestID as RRequestID,
 				PayAmount - ifnull(OldFundDelayAmount,0) 
-						- ifnull(OldAgentDelayAmount,0)
+						- ifnull(OldAgentDelayAmount,0) 
 						- ifnull(OldFundWage,0)
 						- ifnull(OldAgentWage,0)as PurePayAmount,
 				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) ReqFullname,
@@ -117,7 +118,7 @@ function GetData(){
 			join BSC_branches using(BranchID)
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
-			left join BSC_ActDomain ad on(p2.DomainID=ad.DomainID)
+			left join BSC_ActDomain ad on(r.DomainID=ad.DomainID)
 			left join LON_PayDocs pd on(py.PayID=pd.PayID)
 
 			where 1=1 " . $where;
@@ -161,6 +162,8 @@ function ListData($IsDashboard = false){
 	$col->rowspanByFields = array("RequestID");
 	
 	$rpg->addColumn("حوزه فعالیت", "DomainDesc");
+	$rpg->addColumn("عنوان طرح", "PlanTitle");
+
 
 	
 	$col = $rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
