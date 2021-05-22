@@ -16,6 +16,7 @@ $page_rpg = new ReportGenerator("mainForm","LoanReport_paymentsObj");
 $col = $page_rpg->addColumn("شماره وام", "RRequestID");
 $col->queryField = "r.RequestID";
 $page_rpg->addColumn("نوع وام", "LoanDesc");
+$page_rpg->addColumn("حوزه فعالیت", "DomainDesc");
 $page_rpg->addColumn("منبع", "ReqFullname", "ReqPersonRender"); 
 $page_rpg->addColumn("زیرواحد سرمایه گذار", "SubDesc");
 $col = $page_rpg->addColumn("تاریخ درخواست", "ReqDate");
@@ -103,6 +104,7 @@ function GetData(){
 				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) LoanFullname,
 				if(pd.DocID is not null, 'YES', 'NO') IsDocRegistered,
 				pd.LocalNo,
+				ad.DomainDesc,
 				sb.SubDesc,
 				BranchName".
 				($userFields != "" ? "," . $userFields : "")."
@@ -115,6 +117,7 @@ function GetData(){
 			join BSC_branches using(BranchID)
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
+			left join BSC_ActDomain ad on(p2.DomainID=ad.DomainID)
 			left join LON_PayDocs pd on(py.PayID=pd.PayID)
 
 			where 1=1 " . $where;
@@ -156,6 +159,9 @@ function ListData($IsDashboard = false){
 	$col = $rpg->addColumn("نوع وام", "LoanDesc");
 	$col->rowspaning = true;
 	$col->rowspanByFields = array("RequestID");
+	
+	$rpg->addColumn("حوزه فعالیت", "DomainDesc");
+
 	
 	$col = $rpg->addColumn("منبع", "ReqFullname","ReqPersonRender");
 	$col->rowspaning = true;

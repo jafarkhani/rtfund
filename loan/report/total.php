@@ -242,7 +242,7 @@ function GetData($mode = "list"){
 			left join BSC_persons p1 on(p1.PersonID=r.ReqPersonID)
 			left join BSC_persons p2 on(p2.PersonID=r.LoanPersonID)
 			left join DMS_packages dp on(p2.PersonID=dp.PersonID AND r.BranchID=dp.BranchID)
-			left join BSC_ActDomain ad on(p2.DomainID=ad.DomainID)
+			left join BSC_ActDomain ad on(r.DomainID=ad.DomainID)
 
 			left join (
 				select RequestID,sum(PayAmount) SumPayments 
