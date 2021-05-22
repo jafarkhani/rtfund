@@ -10,7 +10,7 @@ $IsSend = !empty($_REQUEST["SendForms"]) ? true : false;
 
 $dg = new sadaf_datagrid("dg", $js_prefix_address . 
 		(!$IsSend ? "wfm.data.php?task=SelectAllForms&MyForms=true" : 
-					  "wfm.data.php?task=SelectAllForms&SendForms=true"), "grid_div");
+					"wfm.data.php?task=SelectAllForms&SendForms=true"), "grid_div");
 
 $dg->addColumn("", "FlowID", "", true);
 $dg->addColumn("", "RowID", "", true);
@@ -144,35 +144,35 @@ MyForm.prototype.OperationMenu = function(e){
 	op_menu.add({text: 'اطلاعات آیتم',iconCls: 'info2', 
 		handler : function(){ return MyFormObject.FormInfo(); }});
 	if(!this.IsSend && record.data.childs === false)
-	{
+	{		
 		op_menu.add({text: 'تایید درخواست',iconCls: 'tick', 
 		handler : function(){ return MyFormObject.beforeChangeStatus('CONFIRM'); }});
 
 		op_menu.add({text: 'رد درخواست',iconCls: 'cross',
 		handler : function(){ return MyFormObject.beforeChangeStatus('REJECT'); }});
 	}
-	else if(!this.IsSend) {
-		
+	else if(!this.IsSend) {		
 		var pc = record.data.childs ; 
 		var res = pc.split(","); 
 				
 		for(var t=0 ; t < res.length ; t++ )
 		{			
 			var res2 = res[t].split("-") ;
-			
-			
+		/*
 			if(res2[2] == 'CONFIRM')
-				op_menu.add({text: res2[1] ,iconCls: 'tick', 
-					handler : function(){ return MyFormObject.beforeChangeStatus('CONFIRM',res2[0]); }});	
+				op_menu.add({text: res2[1] ,
+							 iconCls: 'tick', 
+							 handler : Ext.bind(MyFormObject.beforeChangeStatus('CONFIRM',res2[0]), MyFormObject ) 
+						   );
 			
 			else if (res2[2] == 'RETURN') 
 				op_menu.add({text: res2[1] ,iconCls: 'tick', 
-					handler : function(){ return MyFormObject.beforeChangeStatus('RETURN',397/*res2[0]*/); }});
+					handler : Ext.bind(MyFormObject.beforeChangeStatus, MyFormObject, ['RETURN',res2[0]]);
 			
 			else if (res2[2] == 'REJECT') 
 				op_menu.add({text: res2[1] ,iconCls: 'tick', 
-					handler : function(){ return MyFormObject.beforeChangeStatus('REJECT',res2[0]); }});
-			
+					handler :  Ext.bind(MyFormObject.beforeChangeStatus, MyFormObject, ['REJECT',res2[0]]);
+			*/
 		}				
 	}
 	op_menu.add({text: 'پیوستها',iconCls: 'attach', 
@@ -185,7 +185,7 @@ MyForm.prototype.OperationMenu = function(e){
 }
 
 MyForm.prototype.beforeChangeStatus = function(mode,childID){
-	 
+	
 	if(mode == "CONFIRM")
 	{		
 		Ext.MessageBox.confirm("","آیا مایل به تایید می باشید؟", function(btn){
@@ -197,13 +197,20 @@ MyForm.prototype.beforeChangeStatus = function(mode,childID){
 		return;
 	}
 	
+	var BoxTitle = "";
+	
+	if(mode == "RETURN")
+		BoxTitle = "دلیل برگشت" ; 
+	else 
+		BoxTitle = "دلیل عدم تایید" ; 
+		
 	if(!this.commentWin)
 	{
 		this.commentWin = new Ext.window.Window({
 			width : 412,
 			height : 320,
 			modal : true,
-			title : "دلیل عدم تایید",
+			title : BoxTitle ,
 			bodyStyle : "background-color:white",
 			items : [{
 				xtype : "textarea",
