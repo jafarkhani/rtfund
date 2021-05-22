@@ -158,21 +158,23 @@ MyForm.prototype.OperationMenu = function(e){
 		for(var t=0 ; t < res.length ; t++ )
 		{			
 			var res2 = res[t].split("-") ;
-		/*
+		
 			if(res2[2] == 'CONFIRM')
 				op_menu.add({text: res2[1] ,
 							 iconCls: 'tick', 
-							 handler : Ext.bind(MyFormObject.beforeChangeStatus('CONFIRM',res2[0]), MyFormObject ) 
-						   );
+							 handler : Ext.bind(this.beforeChangeStatus,this,['CONFIRM',res2[0]]) 
+						 });
 			
 			else if (res2[2] == 'RETURN') 
-				op_menu.add({text: res2[1] ,iconCls: 'tick', 
-					handler : Ext.bind(MyFormObject.beforeChangeStatus, MyFormObject, ['RETURN',res2[0]]);
+				op_menu.add({text: res2[1] ,iconCls: 'undo', 
+					handler : Ext.bind(this.beforeChangeStatus, this, ['RETURN',res2[0]])
+				});
 			
 			else if (res2[2] == 'REJECT') 
-				op_menu.add({text: res2[1] ,iconCls: 'tick', 
-					handler :  Ext.bind(MyFormObject.beforeChangeStatus, MyFormObject, ['REJECT',res2[0]]);
-			*/
+				op_menu.add({text: res2[1] ,iconCls: 'cross', 
+					handler :  Ext.bind(this.beforeChangeStatus, this, ['REJECT',res2[0]])
+				});
+			
 		}				
 	}
 	op_menu.add({text: 'پیوستها',iconCls: 'attach', 
