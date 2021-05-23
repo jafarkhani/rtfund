@@ -37,7 +37,17 @@ $dg->addColumn("", "SubjectNO", "", true);
 $dg->addColumn("", "SendEnable", "", true);
 $dg->addColumn("", "ActionType", "", true);
 $dg->addColumn("", "SepasCode", "", true);
-$dg->addColumn("", "orgNationalID", "", true);  //new added
+$dg->addColumn("", "orgNationalID", "", true);
+
+$dg->addColumn("", "RelatedOrg", "", true); 
+$dg->addColumn("", "amount", "", true);
+$dg->addColumn("", "duration", "", true);
+$dg->addColumn("", "SugBail", "", true);
+$dg->addColumn("", "comments", "", true);
+$dg->addColumn("", "ExtraComments", "", true);
+$dg->addColumn("", "KnowledgeBase", "", true);
+$dg->addColumn("", "EmpType", "", true);
+
 
 $col = $dg->addColumn("شعبه", "BranchName");
 $col->width = 120;
