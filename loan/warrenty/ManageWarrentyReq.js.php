@@ -18,7 +18,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
     {
 
         this.formPanel = new Ext.form.Panel({
-            applyTo: this.get("mainpanel2"),
+            renderTo: this.get("mainpanel"),
             layout: {
                 type: "table",
                 columns: 2
