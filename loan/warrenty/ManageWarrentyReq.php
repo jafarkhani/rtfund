@@ -48,6 +48,8 @@ $dg->width = 660;
 $dg->height = 430;
 $dg->title = "لیست ضمانت نامه ها";
 $dg->autoExpandColumn = "title";
+$dg->DefaultSortField = "BID"; 
+$dg->DefaultSortDir = "DESC";
 
 $grid = $dg->makeGrid_returnObjects();
 
@@ -61,6 +63,6 @@ $grid = $dg->makeGrid_returnObjects();
 </script>
 <center>
     <div id="ErrorDiv" style="width:40%"></div><br>
-    <form id="mainForm"> <div id="mainpanel"></div> </form>    <br>
+    <form id="mainForm"> <div id="mainpanel2"></div> </form>    <br>
     <div id="WDIV" style="width:100%"></div>
 </center>
