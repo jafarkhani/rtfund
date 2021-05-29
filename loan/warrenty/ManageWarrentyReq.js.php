@@ -18,14 +18,14 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
     {
 
         this.formPanel = new Ext.form.Panel({
-            applyTo: this.get("mainpanel"),
+            applyTo: this.get("mainpanel2"),
             layout: {
                 type: "table",
                 columns: 2
             },
             collapsible: true,
             frame: true,
-            title: 'فرم بررسی ضمانت نامه',
+            title: 'چک لیست امکان صدور ضمانت نامه',
             bodyPadding: '2 2 0',
             width: 680,
             fieldDefaults: {
@@ -206,8 +206,6 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
                 "cursor:pointer;width:30%;height:16'></div>";
 
 
-
-
         return st;
     }
 
@@ -229,7 +227,8 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 					CO: record.data.comments,
 					EC:record.data.ExtraComments,
 					KB:record.data.KnowledgeBase,
-					ET:record.data.EmpType
+					ET:record.data.EmpType,
+					ObjID : 0 
                 });
     }
 
@@ -254,9 +253,9 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 
 
         Ext.Ajax.request({
-            url: this.address_prefix + '../data/WelfareCenters.data.php?task=removeWFC',
+            url: this.address_prefix + '/ManageWarrentyReq.data.php?task=removeWFC',
             params: {
-                WCID: record.data.WCID
+                BID: record.data.BID
             },
             method: 'POST',
             success: function (response, option) {
