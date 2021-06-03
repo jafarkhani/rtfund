@@ -639,9 +639,21 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 
 		if(this.ObjID > 0 ) 
 		{
-			
+		
 			this.formPanel.down('[itemId=PersonID]').setValue("<?= $resInfo[0]["PersonID"] ?>");
-			this.formPanel.down('[itemId=PersonID]').getStore().load();
+		//	this.formPanel.down('[itemId=PersonID]').getStore().load();
+		
+		this.formPanel.down("[name=PersonID]").getStore().load({
+			params : {
+				PersonID : <?= $resInfo[0]["PersonID"] ?>
+			},
+			callback : function(){
+				mask.hide();	
+				if(this.getCount() > 0)
+					WarrentyReport_totalObj.formPanel.down("[name=PersonID]").setValue(this.getAt(0).data.PersonID);
+			}
+		});
+	
 
 			this.formPanel.down('[itemId=TypeID]').setValue("<?= $resInfo[0]["BailType"] ?>");
 			this.formPanel.down('[itemId=TypeID]').getStore().load();
