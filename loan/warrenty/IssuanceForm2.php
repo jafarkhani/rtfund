@@ -78,9 +78,9 @@ function ListDate($BID = "") {
 	$qry = " select bc.*,case li.KnowledgeBase when 0 then 'خیر' when 1 then 'بلی' end nb , 
 					case li.EmpType when 1 then 'دولتی' when 2 then 'خصوصی'  when 3 then 'نهاد عمومی غیردولتی' when 4 then 'اجرایی'   end et 
 					
-			 from LON_IssuanceInfo li
-						 inner join LON_BailCondition bc on li.BID = bc.BID
-			 where li.BID = ? ";
+			 from LON_BailCondition bc 
+						 left join LON_IssuanceInfo li  on li.BID = bc.BID
+			 where bc.BID = ? ";
 
 			$ResParams = PdoDataAccess::runquery($qry, array($BID));
 	?>
@@ -357,14 +357,25 @@ if (isset($_REQUEST["show"])) {
 	ListDate($_REQUEST['BID']);
 }
 
+if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
+{
+	
+	$qry = " select li.* , b.PersonID , b.BailType , b.subject, b.LetterNo 
+				from LON_IssuanceInfo li
+						  inner join  LON_BailCondition b on li.BID = b.BID where li.IID = ? " ; 
+	$resInfo = PdoDataAccess::runquery($qry,array($_REQUEST["ObjID"])) ; 
+	
+}
+	
 
 /* require_once getenv("DOCUMENT_ROOT") . '/framework/ReportDB/Filter_person.php'; */
 ?>
 <script>
     WarrentyReport_total.prototype = {
         TabID: '<?= $_REQUEST["ExtTabID"] ?>',
-        BID: '<?= $_POST['BID'] ?>',
-        LNO: "<?= $_REQUEST["LNo"] ?>",
+        BID: '<?= (!empty($_POST['BID']) ? $_POST['BID'] : $resInfo[0]['BID'] ) ?>',
+        LNO: "<?= (!empty($_REQUEST["LetterNo"]) ? $_REQUEST["LetterNo"] : $resInfo[0]['LetterNo'] ) ?>",
+		ObjID :  "<?= $_REQUEST["ObjID"] ?>",
         address_prefix: "<?= $js_prefix_address ?>",
         pageIndex: 1,
         get: function (elementID) {
@@ -386,6 +397,7 @@ if (isset($_REQUEST["show"])) {
 
     function WarrentyReport_total()
     {
+		
         this.formPanel = new Ext.form.Panel({
             renderTo: this.get("main"),
             frame: true,
@@ -408,13 +420,14 @@ if (isset($_REQUEST["show"])) {
                                     "task=selectPersons&UserType=IsCustomer",
                             reader: {root: 'rows', totalProperty: 'totalCount'}
                         },
-                        fields: ['PersonID', 'fullname']
+                        fields: ['PersonID', 'fullname'],
+						 autoLoad: true
                     }),
                     fieldLabel: "نام شخص حقيقي/حقوقي",
                     displayField: "fullname",
                     pageSize: 20,
                     valueField: "PersonID",
-                    hiddenName: "PersonID",
+                    name: "PersonID",					
                     itemId: "PersonID"
                 }, {
                     xtype: "combo",
@@ -429,7 +442,7 @@ if (isset($_REQUEST["show"])) {
                     }),
                     displayField: 'InfoDesc',
                     valueField: "InfoID",
-                    hiddenName: "TypeID",
+                    name: "TypeID",
                     itemId: "TypeID",
                     allowBlank: false,
                     fieldLabel: "نوع ضمانتنامه"
@@ -569,7 +582,7 @@ if (isset($_REQUEST["show"])) {
 
             ],
             buttons: [{
-                    text: "ذخیره و ارسال",
+                    text: "ذخیره / ارسال",
                     iconCls: "save",
                     handler: function () {
 
@@ -580,7 +593,7 @@ if (isset($_REQUEST["show"])) {
                             url: WarrentyReport_totalObj.address_prefix + 'ManageWarrentyReq.data.php?task=SaveIssuanceInfo',
                             method: "POST",
                             params: {
-                                BID: <?= $_POST['BID'] ?>
+                                BID: WarrentyReport_totalObj.BID
                             },
                             success: function (form, action) {
 
@@ -602,7 +615,7 @@ if (isset($_REQUEST["show"])) {
                     }
                 },
                 {
-                    text: "چاپ ضمانتنامه",
+                    text: "مشاهده ضمانتنامه",
                     handler: Ext.bind(this.showReport, this),
                     iconCls: "report"
                 },
@@ -624,26 +637,51 @@ if (isset($_REQUEST["show"])) {
             return false;
         });
 
-        this.formPanel.down('[itemId=PersonID]').setValue("<?= $_REQUEST["PID"] ?>");
-        this.formPanel.down('[itemId=PersonID]').getStore().load();
+		if(this.ObjID > 0 ) 
+		{
+			
+			this.formPanel.down('[itemId=PersonID]').setValue("<?= $resInfo[0]["PersonID"] ?>");
+			this.formPanel.down('[itemId=PersonID]').getStore().load();
 
-        this.formPanel.down('[itemId=TypeID]').setValue("<?= $_REQUEST["BT"] ?>");
-        this.formPanel.down('[itemId=TypeID]').getStore().load();
+			this.formPanel.down('[itemId=TypeID]').setValue("<?= $resInfo[0]["BailType"] ?>");
+			this.formPanel.down('[itemId=TypeID]').getStore().load();
 
-        this.formPanel.down('[itemId=contractTitle]').setValue("<?= $_REQUEST["ST"] ?>");
-        this.formPanel.down('[itemId=LetterNo]').setValue("<?= $_REQUEST["LNo"] ?>");
+			this.formPanel.down('[itemId=contractTitle]').setValue("<?= $resInfo[0]["subject"] ?>");
+			this.formPanel.down('[itemId=LetterNo]').setValue("<?= $resInfo[0]["LetterNo"] ?>");
+						
+			this.formPanel.down('[itemId=organization]').setValue("<?= $resInfo[0]["RelatedOrg"] ?>");
+			this.formPanel.down('[itemId=warAmount]').setValue("<?= $resInfo[0]["amount"]?>");
+			this.formPanel.down('[itemId=warDate]').setValue("<?= $resInfo[0]["duration"] ?>");
+			this.formPanel.down('[itemId=ProposedGuarantee]').setValue("<?= $resInfo[0]["SugBail"] ?>");		
+			this.formPanel.down('[itemId=SupplementaryExplanation]').setValue("<?= $resInfo[0]["comments"] ?>");		
+			this.formPanel.down('[itemId=KnowledgeBase]').setValue("<?= $resInfo[0]["KnowledgeBase"] ?>");
+			this.formPanel.down('[itemId=EmpType]').setValue("<?= $resInfo[0]["EmpType"] ?>");
+			this.formPanel.down('[itemId=EmpType]').getStore().load();
+
+			this.formPanel.down('[itemId=CommentSuggest]').setValue("<?= $resInfo[0]["ExtraComments"] ?>");
+		}
+		else {
 		
-		this.formPanel.down('[itemId=organization]').setValue("<?= $_REQUEST["RG"] ?>");
-		this.formPanel.down('[itemId=warAmount]').setValue("<?= $_REQUEST["AM"] ?>");
-		this.formPanel.down('[itemId=warDate]').setValue("<?= $_REQUEST["DU"] ?>");
-		this.formPanel.down('[itemId=ProposedGuarantee]').setValue("<?= $_REQUEST["SB"] ?>");		
-		this.formPanel.down('[itemId=SupplementaryExplanation]').setValue("<?= $_REQUEST["CO"] ?>");		
-		this.formPanel.down('[itemId=KnowledgeBase]').setValue("<?= $_REQUEST["KB"] ?>");
-		this.formPanel.down('[itemId=EmpType]').setValue("<?= $_REQUEST["ET"] ?>");
-		this.formPanel.down('[itemId=EmpType]').getStore().load();
-		
-		this.formPanel.down('[itemId=CommentSuggest]').setValue("<?= $_REQUEST["EC"] ?>");
-		
+			this.formPanel.down('[itemId=PersonID]').setValue("<?= $_REQUEST["PID"] ?>");
+			this.formPanel.down('[itemId=PersonID]').getStore().load();
+
+			this.formPanel.down('[itemId=TypeID]').setValue("<?= $_REQUEST["BT"] ?>");
+			this.formPanel.down('[itemId=TypeID]').getStore().load();
+
+			this.formPanel.down('[itemId=contractTitle]').setValue("<?= $_REQUEST["ST"] ?>");
+			this.formPanel.down('[itemId=LetterNo]').setValue("<?= $_REQUEST["LNo"] ?>");
+
+			this.formPanel.down('[itemId=organization]').setValue("<?= $_REQUEST["RG"] ?>");
+			this.formPanel.down('[itemId=warAmount]').setValue("<?= $_REQUEST["AM"] ?>");
+			this.formPanel.down('[itemId=warDate]').setValue("<?= $_REQUEST["DU"] ?>");
+			this.formPanel.down('[itemId=ProposedGuarantee]').setValue("<?= $_REQUEST["SB"] ?>");		
+			this.formPanel.down('[itemId=SupplementaryExplanation]').setValue("<?= $_REQUEST["CO"] ?>");		
+			this.formPanel.down('[itemId=KnowledgeBase]').setValue("<?= $_REQUEST["KB"] ?>");
+			this.formPanel.down('[itemId=EmpType]').setValue("<?= $_REQUEST["ET"] ?>");
+			this.formPanel.down('[itemId=EmpType]').getStore().load();
+
+			this.formPanel.down('[itemId=CommentSuggest]').setValue("<?= $_REQUEST["EC"] ?>");
+		}
 		
     }
 
