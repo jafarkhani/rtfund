@@ -7,10 +7,20 @@ require_once '../../header.inc.php';
 require_once '../request/request.class.php';
 
 function ListDate($BID = "") {
-
-
-	$personid = $_REQUEST["PersonID"];
-	$TypeID = $_REQUEST["TypeID"];
+ 
+	if( $BID > 0 ) 
+	{
+		$qry = " select PersonID ,BailType  from LON_BailCondition where BID = ? "; 
+		$res = PdoDataAccess::runquery($qry,array($BID)) ;
+		$personid = $res[0]['PersonID'];
+		$TypeID = $res[0]['BailType'];
+	}
+	else 
+	{
+		$personid = $_REQUEST["PersonID"];
+		$TypeID = $_REQUEST["TypeID"];
+	}
+	
 	$query0 = "select concat_ws(' ',fname,lname,CompanyName) fullname		
 			from BSC_persons p
 			where PersonID=" . $personid;
@@ -158,11 +168,11 @@ function ListDate($BID = "") {
 			</tr>
 			<tr>
 				<td><span><b>نوع کارفرما</b></span></td>
-				<td colspan="5"><span><?= $ResParams[0]['et'] ?></span></td>
+				<td colspan="5"><span><?= $_POST['EmpType'] /* $ResParams[0]['et']*/  ?></span></td>
 			</tr>
 			<tr>
 				<td><span><b>آیا شرکت دانش بنیان می باشد؟</b> </span></td>
-				<td colspan="5"><span><?= $ResParams[0]['nb']  ?></span></td>
+				<td colspan="5"><span><?= ( $_REQUEST['KNB'] == true ) ? "بلی" : "خیر"  /*$ResParams[0]['nb']*/  ?></span></td>
 			</tr>			
 			<tr>
 				<td><span><b>مدارک پیوست فرم</b></span></td>
@@ -275,8 +285,13 @@ function ListDate($BID = "") {
 
 			<!--additional comments and suggestions-->
 			<tr style="height: 100px;">
-				<td><b>نظرات و پیشنهادات تکمیلی</b></td>
+				<td><b>نظرات کارشناس مالی</b></td>
 				<td colspan="6"><span><?= $_POST['CommentSuggest'] ?></td>
+			</tr>
+			<!--additional comments and suggestions-->
+			<tr style="height: 100px;">
+				<td><b>نظرات مسئول مالی</b></td>
+				<td colspan="6"><span><?= $_POST['CommentSuggest2'] ?></td>
 			</tr>
 			<!--Bail Conditions-->
 			<tr>
@@ -360,11 +375,15 @@ if (isset($_REQUEST["show"])) {
 if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 {
 	
-	$qry = " select li.* , b.PersonID , b.BailType , b.subject, b.LetterNo 
+	$qry = " select li.* , b.PersonID , b.BailType BailType , b.subject, b.LetterNo, 
+		bi.BailType BailType2, bi.BailValue
 				from LON_IssuanceInfo li
-						  inner join  LON_BailCondition b on li.BID = b.BID where li.IID = ? " ; 
+						  inner join  LON_BailCondition b on li.BID = b.BID 
+						  left join   LON_BailInfo bi on bi.BID = li.BID
+						  
+			 where li.IID = ? " ; 
 	$resInfo = PdoDataAccess::runquery($qry,array($_REQUEST["ObjID"])) ; 
-	
+	 
 }
 	
 
@@ -376,6 +395,8 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
         BID: '<?= (!empty($_POST['BID']) ? $_POST['BID'] : $resInfo[0]['BID'] ) ?>',
         LNO: "<?= (!empty($_REQUEST["LetterNo"]) ? $_REQUEST["LetterNo"] : $resInfo[0]['LetterNo'] ) ?>",
 		ObjID :  "<?= $_REQUEST["ObjID"] ?>",
+		PID : "<?= (!empty($_REQUEST["PID"]) ? $_REQUEST["PID"] : $resInfo[0]["PersonID"] ) ?>", 	
+		PST: "<?= ( (!empty($_REQUEST["PST"]) && $_REQUEST["PST"] =='خام') ? '1' :  '0' )?>",
         address_prefix: "<?= $js_prefix_address ?>",
         pageIndex: 1,
         get: function (elementID) {
@@ -385,19 +406,18 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 
     WarrentyReport_total.prototype.showReport = function (btn, e)
     {
-
+		//alert(WarrentyReport_totalObj.formPanel.down('[itemId=KnowledgeBase]').getValue());
         this.form = this.get("mainForm")
         this.form.target = "_blank";
         this.form.method = "POST";
-        this.form.action = this.address_prefix + "IssuanceForm2.php?show=true&BID=" + this.BID;
+        this.form.action = this.address_prefix + "IssuanceForm2.php?show=true&KNB="+ WarrentyReport_totalObj.formPanel.down('[itemId=KnowledgeBase]').getValue() +"&BID=" + this.BID;
         this.form.submit();
         this.get("excel").value = "";
         return;
     }
 
     function WarrentyReport_total()
-    {
-		
+    {		
         this.formPanel = new Ext.form.Panel({
             renderTo: this.get("main"),
             frame: true,
@@ -420,14 +440,14 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                                     "task=selectPersons&UserType=IsCustomer",
                             reader: {root: 'rows', totalProperty: 'totalCount'}
                         },
-                        fields: ['PersonID', 'fullname'],
-						 autoLoad: true
+                        fields: ['PersonID', 'fullname']
                     }),
                     fieldLabel: "نام شخص حقيقي/حقوقي",
                     displayField: "fullname",
                     pageSize: 20,
                     valueField: "PersonID",
-                    name: "PersonID",					
+                    name: "PersonID",	
+					allowBlank: false,
                     itemId: "PersonID"
                 }, {
                     xtype: "combo",
@@ -451,41 +471,49 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                     name: "contractTitle",
                     fieldLabel: "موضوع قرارداد",
                     itemId: "contractTitle",
+					 allowBlank: false
                 }, {
                     xtype: "textfield",
                     name: "organization",
                     fieldLabel: "سازمان مربوطه",
+					allowBlank: false,
 					itemId: "organization"
                 }, {
-                    xtype: "textfield",
+                    xtype: "numberfield",
                     name: "warAmount",
 					itemId: "warAmount",
+					allowBlank: false,
                     hideTrigger: true,
                     fieldLabel: "مبلغ ضمانت نامه"
                 }, {
                     xtype: "textfield",
                     name: "warDate",
+					allowBlank: false,
 					itemId: "warDate",
                     fieldLabel: "مدت ضمانتنامه"
                 }, {
                     xtype: "textfield",
                     fieldLabel: "وثايق پيشنهادي",
+					allowBlank: false,
                     name: "ProposedGuarantee",
 					itemId: "ProposedGuarantee"
                 }, {
                     xtype: "textfield",
                     fieldLabel: "توضيح تكميلي",
+					allowBlank: false,
                     name: "SupplementaryExplanation",
 					itemId: "SupplementaryExplanation"
                 }, {
-                    xtype: "textfield",
+                    xtype: "numberfield",
                     fieldLabel: "شماره نامه",
+					hideTrigger: true,
+					allowBlank: false,
                     itemId: "LetterNo",
                     name: "LetterNo",
-					itemId: "LetterNo"
                 }, {
                     xtype: "displayfield",
                     hideTrigger: true,
+					allowBlank: false,
                     labelWidth: 50,
                     width: 80,
                     fieldCls: "blueText",
@@ -494,6 +522,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                 }, {
                     xtype: 'checkbox',
                     boxLabel: 'آیا شرکت دانش بنیان می باشد؟',
+					allowBlank: false,
                     style: 'margin:10px',
                     name: 'KnowledgeBase',
 					itemId: 'KnowledgeBase'
@@ -511,6 +540,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                         fields: ['id', 'value']
                     }),
                     displayField: "value",
+					allowBlank: false,
                     valueField: "id",
                     name: "EmpType",
 					itemId: "EmpType"
@@ -524,21 +554,24 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                     width: 730,
                     items: [{
                             xtype: "displayfield",
-                            hideTrigger: true,
+                            hideTrigger: true,							
                             labelWidth: 50,
                             width: 80,
                             fieldCls: "blueText",
                             value: "وثیقه [ 1 ]"
                         }, {
                             xtype: "textfield",
+							allowBlank: false,
                             width: 300,
                             fieldLabel: "نوع وثیقه",
                             name: "GuarType_1",
 							itemId: "GuarType_1"
                         },
                         {
-                            xtype: "textfield",
+                            xtype: "numberfield",
                             width: 300,
+							allowBlank: false,
+							hideTrigger: true,	
                             fieldLabel: "ارزش وثیقه(به ریال)",
                             name: "GuarAmount_1",
 							itemId: "GuarAmount_1"
@@ -570,19 +603,29 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                                         name: "GuarAmount_" + me.pageIndex
                                     }]);
                             }
-                        }]
+                        }] 
                 }, {
                     xtype: "textarea",
                     width: 700,
                     colspan: 2,
-                    fieldLabel: "نظرات و پیشنهادات تکمیلی",
+                    fieldLabel: "نظرات کارشناس مالی",
+					allowBlank: false,
                     name: "CommentSuggest",
 					itemId: "CommentSuggest"
+                }
+				, {
+                    xtype: "textarea",
+                    width: 700,
+                    colspan: 2,
+                    fieldLabel: "نظرات مسئول مالی",
+					allowBlank: false,
+                    name: "CommentSuggest2",
+					itemId: "CommentSuggest2"
                 }
 
             ],
             buttons: [{
-                    text: "ذخیره / ارسال",
+                    text: (( this.PST ==  '1' ) ? "ذخیره / ارسال" : "ذخیره" ) ,
                     iconCls: "save",
                     handler: function () {
 
@@ -615,17 +658,9 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                     }
                 },
                 {
-                    text: "مشاهده ضمانتنامه",
+                    text: "چاپ ضمانتنامه",
                     handler: Ext.bind(this.showReport, this),
                     iconCls: "report"
-                },
-                {
-                    text: "پاک کردن فرم",
-                    iconCls: "clear",
-                    handler: function () {
-                        WarrentyReport_totalObj.formPanel.getForm().reset();
-                        WarrentyReport_totalObj.get("mainForm").reset();
-                    }
                 }]
         });
 
@@ -638,25 +673,24 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
         });
 
 		if(this.ObjID > 0 ) 
-		{
-		
-			this.formPanel.down('[itemId=PersonID]').setValue("<?= $resInfo[0]["PersonID"] ?>");
-		//	this.formPanel.down('[itemId=PersonID]').getStore().load();
+		{		
+			
+			this.formPanel.down('[itemId=PersonID]').setValue(this.PID);
+			//this.formPanel.down('[itemId=PersonID]').getStore().load();
 		
 		this.formPanel.down("[name=PersonID]").getStore().load({
 			params : {
-				PersonID : <?= $resInfo[0]["PersonID"] ?>
+				PersonID : this.PID
 			},
 			callback : function(){
-				mask.hide();	
+			
 				if(this.getCount() > 0)
 					WarrentyReport_totalObj.formPanel.down("[name=PersonID]").setValue(this.getAt(0).data.PersonID);
 			}
 		});
 	
-
 			this.formPanel.down('[itemId=TypeID]').setValue("<?= $resInfo[0]["BailType"] ?>");
-			this.formPanel.down('[itemId=TypeID]').getStore().load();
+		//	this.formPanel.down('[itemId=TypeID]').getStore().load();
 
 			this.formPanel.down('[itemId=contractTitle]').setValue("<?= $resInfo[0]["subject"] ?>");
 			this.formPanel.down('[itemId=LetterNo]').setValue("<?= $resInfo[0]["LetterNo"] ?>");
@@ -671,17 +705,36 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 			this.formPanel.down('[itemId=EmpType]').getStore().load();
 
 			this.formPanel.down('[itemId=CommentSuggest]').setValue("<?= $resInfo[0]["ExtraComments"] ?>");
+			this.formPanel.down('[itemId=CommentSuggest2]').setValue("<?= $resInfo[0]["ExtraComments2"] ?>");
+			<?php
+			for($i=0;$i<count($resInfo);$i++) 
+			{ 
+			?>
+				this.formPanel.down('[name=GuarType_'+ <?= ($i+1) ?>+']').setValue("<?= $resInfo[$i]["BailType2"] ?>");
+				this.formPanel.down('[name=GuarAmount_'+ <?= ($i+1) ?>+']').setValue("<?= $resInfo[$i]["BailValue"]?>");				
+			<?php			
+			}
+			?>
 		}
 		else {
-		
-			this.formPanel.down('[itemId=PersonID]').setValue("<?= $_REQUEST["PID"] ?>");
-			this.formPanel.down('[itemId=PersonID]').getStore().load();
+	
+			this.formPanel.down('[itemId=PersonID]').setValue(this.PID);			
+			this.formPanel.down("[name=PersonID]").getStore().load({
+			params : {
+				PersonID : this.PID
+			},
+			callback : function(){
+			
+				if(this.getCount() > 0)
+					WarrentyReport_totalObj.formPanel.down("[name=PersonID]").setValue(this.getAt(0).data.PersonID);
+			}
+		});
 
 			this.formPanel.down('[itemId=TypeID]').setValue("<?= $_REQUEST["BT"] ?>");
 			this.formPanel.down('[itemId=TypeID]').getStore().load();
 
 			this.formPanel.down('[itemId=contractTitle]').setValue("<?= $_REQUEST["ST"] ?>");
-			this.formPanel.down('[itemId=LetterNo]').setValue("<?= $_REQUEST["LNo"] ?>");
+			this.formPanel.down('[itemId=LetterNo]').setValue("<?= $_REQUEST["LetterNo"] ?>");
 
 			this.formPanel.down('[itemId=organization]').setValue("<?= $_REQUEST["RG"] ?>");
 			this.formPanel.down('[itemId=warAmount]').setValue("<?= $_REQUEST["AM"] ?>");
@@ -693,6 +746,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 			this.formPanel.down('[itemId=EmpType]').getStore().load();
 
 			this.formPanel.down('[itemId=CommentSuggest]').setValue("<?= $_REQUEST["EC"] ?>");
+			this.formPanel.down('[itemId=CommentSuggest2]').setValue("<?= $_REQUEST["EC2"] ?>");
 		}
 		
     }
