@@ -546,7 +546,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 					itemId: "EmpType"
                 },
                 {
-                    xtype: "fieldset",
+                    xtype: "fieldset",					
                     title: "وثایق موردنیاز",
                     layout: "column",
                     columns: 2,
