@@ -549,6 +549,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                     xtype: "fieldset",					
                     title: "وثایق موردنیاز",
                     layout: "column",
+					itemId : "fs_Guars",
                     columns: 2,
                     colspan: 2,
                     width: 730,
@@ -709,9 +710,40 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 			<?php
 			for($i=0;$i<count($resInfo);$i++) 
 			{ 
-			?>
-				this.formPanel.down('[name=GuarType_'+ <?= ($i+1) ?>+']').setValue("<?= $resInfo[$i]["BailType2"] ?>");
-				this.formPanel.down('[name=GuarAmount_'+ <?= ($i+1) ?>+']').setValue("<?= $resInfo[$i]["BailValue"]?>");				
+			?>			
+				i = <?= $i ?>;
+				
+				if(i > 0){
+					el = this.formPanel.down("[itemId=fs_Guars]");
+					el.insert(el.items.length-1,[{
+                            xtype: "displayfield",
+                            hideTrigger: true,							
+                            labelWidth: 50,
+                            width: 80,
+                            fieldCls: "blueText",
+                            value: "وثیقه [ 1 ]"
+                        }, {
+                            xtype: "textfield",
+							allowBlank: false,
+                            width: 300,
+                            fieldLabel: "نوع وثیقه",
+                            name: "GuarType_" + (i+1),
+							itemId: "GuarType_" + (i+1)
+                        },
+                        {
+                            xtype: "numberfield",
+                            width: 300,
+							allowBlank: false,
+							hideTrigger: true,	
+                            fieldLabel: "ارزش وثیقه(به ریال)",
+                            name: "GuarAmount_" + (i+1),
+							itemId: "GuarAmount_" + (i+1)
+                        }]);
+				}
+			
+				
+				this.formPanel.down('[name=GuarType_'+ (i+1) +']').setValue("<?= $resInfo[$i]["BailType2"] ?>");
+				this.formPanel.down('[name=GuarAmount_'+ (i+1) +']').setValue("<?= $resInfo[$i]["BailValue"]?>");				
 			<?php			
 			}
 			?>
