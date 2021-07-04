@@ -22,6 +22,7 @@ ob_flush();
 $i=0;
 foreach($dt as $row)
 {
+	$RequestID = $row["RequestID"];
 	LON_installments::ComputeInstallments($RequestID, null, true);
 	
 	echo $RequestID . " : " . "<br><br>";

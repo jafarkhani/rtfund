@@ -1412,7 +1412,7 @@ function GetEndedRequests(){
 
 function GetPartPayments(){
 	ini_set("display_errors", "On");
-	$dt = LON_payments::Get(" AND p.RequestID=? ", array($_REQUEST["RequestID"]),dataReader::makeOrder());
+	$dt = LON_payments::GetWithDoc(" AND p.RequestID=? ", array($_REQUEST["RequestID"]),dataReader::makeOrder());
 	print_r(ExceptionHandler::PopAllExceptions());
 	echo dataReader::getJsonData($dt->fetchAll(), $dt->rowCount(), $_GET["callback"]);
 	die();
@@ -1477,7 +1477,7 @@ function RegPayPartDoc($ReturnMode = false, $pdo = null){
 	//-------------------------------------------------------------
 	
 	//---------- check for previous payments docs registered --------------
-	$dt = LON_payments::Get(" AND RequestID=? AND PayDate<? AND d.DocID is null",
+	$dt = LON_payments::GetWithDoc(" AND RequestID=? AND PayDate<? AND d.DocID is null",
 			array($PayObj->RequestID, $PayObj->PayDate));
 	if($dt->rowCount() > 0)
 	{

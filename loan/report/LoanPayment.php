@@ -258,81 +258,85 @@ if(isset($_REQUEST["show"]))
 				</table>
 			</td>
 		</tr>
-	</table>	
+	</table>
+
 	<?
 	$rpg->generateReport();
 	
-	if(!empty($_POST["commitment"]))
-	{
-		$rpg2 = new ReportGenerator();
-		$rpg2->mysql_resource = $PureArr;
-
-		$col = $rpg2->addColumn("تاریخ قسط", "InstallmentDate","ReportDateRender");
-		$col = $rpg2->addColumn("مبلغ قسط", "InstallmentAmount","ReportMoneyRender");
-		$col->EnableSummary();
-		$col = $rpg2->addColumn("بهره قسط", "wage","ReportMoneyRender");
-		$col->EnableSummary();
-		$col = $rpg2->addColumn("اصل قسط", "pure","ReportMoneyRender");
-		$col->EnableSummary();
-		$col = $rpg2->addColumn("مانده اصل وام", "totalPure","ReportMoneyRender");
-		echo $rpg2->generateReport();
-	}
+	//............................................
 	
-	if(!empty($_POST["daily"]))
-	{
-		$StartDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
-		$toDate = DateModules::Now();
-		if($StartDate > $toDate)
-		{
-			echo "زمان شناسایی درآمدهای روزانه فرا نرسیده است";
-			die();
-		}
-		$result = array();
-		
-		$ComputeDate = $StartDate;
-		for($i=1; $i < count($PureArr);$i++)
-		{
-			if($ComputeDate > $toDate)
-				break;
-			$totalDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$ComputeDate);
-			$wage = round(($PureArr[$i]["wage"]/$totalDays));
-			$FundWage = round(($partObj->FundWage/$partObj->CustomerWage));
-			$AgentWage = $wage - $FundWage;
-			
-			$startDay = $ComputeDate;
-			$enDay = min($PureArr[$i]["InstallmentDate"], $toDate);
-			$totalDays = DateModules::GDateMinusGDate($enDay,$startDay);
-			$result[] = array(
-				"fromdate" => DateModules::miladi_to_shamsi($startDay),
-				"todate" => DateModules::miladi_to_shamsi($enDay),
-				"wag" => $wage,
-				"days" => $totalDays,
-				"fundWage" => $FundWage,
-				"AgentWage" => $AgentWage,
-				"totalWage" =>$wage*$totalDays,
-				"totalfundWage" => $FundWage*$totalDays,
-				"totalAgentWage" => $AgentWage*$totalDays
-			);
-				
-			$ComputeDate = DateModules::AddToGDate($PureArr[$i]["InstallmentDate"],1);;
-		}
-		
-		$rpg3 = new ReportGenerator();
-		$rpg3->mysql_resource = $result;
+	$rpg2 = new ReportGenerator();
+	$rpg2->header = "محاسبات تعهدی";
+	$rpg2->mysql_resource = $PureArr;
 
-		$col = $rpg3->addColumn("از تاریخ", "fromdate","ReportDateRender");
-		$col = $rpg3->addColumn("تا تاریخ", "todate","ReportDateRender");
-		$col = $rpg3->addColumn("درآمد روزانه", "wag","ReportMoneyRender");
-		$col = $rpg3->addColumn("تعداد روز", "days");
-		
-		$col = $rpg3->addColumn("کل درآمد", "totalWage","ReportMoneyRender");
-		$col->EnableSummary();		
-		$col = $rpg3->addColumn("سهم درآمد صندوق", "totalfundWage","ReportMoneyRender");
-		$col->EnableSummary();
-		$col = $rpg3->addColumn("سهم درآمد سرمایه گذار", "totalAgentWage","ReportMoneyRender");
-		$col->EnableSummary();
-		echo $rpg3->generateReport();
+	$col = $rpg2->addColumn("تاریخ قسط", "InstallmentDate","ReportDateRender");
+	$col = $rpg2->addColumn("مبلغ قسط", "InstallmentAmount","ReportMoneyRender");
+	$col->EnableSummary();
+	$col = $rpg2->addColumn("بهره قسط", "wage","ReportMoneyRender");
+	$col->EnableSummary();
+	$col = $rpg2->addColumn("اصل قسط", "pure","ReportMoneyRender");
+	$col->EnableSummary();
+	$col = $rpg2->addColumn("مانده اصل وام", "totalPure","ReportMoneyRender");
+	echo "<br><br>";
+	$rpg2->generateReport();
+
+	
+	//........................................................................
+	
+	$StartDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
+	$toDate = DateModules::Now();
+	if($StartDate > $toDate)
+	{
+		echo "زمان شناسایی درآمدهای روزانه فرا نرسیده است";
+		die();
 	}
+	$result = array();
+
+	$ComputeDate = $StartDate;
+	for($i=1; $i < count($PureArr);$i++)
+	{
+		if($ComputeDate > $toDate)
+			break;
+		$totalDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$ComputeDate);
+		$wage = round(($PureArr[$i]["wage"]/$totalDays));
+		$FundWage = $partObj->CustomerWage == 0 ? 0 : round(($partObj->FundWage/$partObj->CustomerWage));
+		$AgentWage = $wage - $FundWage;
+
+		$startDay = $ComputeDate;
+		$enDay = min($PureArr[$i]["InstallmentDate"], $toDate);
+		$totalDays = DateModules::GDateMinusGDate($enDay,$startDay);
+		$result[] = array(
+			"fromdate" => DateModules::miladi_to_shamsi($startDay),
+			"todate" => DateModules::miladi_to_shamsi($enDay),
+			"wag" => $wage,
+			"days" => $totalDays,
+			"fundWage" => $FundWage,
+			"AgentWage" => $AgentWage,
+			"totalWage" =>$wage*$totalDays,
+			"totalfundWage" => $FundWage*$totalDays,
+			"totalAgentWage" => $AgentWage*$totalDays
+		);
+
+		$ComputeDate = DateModules::AddToGDate($PureArr[$i]["InstallmentDate"],1);;
+	}
+
+	$rpg3 = new ReportGenerator();
+	$rpg3->header = "درآمد روزانه";
+	$rpg3->mysql_resource = $result;
+
+	$col = $rpg3->addColumn("از تاریخ", "fromdate","ReportDateRender");
+	$col = $rpg3->addColumn("تا تاریخ", "todate","ReportDateRender");
+	$col = $rpg3->addColumn("درآمد روزانه", "wag","ReportMoneyRender");
+	$col = $rpg3->addColumn("تعداد روز", "days");
+
+	$col = $rpg3->addColumn("کل درآمد", "totalWage","ReportMoneyRender");
+	$col->EnableSummary();		
+	$col = $rpg3->addColumn("سهم درآمد صندوق", "totalfundWage","ReportMoneyRender");
+	$col->EnableSummary();
+	$col = $rpg3->addColumn("سهم درآمد سرمایه گذار", "totalAgentWage","ReportMoneyRender");
+	$col->EnableSummary();
+	echo "<br><br>";
+	$rpg3->generateReport();
 	
 	die();
 }
