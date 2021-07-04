@@ -92,6 +92,15 @@ function SelectAllWarrentyRequests(){
 	die();
 }
 
+function GetStatusCodes(){
+	
+	ini_set("display_errors", "On");
+	
+	$temp = PdoDataAccess::runquery("select * from WFM_FlowSteps where FlowID=" . FLOWID_WARRENTY);
+	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
+	die();	
+}
+
 function DeleteWarrentyRequest(){
 	
 	$obj = new WAR_requests($_POST["RequestID"]);
@@ -119,12 +128,14 @@ function StartWarrentyFlow(){
 	echo Response::createObjectiveResponse($result, "");
 	die();
 }
+
 function NewStartWarrentyFlow(){
     $RequestID = $_REQUEST["RequestID"];
     $result = WFM_FlowRows::StartFlow(FLOWID_WARRENTY_NEW, $RequestID);
     echo Response::createObjectiveResponse($result, "");
     die();
 }
+
 function RegWarrentyDoc(){
 	
 	$ReqObj = new WAR_requests($_POST["RequestID"]);
