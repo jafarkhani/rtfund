@@ -47,8 +47,7 @@ if(isset($_REQUEST["show"]))
 	$TotalAmount = LON_installments::GetTotalInstallmentsAmount($RequestID);
 	//............ get remain untill now ......................
 	$ComputeDate = !empty($_REQUEST["ComputeDate"]) ? $_REQUEST["ComputeDate"] : "";
-	$ComputePenalty = !empty($_REQUEST["ComputePenalty"]) && $_REQUEST["ComputePenalty"] == "false" ? 
-			false : true;
+	$ComputePenalty = !empty($_REQUEST["ComputePenalty"]) && $_REQUEST["ComputePenalty"] == "false" ? false : true;
 	$ComputeArr = LON_Computes::ComputePayments($RequestID, $ComputeDate, null, $ComputePenalty);
 	$PureArr = LON_Computes::ComputePures($RequestID); 
 	//if($_SESSION['USER']["UserName"] == "admin")
@@ -284,23 +283,22 @@ if(isset($_REQUEST["show"]))
 	//........................................................................
 	
 	$StartDate = DateModules::AddToGDate($PureArr[0]["InstallmentDate"],1);
-	$toDate = DateModules::Now();
+	$toDate = $PureArr[ count($PureArr)-1 ]["InstallmentDate"];//DateModules::Now();
 	if($StartDate > $toDate)
 	{
 		echo "زمان شناسایی درآمدهای روزانه فرا نرسیده است";
 		die();
 	}
 	$result = array();
-
 	$ComputeDate = $StartDate;
 	for($i=1; $i < count($PureArr);$i++)
 	{
 		if($ComputeDate > $toDate)
 			break;
 		$totalDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$ComputeDate);
-		$wage = round(($PureArr[$i]["wage"]/$totalDays));
-		$FundWage = $partObj->CustomerWage == 0 ? 0 : round(($partObj->FundWage/$partObj->CustomerWage));
-		$AgentWage = $wage - $FundWage;
+		$income = round(($PureArr[$i]["income"]/$totalDays));
+		$Fundincome = $partObj->CustomerWage == 0 ? 0 : round(($partObj->FundWage/$partObj->CustomerWage));
+		$Agentincome = $income - $Fundincome;
 
 		$startDay = $ComputeDate;
 		$enDay = min($PureArr[$i]["InstallmentDate"], $toDate);
@@ -308,16 +306,16 @@ if(isset($_REQUEST["show"]))
 		$result[] = array(
 			"fromdate" => DateModules::miladi_to_shamsi($startDay),
 			"todate" => DateModules::miladi_to_shamsi($enDay),
-			"wag" => $wage,
+			"income" => $income,
 			"days" => $totalDays,
-			"fundWage" => $FundWage,
-			"AgentWage" => $AgentWage,
-			"totalWage" =>$wage*$totalDays,
-			"totalfundWage" => $FundWage*$totalDays,
-			"totalAgentWage" => $AgentWage*$totalDays
+			"fundincome" => $Fundincome,
+			"Agentincome" => $Agentincome,
+			"totalincome" =>$income*$totalDays,
+			"totalfundincome" => $Fundincome*$totalDays,
+			"totalAgentincome" => $Agentincome*$totalDays
 		);
 
-		$ComputeDate = DateModules::AddToGDate($PureArr[$i]["InstallmentDate"],1);;
+		$ComputeDate = DateModules::AddToGDate($PureArr[$i]["InstallmentDate"],1);
 	}
 
 	$rpg3 = new ReportGenerator();
@@ -326,14 +324,14 @@ if(isset($_REQUEST["show"]))
 
 	$col = $rpg3->addColumn("از تاریخ", "fromdate","ReportDateRender");
 	$col = $rpg3->addColumn("تا تاریخ", "todate","ReportDateRender");
-	$col = $rpg3->addColumn("درآمد روزانه", "wag","ReportMoneyRender");
+	$col = $rpg3->addColumn("درآمد روزانه", "income","ReportMoneyRender");
 	$col = $rpg3->addColumn("تعداد روز", "days");
 
-	$col = $rpg3->addColumn("کل درآمد", "totalWage","ReportMoneyRender");
+	$col = $rpg3->addColumn("کل درآمد", "totalincome","ReportMoneyRender");
 	$col->EnableSummary();		
-	$col = $rpg3->addColumn("سهم درآمد صندوق", "totalfundWage","ReportMoneyRender");
+	$col = $rpg3->addColumn("سهم درآمد صندوق", "totalfundincome","ReportMoneyRender");
 	$col->EnableSummary();
-	$col = $rpg3->addColumn("سهم درآمد سرمایه گذار", "totalAgentWage","ReportMoneyRender");
+	$col = $rpg3->addColumn("سهم درآمد سرمایه گذار", "totalAgentincome","ReportMoneyRender");
 	$col->EnableSummary();
 	echo "<br><br>";
 	$rpg3->generateReport();
