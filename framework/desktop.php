@@ -161,7 +161,7 @@ $CalendarReminders = FRW_CalendarEvents::SelectTodayReminders(true);
 		<script type="text/javascript" src="/generalUI/ext4/resources/ext-all.js"></script>
 
 		<link rel="stylesheet" type="text/css" href="/generalUI/ext4/resources/css/ext-rtl.css?v=1" />
-		<script type="text/javascript" src="/generalUI/ext4/resources/ext-extend.js?v=1"></script>
+		<script type="text/javascript" src="/generalUI/ext4/resources/ext-extend.js?v=2"></script>
 		<script type="text/javascript" src="/generalUI/ext4/ux/component.js"></script>
 		<script type="text/javascript" src="/generalUI/ext4/ux/message.js"></script>
 		<script type="text/javascript" src="/generalUI/ext4/ux/grid/SearchField.js"></script>
