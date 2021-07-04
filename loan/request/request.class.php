@@ -1511,7 +1511,7 @@ class LON_Computes extends PdoDataAccess{
 		$totalWage = $totalInstallmentAmounts - $partObj->PartAmount;
 		//------ compute wages of installments -----------
 		
-		if($partObj->RequestID != "2572" ){
+		if($partObj->RequestID == "2572" ){
 			$index = 0;
 			$payindex = 1;
 			$U = $N = $totalWage;
