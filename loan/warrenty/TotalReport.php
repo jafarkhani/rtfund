@@ -39,11 +39,18 @@ function MakeWhere(&$where, &$whereParam){
 	{
 		if($key == "excel" || 
 				$value === "" || strpos($key, "-inputEl") !== false || strpos($key, "rpcmp") !== false ||
-				strpos($key, "reportcolumn_fld") !== false || strpos($key, "reportcolumn_ord") !== false)
+				strpos($key, "reportcolumn_fld") !== false || strpos($key, "reportcolumn_ord") !== false || 
+				strpos($key, "checkcombo") !== false)
 			continue;
 		
-		if($key == "FromCancelDate" || $key == "ToCancelDate")
+		if($key == "FromCancelDate" || $key == "ToCancelDate" || $key == "ConsiderLastRow")
 			continue;
+		
+		if($key == "StatusID")
+		{
+			$where .= " AND r.StatusID in(" . $value . ")";
+			continue;
+		}
 		
 		if(strpos($key, "FILTERPERSON_") !== false)
 		{
@@ -121,10 +128,12 @@ function GetData(){
 				BranchName".
 				($userFields != "" ? "," . $userFields : "")
 				."
-			from WAR_requests r 
-				join (select RefRequestID,max(RequestID) RequestID from WAR_requests group by RefRequestID)t
-					using(RequestID,RefRequestID)
-				left join BSC_branches using(BranchID)
+			from WAR_requests r " .
+			
+				(!empty($_POST["ConsiderLastRow"]) ? 
+				"join (select RefRequestID,max(RequestID) RequestID from WAR_requests group by RefRequestID)t
+					using(RequestID,RefRequestID)" : "") . 
+				"left join BSC_branches using(BranchID)
 				left join BSC_persons p using(PersonID)
 				left join BaseInfo bf on(bf.TypeID=74 AND InfoID=r.TypeID)
 				join WFM_FlowSteps sp on(sp.FlowID=" . FLOWID_WARRENTY . " AND sp.StepID=r.StatusID)
@@ -343,6 +352,16 @@ function WarrentyReport_total()
 			name : "organization",
 			fieldLabel : "سازمان مربوطه"
 		},{
+			xtype : "numberfield",
+			name : "FromRefRequestID",
+			hideTrigger : true,
+			fieldLabel : "شماره ضمانت نامه از"
+		},{
+			xtype : "numberfield",
+			name : "ToRefRequestID",
+			hideTrigger : true,
+			fieldLabel : "شماره ضمانت نامه تا"
+		},{
 			xtype : "currencyfield",
 			name : "FromAmount",
 			hideTrigger : true,
@@ -396,19 +415,18 @@ function WarrentyReport_total()
 			afterSubTpl : "%",
 			hideTrigger : true
 		},{
-			xtype : "combo",
+			xtype : "checkcombo",
 			store : new Ext.data.SimpleStore({
-				data : [
-					[100 , "خام" ],
-					[110 , "تایید شده" ],
-					[120 , "خاتمه یافته" ],
-					[130 , "ابطال شده" ]
-				],
-				fields : ['id','value']
+				proxy: {
+					type: 'jsonp',
+					url: this.address_prefix + 'request.data.php?task=GetStatusCodes',
+					reader: {root: 'rows',totalProperty: 'totalCount'}
+				},
+				fields : ['StepID','StepDesc']
 			}),
-			fieldLabel : "وضعیت",
-			displayField : "value",
-			valueField : "id",
+			fieldLabel : "وضعیت ضمانت نامه",
+			displayField : "StepDesc",
+			valueField : "StepID",
 			hiddenName : "StatusID"
 		},{
 			xtype : "combo",
@@ -424,6 +442,10 @@ function WarrentyReport_total()
 			displayField : "value",
 			valueField : "id",
 			hiddenName : "version"
+		},{
+			xtype : "container",
+			colspan: 2,
+			html : "<input type=checkbox name=ConsiderLastRow checked>&nbsp;گزارش بر اساس آخرین نسخه ضمانت نامه باشد"
 		},{
 			xtype : "fieldset",
 			width : 730,
