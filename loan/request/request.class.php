@@ -2242,6 +2242,7 @@ class LON_Computes extends PdoDataAccess{
 	static function ComputePures($RequestID){
 		$PartObj = LON_ReqParts::GetValidPartObj($RequestID);
 		$temp = LON_installments::GetValidInstallments($RequestID);
+		
 		//.............................
 		$returnArr = array();
 		$pays = LON_payments::Get(" AND p.RequestID=?", array($RequestID), " order by PayDate");
@@ -2253,13 +2254,26 @@ class LON_Computes extends PdoDataAccess{
 			$returnArr[] = array(
 				"InstallmentDate" => $pays[$i]["PurePayDate"],
 				"InstallmentAmount" => 0,
-				"wage" => $pays[$i]["PayIncome"],
+				"wage" => 0,
 				"pure" => 0,
 				"totalPure" => $totalPure + $totalZ
 			);
 			$days = DateModules::GDateMinusGDate(
 				$i+1 <count($pays) ? $pays[$i+1]["PurePayDate"] : $temp[0]["InstallmentDate"],$pays[$i]["PurePayDate"]);
 			$totalZ += ($totalPure + $totalZ)*$days*$PartObj->CustomerWage/36500;
+		}
+		
+		for($i=0; $i< count($temp); $i++)
+		{
+			$row = $temp[$i];
+			$totalPure -= $row["InstallmentAmount"] - $row["PureWage"];
+			$returnArr[] = array(
+				"InstallmentDate" => $row["InstallmentDate"],
+				"InstallmentAmount" => $row["InstallmentAmount"],
+				"wage" => $row["PureWage"],
+				"pure" => $row["InstallmentAmount"] - $row["PureWage"],
+				"totalPure" => $totalPure 
+			);
 		}*/
 		
 		$payIndex = 0;
@@ -2270,25 +2284,33 @@ class LON_Computes extends PdoDataAccess{
 				$returnArr[] = array(
 					"InstallmentDate" => $pays[$payIndex]["PurePayDate"],
 					"InstallmentAmount" => 0,
-					"wage" => $pays[$payIndex]["PayIncome"],
+					"wage" => 0,
+					"income" => $pays[$payIndex]["PayIncome"],
 					"pure" => 0,
 					"totalPure" => $totalPure + $totalZ
 				);
 				$days = DateModules::GDateMinusGDate(
 					$payIndex+1 <count($pays) ? $pays[$payIndex+1]["PurePayDate"] : $temp[$i]["InstallmentDate"],$pays[$payIndex]["PurePayDate"]);
 				$totalZ += ($totalPure + $totalZ)*$days*$PartObj->CustomerWage/36500;
-				$temp[$i]["PureWage"] -= $pays[$payIndex]["PayIncome"];
+				
+				if(!isset($temp[$i]["income"]))
+					$temp[$i]["income"] = $temp[$i]["PureWage"];
+				
+				$temp[$i]["income"] -= $pays[$payIndex]["PayIncome"];
 				$i--;
 				$payIndex++;
 				continue;
 			}
 			
 			$row = $temp[$i];
+			if(!isset($row["income"]))
+				$row["income"] = $temp[$i]["PureWage"];
 			$totalPure -= $row["InstallmentAmount"] - $row["PureWage"];
 			$returnArr[] = array(
 				"InstallmentDate" => $row["InstallmentDate"],
 				"InstallmentAmount" => $row["InstallmentAmount"],
 				"wage" => $row["PureWage"],
+				"income" => $row["income"],
 				"pure" => $row["InstallmentAmount"] - $row["PureWage"],
 				"totalPure" => $totalPure 
 			);
