@@ -271,7 +271,7 @@ class EventComputeItems {
 				if($ComputeDate < $PureArr[$i]["InstallmentDate"])
 				{
 					$totalDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$PureArr[$i-1]["InstallmentDate"]);
-					$wage = round($PureArr[$i]["wage"]/$totalDays);
+					$wage = round($PureArr[$i]["income"]/$totalDays);
 					break;
 				}
 			}
