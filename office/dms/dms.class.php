@@ -19,6 +19,7 @@ class DMS_documents extends PdoDataAccess {
 	public $RejectDesc;
 	public $DocMode;
 	public $place;
+	public $RegDate; //new added by mokhtari
 
 	function __construct($DocumentID = "") {
 
