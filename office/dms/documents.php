@@ -83,7 +83,14 @@ switch($ObjectType)
 	case "meetingEvent":
         case "agencydoc":
 	case "package":
+    case "writs": // new added for ahkam in modiriyat personel
+    case "LegalActions": // new added for eghdamate hoghoghi
 	case "asset":
+    case "extInteractions":
+    case "IssuanceForm":
+    case "PersonBasicDoc":        //new added for basic doc in portal
+    case "ReqProfessionalDoc":    //new added for professional doc in my request in portal
+
 		$access = true;
 		break;
 	//......................................................
@@ -152,7 +159,7 @@ $col = $dg->addColumn("عنوان مدرک ارسالی", "DocDesc", "");
 
 $col = $dg->addColumn("ثبت کننده", "regfullname", "");
 $col->width = 100;
-$col = $dg->addColumn("&#1578;&#1575;&#1585;&#1740;&#1582; &#1579;&#1576;&#1578;", "RegDate", GridColumn::ColumnType_date);
+$col = $dg->addColumn("تاریخ ثبت", "RegDate", GridColumn::ColumnType_date);
 $col->width = 80;
 
 if($ObjectType == "package")

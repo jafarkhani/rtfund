@@ -19,12 +19,13 @@ class DMS_documents extends PdoDataAccess {
 	public $RejectDesc;
 	public $DocMode;
 	public $place;
-	public $RegDate; //new added by mokhtari
+	public $RegDate;
+	public $IsHide;
 
 	function __construct($DocumentID = "") {
-
-		if ($DocumentID != "")
-			PdoDataAccess::FillObject($this, "select * from DMS_documents where DocumentID=?", array($DocumentID));
+		$this->DT_RegDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		if($DocumentID != "")
+			PdoDataAccess::FillObject ($this, "select * from DMS_documents where DocumentID=?", array($DocumentID));
 	}
 
 	static function SelectAl($where = "", $param = array()) {
@@ -122,10 +123,32 @@ left join OFC_letters ol on(ol.LetterID=d.ObjectID AND d.ObjectType='letterAttac
 left join OFC_send os on(os.LetterID=d.ObjectID)
 			
 			where " . $where . " group by d.DocumentID", $param);
-	}
+    }
+    static function SelectAllSafe($where = "", $param = array()){
 
-	static function SelectFullPackage($PackageID) {
-
+        return PdoDataAccess::runquery("
+			select d.*, b1.infoDesc DocTypeDesc, df.RowID,
+				concat(p1.fname, ' ', p1.lname) confirmfullname,
+				concat(p2.fname, ' ', p2.lname) regfullname,
+				b1.param1 as DocTypeGroup,
+				b2.infoDesc DocTypeGroupDesc,
+				if(count(df.RowID) >0,'true','false') HaveFile,
+				b3.infoDesc PlaceDesc,
+				bf.InfoDesc ObjectDesc,bf.param1,bf.param2,bf.param3	
+                	
+			from DMS_documents d	
+			left join DMS_DocFiles df using(DocumentID)
+			join BaseInfo b1 on(InfoID=d.DocType AND TypeID=8)
+			join BaseInfo bf on(bf.TypeID=11 AND d.ObjectType=bf.param4)
+			left join  BaseInfo b2 on(b1.param1=b2.InfoID AND b2.TypeID=7)
+			left join BSC_persons p1 on(p1.PersonID=d.ConfirmPersonID)
+			left join BSC_persons p2 on(p2.PersonID=d.RegPersonID)
+			left join BaseInfo b3 on(b3.InfoID=d.place AND b3.TypeID=87)
+			
+			where " . $where . " group by d.DocumentID", $param);
+    }
+	static function SelectFullPackage($PackageID){
+		
 		return PdoDataAccess::runquery("
 			select d.*, b1.infoDesc DocTypeDesc, df.RowID,
 				concat(p1.fname, ' ', p1.lname) confirmfullname,
@@ -172,6 +195,7 @@ left join OFC_send os on(os.LetterID=d.ObjectID)
 
 	function AddDocument() {
 		$this->RegPersonID = $_SESSION["USER"]["PersonID"];
+		$this->RegDate = PDONOW;
 
 		if (!parent::insert("DMS_documents", $this))
 			return false;
