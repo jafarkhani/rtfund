@@ -24,16 +24,17 @@ $col->width = 100;
 $col = $dg->addColumn("کالا", "GoodName");
 $col->width = 120;
 
-$col = $dg->addColumn("مبلغ خرید", "BuyAmount", GridColumn::ColumnType_money);
-$col->width = 100;
-
-$col = $dg->addColumn("مبلغ استهلاک", "totalAmount", GridColumn::ColumnType_money);
-$col->width = 100;
-
 $col = $dg->addColumn("مبلغ", "amount", GridColumn::ColumnType_money);
 $col->width = 100;
 
 $col = $dg->addColumn("جزئیات", "details");
+
+
+$col = $dg->addColumn("دوره نت پيشگيرانه", "NetPeriod");
+$col->width = 100;
+
+$col = $dg->addColumn("نحوه نت پيشگيرانه", "NetMethod");
+
 
 $col = $dg->addColumn("تاریخ خرید", "BuyDate", GridColumn::ColumnType_date);
 $col->width = 100;
@@ -282,6 +283,14 @@ function STO_Asset(){
 			layout : "column",
 			columns : 2
 		},{
+            xtype : "textfield",
+            fieldLabel : "دوره نت پيشگيرانه",
+            name : "NetPeriod"
+        },{
+            xtype : "textfield",
+            name : "NetMethod",
+            fieldLabel : "نحوه نت پيشگيرانه"
+        },{
 			xtype : "textarea",
 			name : "details",
 			fieldLabel : "جزئیات",
@@ -332,7 +341,14 @@ STO_Asset.prototype.OperationMenu = function(e){
 		op_menu.add({text: 'اطلاعات اموال',iconCls: 'info', 
 			handler : function(){ return STO_AssetObject.InfoAsset(); }});
 	}
-	
+
+    //new added
+    op_menu.add({text: 'رويدادها',iconCls: 'task',
+        handler : function(){ return STO_AssetObject.ShowEvents(); }});
+    op_menu.add({text: 'برنامه نت',iconCls: 'process',
+        handler : function(){ return STO_AssetObject.ShowNets(); }});
+    //end new added
+
 	if(this.EditAccess && record.data.StatusID == "<?= WAR_STEPID_CONFIRM ?>")
 	{
 		
@@ -501,12 +517,93 @@ STO_Asset.prototype.SaveAsset = function(){
 	});
 }
 
+//new added
+STO_Asset.prototype.ShowEvents = function(){
+
+    if(!this.EventsWin)
+    {
+        this.EventsWin = new Ext.window.Window({
+            title: 'رویدادهای مرتبط با اموال',
+            modal : true,
+            autoScroll : true,
+            width: 1000,
+            height : 400,
+            bodyStyle : "background-color:white",
+            closeAction : "hide",
+            loader : {
+                url : this.address_prefix + "events.php",
+                scripts : true
+            },
+            buttons : [{
+                text : "بازگشت",
+                iconCls : "undo",
+                handler : function(){
+                    this.up('window').hide();
+                }
+            }]
+        });
+        Ext.getCmp(this.TabID).add(this.EventsWin);
+    }
+    this.EventsWin.show();
+    this.EventsWin.center();
+    record = this.grid.getSelectionModel().getLastSelected();
+    this.EventsWin.loader.load({
+        params : {
+            ExtTabID : this.EventsWin.getEl().id,
+            AssetID : record.data.AssetID,
+            MenuID : this.MenuID
+        }
+    });
+    this.get("excel").value = "";
+}
+
+STO_Asset.prototype.ShowNets = function(){
+
+    if(!this.NetsWin)
+    {
+        this.NetsWin = new Ext.window.Window({
+            title: 'برنامه نگهداری و تعمیرات',
+            modal : true,
+            autoScroll : true,
+            width: 600,
+            height : 400,
+            bodyStyle : "background-color:white",
+            closeAction : "hide",
+            loader : {
+                url : this.address_prefix + "nets.php",
+                scripts : true
+            },
+            buttons : [{
+                text : "بازگشت",
+                iconCls : "undo",
+                handler : function(){
+                    this.up('window').hide();
+                }
+            }]
+        });
+        Ext.getCmp(this.TabID).add(this.NetsWin);
+    }
+    this.NetsWin.show();
+    this.NetsWin.center();
+    record = this.grid.getSelectionModel().getLastSelected();
+    this.NetsWin.loader.load({
+        params : {
+            ExtTabID : this.NetsWin.getEl().id,
+            AssetID : record.data.AssetID,
+            MenuID : this.MenuID
+        }
+    });
+    this.get("excel").value = "";
+}
+
+//end new added
+
 STO_Asset.prototype.Documents = function(ObjectType){
 
 	if(!this.documentWin)
 	{
 		this.documentWin = new Ext.window.Window({
-			width : 920, 
+			width : 720,
 			height : 440,
 			modal : true,
 			bodyStyle : "background-color:white;padding: 0 10px 0 10px",
