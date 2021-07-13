@@ -98,7 +98,7 @@ function ActivateBudget(){
     die();
 }
 
-function GetBudgetTree() {
+function GetBudgetTreeOLD() {
 
 	$nodes = PdoDataAccess::runquery("
 			select * from ACC_budgets  where IsActive='YES'
@@ -109,6 +109,16 @@ function GetBudgetTree() {
 	die();
 }
 
+function GetBudgetTree() {
+
+    $nodes = PdoDataAccess::runquery("
+			select * from ACC_budgets  where IsActive='YES'
+			order by ParentID,BudgetDesc");
+    $returnArr = TreeModulesclass::MakeHierarchyArrayNew($nodes, "ParentID", "BudgetID", "BudgetDesc", "OperationalDef", true);
+    //print_r(ExceptionHandler::PopAllExceptions());
+    echo json_encode($returnArr);
+    die();
+}
 //...................................
 
 function GetBudgetCostCodes(){
