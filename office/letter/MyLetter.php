@@ -63,6 +63,10 @@ $col = $dg->addColumn("امضاء", "IsSigned", "");
 $col->renderer = "function(v,p,r){if(v == 'YES') return '<img width=16px src=/generalUI/icons/sign.png>';}";
 $col->width = 30;
 
+$col = $dg->addColumn("عملیات", "");
+$col->renderer = "function(v,p,r){return MyLetter.OperationRender(v,p,r);}";
+$col->width = 120;
+
 $col = $dg->addColumn("شماره", "LetterID", "");
 $col->width = 60;
 $col->align = "center";
@@ -89,9 +93,6 @@ if($mode == "receive")
 	$col->width = 100;
 }
 
-$col = $dg->addColumn("عملیات", "");
-$col->renderer = "function(v,p,r){return MyLetter.OperationRender(v,p,r);}";
-$col->width = 120; 
 
 $dg->addObject("this.deletedBtnObj");
 
