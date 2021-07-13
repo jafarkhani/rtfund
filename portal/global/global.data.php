@@ -82,12 +82,39 @@ function AccDocFlow($CostID = null, $returnTotal = false){
 	die();	
 }
 
-function CustomerLetters($returnMode = false){
+/*function CustomerLetters($returnMode = false){
 	
 	$list = PdoDataAccess::runquery("
 		select * from OFC_letters l join OFC_LetterCustomers c using(LetterID)
 		where c.IsHide='NO' AND l.AccessType=".OFC_ACCESSTYPE_NORMAL." 
-			AND c.PersonID=" . $_SESSION["USER"]["PersonID"]);
+			AND c.PersonID=" . $_SESSION["USER"]["PersonID"] ." ORDER BY LetterDate DESC");
+
+	if($returnMode)
+		return $list;
+    echo dataReader::getJsonData($list, count($list), $_GET['callback']);
+    die();
+}*/
+function CustomerLetters($returnMode = false){
+    $where = " ";
+    $param = array();
+    if (isset($_GET["fields"]) && !empty($_GET["query"])) {
+
+        $field = $_GET["fields"];
+        $query = $_GET["query"];
+        $field = $field == "LetterTitle" ? "c.LetterTitle" : $field;
+        $query = $field == "LetterDate" ? DateModules::shamsi_to_miladi($query,"-") : $query;
+        if ($field == "LetterDate"){
+            $where .= " AND ".$field." = :f";
+            $param[":f"] = $query;
+        }else{
+            $where .= " AND ".$field." like :f";
+            $param[":f"] = "%" . $query . "%";
+        }
+    }
+    $list = PdoDataAccess::runquery("
+		select * from OFC_letters l join OFC_LetterCustomers c using(LetterID)
+		where c.IsHide='NO' AND l.AccessType=".OFC_ACCESSTYPE_NORMAL." 
+			AND c.PersonID = " . $_SESSION["USER"]["PersonID"] . " " . $where . " order by LetterDate DESC" , $param);
 
 	if($returnMode)
 		return $list;
