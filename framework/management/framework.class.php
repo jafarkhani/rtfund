@@ -264,6 +264,40 @@ class FRW_access extends PdoDataAccess {
 	
 }
 
+//new added
+class FRW_indicator extends OperationClass {
+
+    const TableName = "FRW_indicator";
+    const TableKey = "indexID";
+
+    public $indexID;
+    public $indexType;
+    public $indexName;
+    public $indexDesc;
+    public $measurConcept;
+    public $measurPeriod;
+    public $measurTimePeriod;
+    public $optDirection;
+
+    public function __construct($indexID = "") {
+        if ($indexID == "")
+            return;
+
+        parent::FillObject($this, "select * from FRW_indicator where indexID=?", array($indexID));
+    }
+    static function Get($where = '', $whereParams = array()) {
+
+        return parent::runquery_fetchMode("
+			select m.*,
+				b2.InfoDesc indexTypeDesc, b2.param3 indexConcept, b2.param1, b2.InfoID indexSubType
+			from FRW_indicator m
+			join BaseInfo b2 on(b2.TypeID=104 AND b2.InfoID=indexType)
+			where 1=1 " . $where, $whereParams);
+    }
+
+}
+//end new added
+
 class FRW_tasks extends PdoDataAccess {
 
 	public $TaskID;
