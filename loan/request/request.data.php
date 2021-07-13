@@ -78,6 +78,11 @@ switch($task)
 	case "GetEvents":
 	case "SaveEvents":
 	case "DeleteEvents":
+
+	case "GetLonHistory":  /*new added*/
+	case "SaveLonHistory":  /*new added*/
+	case "DeleteLonHistory":  /*new added*/
+
 	case "GetCosts":
 	case "SaveCosts":
 	case "DeleteCosts":
@@ -87,6 +92,9 @@ switch($task)
 	case "GetPureAmount":
 	case "emptyDataTable":
 	case "ComputeManualInstallments":
+
+	case "selectBackPayComputes":
+
 	case "GetFollows":
 	case "SaveFollows":
 	case "DeleteFollows":
@@ -98,7 +106,11 @@ switch($task)
 	case "CustomerDefrayRequest":
 	case "GetFollowsToDo":	
 	case "DoFollow":
-		
+
+	case "SelectAllLegalActions":  /*new added*/
+	case "SaveLegalActions":  /*new added*/
+	case "DeleteLegalActions":  /*new added*/
+
 	case "GetLoanLetters":
 	case "RegisterLoanLetter":
 		$task();
@@ -1381,6 +1393,124 @@ function GroupSavePay(){
 
 //------------------------------------------------
 
+function GetDelayedInstallments($returnData = false){
+	
+	$FromDate = DateModules::shamsi_to_miladi($_REQUEST["FromDate"], "-");
+	$ToDate = DateModules::shamsi_to_miladi($_REQUEST["ToDate"], "-");
+	
+	$param = array(":todate" => $ToDate, ":fromdate" => $FromDate);
+	$query = "select p.*,
+				l.LoanDesc,
+				r.RequestID,LoanPersonID,p1.mobile,
+				concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanPersonName,
+				concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqPersonName,
+				InstallmentAmount,
+				InstallmentDate,
+				BranchName,
+				tazamin,
+				t1.LastInstallmentDate,
+				t3.MaxPayDate
+				
+			from LON_installments i
+			join LON_requests r using(RequestID)
+			join LON_loans l using(LoanID)
+			join BSC_persons p1 on(LoanPersonID=p1.PersonID)
+			left join BSC_persons p2 on(ReqPersonID=p2.PersonID)
+			join LON_ReqParts p on(p.RequestID=r.RequestID AND p.IsHistory='NO')
+			join BSC_branches using(BranchID)
+			left join (
+				select RequestID, max(InstallmentDate) LastInstallmentDate 
+				from LON_installments group by RequestID
+			)t1 on(i.RequestID=t1.RequestID)
+			left join (
+				select ObjectID,group_concat(title,' به شماره سريال ',num, ' و مبلغ ', 
+					format(amount,2) separator '<br>') tazamin
+				from (	
+					select ObjectID,InfoDesc title,group_concat(if(KeyTitle='no',paramValue,'') separator '') num,
+					group_concat(if(KeyTitle='amount',paramValue,'') separator '') amount
+					from DMS_documents d
+					join BaseInfo b1 on(InfoID=d.DocType AND TypeID=8)
+					join DMS_DocParamValues dv  using(DocumentID)
+					join DMS_DocParams using(ParamID)
+				    where ObjectType='loan' AND b1.param1=1
+					group by ObjectID, DocumentID
+				)t
+				group by ObjectID
+			)t2 on(t2.ObjectID=r.RequestID)
+			
+			left join (
+				select RequestID,sum(PayAmount) TotalPayAmount , max(PayDate) MaxPayDate
+				from LON_BackPays
+				left join ACC_IncomeCheques i using(IncomeChequeID)
+				where if(PayType=" . BACKPAY_PAYTYPE_CHEQUE . ",ChequeStatus=".INCOMECHEQUE_VOSUL.",1=1)
+				group by RequestID			
+			)t3 on(r.RequestID=t3.RequestID)
+			
+			where i.history='NO' AND i.IsDelayed='NO'
+				AND r.StatusID=" . LON_REQ_STATUS_CONFIRM . " 
+				AND InstallmentDate between :fromdate AND :todate 
+				AND IsHistory='NO' AND IsEnded='NO' ";
+	
+	if (isset($_REQUEST['fields']) && isset($_REQUEST['query'])) {
+        $field = $_REQUEST['fields'];
+		$field = $field == "LoanPersonName" ? "concat_ws(' ',p1.fname,p1.lname,p1.CompanyName)" : $field;
+		$field = $field == "RequestID" ? "r.RequestID" : $field;
+        $query .= ' and ' . $field . ' like :fld';
+        $param[':fld'] = '%' . $_REQUEST['query'] . '%';
+    }
+	
+	if(session::IsPortal())
+		$query .= " AND ( LoanPersonID=" . $_SESSION["USER"]["PersonID"] . 
+			" or ReqPersonID  = " . $_SESSION["USER"]["PersonID"] . " )";
+	
+	$query .= " group by " . (isset($_GET["callback"]) ? "r.RequestID" : "p.PartID")
+			. " order by r.RequestID,p.PartID";
+	
+	$dt = PdoDataAccess::runquery_fetchMode($query, $param);
+	if($_SESSION["USER"]["UserName"] == "admin")
+	{
+		//echo PdoDataAccess::GetLatestQueryString();
+	}
+	$result = array();
+	$currentRequestID = "";
+	
+	while($row = $dt->fetch())
+	{
+		if($currentRequestID == $row["RequestID"])
+		{
+			$row["TotalRemainder"] = $remain;
+			//$row["InstallmentDate"] = $MinDate;
+			$result[] = $row;
+			continue;
+		}
+		$computeArr = LON_Computes::ComputePayments($row["RequestID"]);
+		$remain = LON_Computes::GetCurrentRemainAmount($row["RequestID"],$computeArr);
+		$RemainArr = LON_Computes::GetRemainAmounts($row["RequestID"],$computeArr);
+		$MinDate = LON_requests::GetMinPayedInstallmentDate($row["RequestID"],$computeArr);
+		if($remain > 0 && $MinDate != null)
+		{
+			$row["TotalRemainder"] = $remain;
+			//$row["PureRemain"] = $PureRemain;
+			$row["remain_pure"] = $RemainArr["remain_pure"];
+			$row["remain_wage"] = $RemainArr["remain_wage"];
+			$row["remain_late"] = $RemainArr["remain_late"];
+			$row["remain_pnlt"] = $RemainArr["remain_pnlt"];
+			//$row["InstallmentDate"] = $MinDate;
+			$result[] = $row;
+			$currentRequestID = $row["RequestID"];
+		}
+	}
+	
+	if($returnData)
+		return $result;
+	
+	$cnt = count($result);
+	//$result = array_slice($result, $_REQUEST["start"], $_REQUEST["limit"]);
+	
+	echo dataReader::getJsonData($result, $cnt, $_GET["callback"]);
+	die();
+}
+
 function GetEndedRequests(){
 	
 	$query = "select rp.RequestID,ReqDate,RequestID,concat_ws(' ',fname,lname,CompanyName) LoanPersonName
@@ -1778,7 +1908,48 @@ function DeleteEvents(){
 	die();	
 }
 
-//------------------------------------------------
+
+//---------------- new added --------------------------------
+function GetLonHistory(){
+
+    $temp = LON_history::Get("AND RequestID=?", array($_REQUEST["RequestID"]));
+    /*var_dump($temp);*/
+    //print_r(ExceptionHandler::PopAllExceptions());
+    $res = $temp->fetchAll();
+    echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
+    die();
+}
+
+function SaveLonHistory(){
+
+    $obj = new LON_history();
+    PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
+
+
+    if(empty($obj->HistoryID))
+    {
+        $obj->RegPersonID = $_SESSION["USER"]["PersonID"];
+        $obj->HistoryDate = PDONOW;
+        $result = $obj->Add();
+    }
+    else
+        $result = $obj->Edit();
+
+    echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+    die();
+}
+
+function DeleteLonHistory(){
+
+    $obj = new LON_history();
+    $obj->HistoryID = $_POST["HistoryID"];
+    $result = $obj->Remove();
+    echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+    die();
+}
+
+//-----------------------end new added-------------------------
+
 
 function GetCosts(){
 	
@@ -2319,6 +2490,14 @@ function ComputeManualInstallments(){
 
 //------------------------------------------------
 
+function selectBackPayComputes(){
+	$dt = PdoDataAccess::runquery("select * from BaseInfo where typeID=81 AND IsActive='YES'");
+	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
+	die();
+}
+
+//------------------------------------------------
+	
 function CustomerDefrayRequest(){
 	
 	$RequestID = (int)$_POST["RequestID"];

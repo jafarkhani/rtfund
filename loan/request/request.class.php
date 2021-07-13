@@ -4282,4 +4282,43 @@ class LON_Letters extends OperationClass{
 	}
 }
 
+class LON_legalActions extends OperationClass{
+
+	const TableName = "LON_legalActions";
+	const TableKey = "legalActionID";
+
+	public $legalActionID;
+	public $RequestID;
+	public $ReferDate;
+	public $DeliverDoc;
+	public $branch;
+	public $fileNum;
+	public $actionTaken;
+	public $latestDoc;
+	public $actionAhead;
+	public $RegDate;
+
+	function __construct($id = '') {
+
+		$this->DT_RegDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		$this->DT_ReferDate = DataMember::CreateDMA(DataMember::DT_DATE);
+
+		parent::__construct($id);
+	}
+
+	static function Get($where = '', $whereParams = array(), $pdo = null) {
+
+		return PdoDataAccess::runquery_fetchMode("
+			select la.*, concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanFullname 
+			, concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqFullname 
+			
+			from LON_legalActions la
+			join LON_requests r using(RequestID)
+			left join BSC_persons p1 on(p1.PersonID=r.LoanPersonID)
+			left join BSC_persons p2 on(p2.PersonID=r.ReqPersonID)				
+			where 1=1 AND " . $where ." group by RequestID " , $whereParams, $pdo);
+	}
+
+}
+
 ?>
