@@ -18,6 +18,14 @@ $dg = new sadaf_datagrid("dg", $js_prefix_address . "letter.data.php?task=GetLet
 $dg->addColumn("", "NoteID","", true);
 $dg->addColumn("", "LetterID","", true);
 
+// new added
+$col = $dg->addColumn("ثبت کننده", "PersonID");
+$col->width = 100;
+
+$col = $dg->addColumn("تاریخ ثبت", "createDate", GridColumn::ColumnType_date);
+$col->width = 100;
+// end new added
+
 $col = $dg->addColumn("عنوان یادداشت", "NoteTitle");
 $col->editor = ColumnEditor::TextField();
 $col->width = 200;

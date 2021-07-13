@@ -794,6 +794,49 @@ function GroupDeleteSend(){
 	die();
 }
 
+//add new function for seen or unseen select group
+function GroupUnSeenSend(){
+
+    foreach($_POST as $key=>$val)
+    {
+        if(strpos($key, "chk_") !== false)
+        {
+            $SendID = preg_replace("/chk_/", "", $key);
+            $obj = new OFC_send($SendID);
+            if($obj->ToPersonID == $_SESSION["USER"]["PersonID"])
+            {
+                $obj->IsSeen = "NO";
+                $result = $obj->EditSend();
+            }
+        }
+    }
+
+    echo Response::createObjectiveResponse($result, "");
+    die();
+}
+function GroupSeenSend(){
+
+    foreach($_POST as $key=>$val)
+    {
+        if(strpos($key, "chk_") !== false)
+        {
+            $SendID = preg_replace("/chk_/", "", $key);
+            $obj = new OFC_send($SendID);
+            if($obj->ToPersonID == $_SESSION["USER"]["PersonID"])
+            {
+                $obj->IsSeen = "YES";
+                $result = $obj->EditSend();
+            }
+        }
+    }
+
+    echo Response::createObjectiveResponse($result, "");
+    die();
+}
+//end add new function for seen or unseen select group
+
+
+
 function DeleteSender(){
 	
 	$mode = $_POST["mode"];
@@ -831,9 +874,11 @@ function GroupDeleteSender(){
 function GetLetterComments(){
 	
 	$dt = PdoDataAccess::runquery("
-		select s.* ,concat_ws(' ',fname, lname,CompanyName) fromPerson
+		select s.* ,concat_ws(' ',p1.fname, p1.lname, p1.CompanyName) fromPerson
+		,concat_ws(' ',p2.fname, p2.lname, p2.CompanyName) toPerson
 		from OFC_send s
-			join BSC_persons on(PersonID=FromPersonID)
+			join BSC_persons p1 on(p1.PersonID=FromPersonID)
+			join BSC_persons p2 on(p2.PersonID=ToPersonID)
 		where LetterID=? AND SendComment<>'' AND SendComment is not null
 		group by FromPersonID,SendComment
 		order by SendID desc", 
@@ -949,7 +994,7 @@ function RemoveLetterFromFolder(){
 function GetLetterCustomerss(){
 
 	$dt = PdoDataAccess::runquery("
-		select RowID,LetterID,IsHide,LetterTitle,o.PersonID,concat_ws(' ',CompanyName,fname,lname) fullname 
+		select RowID,LetterID,IsHide,LetterTitle,IsSeen,o.PersonID,concat_ws(' ',CompanyName,fname,lname) fullname 
 		from OFC_LetterCustomers o join BSC_persons using(PersonID)
 		where LetterID=?", array($_REQUEST["LetterID"]));
 	
@@ -961,7 +1006,10 @@ function SaveLetterCustomer(){
 	
 	$obj = new OFC_LetterCustomers();
 	PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
-	$obj->IsHide = $obj->IsHide ? "YES" : "NO";
+	if ($obj->IsHide == "")
+		$obj->IsHide = "YES";
+	else
+		$obj->IsHide = $obj->IsHide ? "YES" : "NO";
 	
 	if($obj->RowID == "")
 		$result = $obj->Add();
@@ -1014,9 +1062,11 @@ function SaveLetterNote(){
 	$obj = new OFC_LetterNotes();
 	PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
 	$obj->PersonID = $_SESSION["USER"]["PersonID"];
-	
-	if($obj->NoteID == "")
-		$result = $obj->Add();
+
+    if($obj->NoteID == ""){
+        $obj->createDate = PDONOW;
+        $result = $obj->Add();
+    }
 	else
 		$result = $obj->Edit();
 	

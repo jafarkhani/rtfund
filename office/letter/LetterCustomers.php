@@ -20,13 +20,17 @@ $dg->addColumn("", "RowID","", true);
 $dg->addColumn("", "fullname","", true);
 $dg->addColumn("", "LetterID","", true);
 
+$col = $dg->addColumn("<div title=مشاهده‌توسط‌ذینفع style=float:right;background-repeat:no-repeat;background-position:center;cursor:pointer;width:28px;height:16px;margin-top:-20px; class=letter></div>", "IsSeen", "");
+$col->renderer = "function(v,p,r){return v == 'YES' ? '<img title=مشاهده style=width:16px;height:16px;float:right; src=/office/icons/open-envelope.png>' : '<img title=عدم‌مشاهده style=width:16px;height:16px;float:right;  src=/office/icons/close-envelope.png>';}";
+$col->width = 30;
+
 $col = $dg->addColumn("مشتری", "PersonID");
 $col->renderer = "function(v,p,r){return r.data.fullname;}";
 $col->editor = "this.PersonCombo";
 
 $col = $dg->addColumn("عنوان نامه", "LetterTitle");
 $col->editor = ColumnEditor::TextField(true);
-$col->width = 250;
+$col->width = 200;
 
 $col = $dg->addColumn("عدم مشاهده ذینفع", "IsHide");
 $col->editor = ColumnEditor::CheckField("","YES");
@@ -61,7 +65,7 @@ if($editable  && !$ReadOnly)
 $dg->autoExpandColumn = "PersonID";
 $dg->emptyTextOfHiddenColumns = true;
 $dg->height = 400;
-$dg->width = 560;
+$dg->width = 540;
 $dg->EnableSearch = false;
 $dg->EnablePaging = false;
 $dg->DefaultSortField = "PayDate";

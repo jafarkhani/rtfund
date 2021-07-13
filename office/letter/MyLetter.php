@@ -610,11 +610,12 @@ MyLetter.prototype.GroupSeen = function(){
     record = this.grid.getSelectionModel().getLastSelected();
     if(!record)
     {
-        Ext.MessageBox.alert("","&#1575;&#1576;&#1578;&#1583;&#1575; &#1585;&#1583;&#1740;&#1601; &#1605;&#1608;&#1585;&#1583; &#1606;&#1592;&#1585; &#1585;&#1575; &#1575;&#1606;&#1578;&#1582;&#1575;&#1576; &#1705;&#1606;&#1740;&#1583;");
+        Ext.MessageBox.alert("","ابتدا ردیف مورد نظر را انتخاب کنید");
         return;
     }
 
-    mask = new Ext.LoadMask(Ext.getCmp(this.TabID),{msg:'&#1583;&#1585; &#1581;&#1575;&#1604; &#1584;&#1582;&#1740;&#1585;&#1607; &#1587;&#1575;&#1586;&#1740; ...'});
+    mask = new Ext.LoadMask(Ext.getCmp
+    (this.TabID),{msg:'در حال ذخیره سازی ...'});
     mask.show();
 
     Ext.Ajax.request({
@@ -629,40 +630,40 @@ MyLetter.prototype.GroupSeen = function(){
                 MyLetterObject.grid.getStore().load();
             else
             {
-                Ext.MessageBox.alert("Error", "&#1593;&#1605;&#1604;&#1740;&#1575;&#1578; &#1605;&#1608;&#1585;&#1583; &#1606;&#1592;&#1585; &#1576;&#1575; &#1588;&#1705;&#1587;&#1578; &#1605;&#1608;&#1575;&#1580;&#1607; &#1588;&#1583;");
+                Ext.MessageBox.alert("Error", "عملیات مورد نظر با شکست مواجه شد");
             }
         }
     })
 }
 MyLetter.prototype.GroupUnSeen = function(){
 
-    record = this.grid.getSelectionModel().getLastSelected();
-    if(!record)
-    {
-        Ext.MessageBox.alert("","&#1575;&#1576;&#1578;&#1583;&#1575; &#1585;&#1583;&#1740;&#1601; &#1605;&#1608;&#1585;&#1583; &#1606;&#1592;&#1585; &#1585;&#1575; &#1575;&#1606;&#1578;&#1582;&#1575;&#1576; &#1705;&#1606;&#1740;&#1583;");
-        return;
-    }
-
-    mask = new Ext.LoadMask(Ext.getCmp(this.TabID),{msg:'&#1583;&#1585; &#1581;&#1575;&#1604; &#1584;&#1582;&#1740;&#1585;&#1607; &#1587;&#1575;&#1586;&#1740; ...'});
-    mask.show();
-
-    Ext.Ajax.request({
-        url : this.address_prefix + "letter.data.php?task=GroupUnSeenSend",
-        form : me.get("mainForm"),
-        method : "post",
-
-        success : function(response){
-            mask.hide();
-            result = Ext.decode(response.responseText);
-            if(result.success)
-                MyLetterObject.grid.getStore().load();
-            else
-            {
-                Ext.MessageBox.alert("Error", "&#1593;&#1605;&#1604;&#1740;&#1575;&#1578; &#1605;&#1608;&#1585;&#1583; &#1606;&#1592;&#1585; &#1576;&#1575; &#1588;&#1705;&#1587;&#1578; &#1605;&#1608;&#1575;&#1580;&#1607; &#1588;&#1583;");
-            }
+        record = this.grid.getSelectionModel().getLastSelected();
+        if(!record)
+        {
+            Ext.MessageBox.alert("","ابتدا ردیف مورد نظر را انتخاب کنید");
+            return;
         }
-    })
-}
+
+        mask = new Ext.LoadMask(Ext.getCmp(this.TabID),{msg:'در حال ذخیره سازی ...'});
+        mask.show();
+
+        Ext.Ajax.request({
+            url : this.address_prefix +"letter.data.php?task=GroupUnSeenSend",
+            form : me.get("mainForm"),
+            method : "post",
+
+            success : function(response){
+                mask.hide();
+                result = Ext.decode(response.responseText);
+                if(result.success)
+                    MyLetterObject.grid.getStore().load();
+                else
+                {
+                    Ext.MessageBox.alert ("Error", "عملیات مورد نظر با شکست مواجه شد");
+                }
+            }
+        })
+    }
 // end new added
 
 MyLetter.prototype.GroupDeleteSend = function(){

@@ -24,6 +24,14 @@ $ForView = isset($_POST["ForView"]) && $_POST["ForView"] == "true" ? true : fals
 $ReadOnly = isset($_REQUEST["ReadOnly"]) && $_REQUEST["ReadOnly"] == "true" ? true : false;
 
 /*New Create*/
+$IsSeen = isset($_REQUEST["IsSeen"]) && $_REQUEST["IsSeen"] == "true" ? true : false;
+$RowID = isset($_REQUEST["RowID"]) && !empty($_REQUEST["RowID"]) ? $_REQUEST["RowID"] : 0;
+if ($IsSeen){
+    $see = new OFC_LetterCustomers($RowID);
+    $see->IsSeen = 'YES';
+    $see->Edit();
+}
+
 $IsCustomer=false;
 if($_SESSION["USER"]["IsCustomer"] == "YES" && $_SESSION["USER"]["IsAgent"] == "NO" && $_SESSION["USER"]["IsSupporter"] == "NO"
     && $_SESSION["USER"]["IsShareholder"] == "NO" && $_SESSION["USER"]["IsStaff"] == "NO" && $_SESSION["USER"]["IsExpert"] == "NO" ){
@@ -83,6 +91,7 @@ $dg = new sadaf_datagrid("dg", $js_prefix_address . "letter.data.php?task=GetLet
 		$LetterID, "grid_div");
 
 $dg->addColumn("", "fromPerson", "", true);
+$dg->addColumn("", "toPerson", "", true);
 $dg->addColumn("", "SendDate", "", true);
 
 $col = $dg->addColumn("", "SendComment");
@@ -244,7 +253,7 @@ function LetterInfo(){
 			}
 		},{
 			title : "سابقه",
-			hidden : this.IsCustomer,
+			hidden : this.ReadOnly,
 			loader : {
 				url : this.address_prefix + "history.php",
 				method: "POST",
@@ -392,7 +401,7 @@ function LetterInfo(){
 
 LetterInfo.CommentsRender = function(v,p,r){
 	
-	return "<font style=color:gray>" + r.data.fromPerson + "<br>" + 
+	return "<font style=color:gray>" + r.data.fromPerson + " به " + r.data.toPerson + "<br>" +
 		MiladiToShamsi(r.data.SendDate) + "</font><br><br>" + v;
 }
 
