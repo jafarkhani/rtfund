@@ -3,14 +3,11 @@
 // programmer:	Jafarkhani
 // create Date: 94.06
 //-------------------------
-require_once('../../header.inc.php');
+require_once('header.inc.php');
 require_once inc_dataReader;
 require_once inc_response;
 require_once 'dms.class.php';
 require_once '../../framework/baseInfo/baseInfo.class.php';
-require_once '../../office/letter/letter.class.php';
-
-ini_set("display_errors", "On");
 
 $task = $_REQUEST["task"];
 if(!empty($task)) 
@@ -73,7 +70,110 @@ function SelectAll(){
 	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
 	die();
 }
+function SelectAl(){
+	
+	$where = "1=1";
+	$param = array();
+	
+	if(!empty($_REQUEST["ObjectType"]))
+	{
+		$where .= " AND ObjectType=:st";
+		$param[":st"] = $_REQUEST["ObjectType"];
+	}
+	if(!empty($_REQUEST["ObjectID"]))
+	{
+		$where .= " AND ObjectID=:sid";
+		$param[":sid"] = $_REQUEST["ObjectID"];
+	}
+    
+    $temp = DMS_documents::SelectAl($where, $param);
+	/*if(!empty($_REQUEST["ObjectID2"]))
+	{
+		$where .= " AND ObjectID2=:oid2";
+		$param[":oid2"] = $_REQUEST["ObjectID2"];
+	}
+	if(isset($_REQUEST["checkRegPerson"]) && $_REQUEST["checkRegPerson"] == "true")
+	{
+		$where .= " AND RegPersonID=" . $_SESSION["USER"]["PersonID"];
+	}
 
+	if(!empty($_REQUEST["ObjectType"]) && $_REQUEST["ObjectType"] == "package")
+		$temp = DMS_documents::SelectFullPackage($_REQUEST["ObjectID"]);
+	else
+		$temp = DMS_documents::SelectAll($where, $param);*/
+	
+	/*for($i=0; $i<count($temp); $i++)
+	{
+		$temp[$i]["paramValues"] = "";
+		
+		$dt = PdoDataAccess::runquery("select * from DMS_DocParamValues join DMS_DocParams using(ParamID)
+			where DocumentID=?", array($temp[$i]["DocumentID"]));
+		foreach($dt as $row)
+		{
+			$value = $row["ParamValue"];
+			if($row["ParamType"] == "currencyfield")
+				$value = number_format($value*1);
+			
+			if($row["DocType"] == DMS_DOCTYPE_LETTER || $row["DocType"] == DMS_DOCTYPE_Documents)
+				$temp[$i]["paramValues"] .= $value . "<br>";
+			else
+				$temp[$i]["paramValues"] .= $row["ParamDesc"] . " : " . $value . "<br>";
+		}
+		if($temp[$i]["paramValues"] != "")
+			$temp[$i]["paramValues"] = substr($temp[$i]["paramValues"], 0 , strlen($temp[$i]["paramValues"])-4);
+	}*/
+
+	/*var_dump($temp);*/
+
+	//print_r(ExceptionHandler::PopAllExceptions());
+	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
+	die();
+}
+function SelectAlll(){
+	
+	$where = "1=1";
+	$param = array();
+	
+	if(!empty($_REQUEST["ObjectType"]))
+	{
+		$where .= " AND ObjectType=:st";
+		$param[":st"] = $_REQUEST["ObjectType"];
+	}
+	if(!empty($_REQUEST["ObjectID"]))
+	{
+		$where .= " AND ObjectID=:sid";
+		$param[":sid"] = $_REQUEST["ObjectID"];
+	}else{
+	    $where .= " AND ObjectID=:sid";
+		$param[":sid"] = 0;
+	}
+    /*echo 'where='.$where;
+	echo 'param='.$param;*/
+    $temp = DMS_documents::SelectAl($where, $param);
+    
+    	for($i=0; $i<count($temp); $i++)
+	{
+		$temp[$i]["paramValues"] = "";
+		
+		$dt = PdoDataAccess::runquery("select * from DMS_DocParamValues join DMS_DocParams using(ParamID)
+			where DocumentID=?", array($temp[$i]["DocumentID"]));
+		foreach($dt as $row)
+		{
+			$value = $row["ParamValue"];
+			if($row["ParamType"] == "currencyfield")
+				$value = number_format($value*1);
+			
+			if($row["DocType"] == DMS_DOCTYPE_LETTER || $row["DocType"] == DMS_DOCTYPE_Documents)
+				$temp[$i]["paramValues"] .= $value . "<br>";
+			else
+				$temp[$i]["paramValues"] .= $row["ParamDesc"] . " : " . $value . "<br>";
+		}
+		if($temp[$i]["paramValues"] != "")
+			$temp[$i]["paramValues"] = substr($temp[$i]["paramValues"], 0 , strlen($temp[$i]["paramValues"])-4);
+	}
+	echo dataReader::getJsonData($temp, count($temp), $_GET["callback"]);
+	die();
+}
 function SaveDocument() {
 
 	foreach($_FILES as $file)
@@ -115,16 +215,6 @@ function SaveDocument() {
 		
 		$result = $obj->EditDocument();
 	}
-	
-	//--------------- letterAttach -----------------
-	if($obj->ObjectType == "letterAttach")
-	{
-		$letterObj = new OFC_letters($obj->ObjectID);
-		$letterObj->hasAttach = "YES";
-		$letterObj->EditLetter();
-	}
-	//---------------------------------------------
-	
 	if(!$result)
 	{
 		//print_r(ExceptionHandler::PopAllExceptions());
@@ -187,24 +277,12 @@ function DeleteDocument() {
 		echo Response::createObjectiveResponse(false, "");
 		die();
 	}
-	
+	PdoDataAccess::runquery("delete from DMS_DocParamValues where DocumentID=?", array($DocumentID));	
 	$result = DMS_documents::DeleteDocument($DocumentID);
 	
-	//--------------- letterAttach -----------------
-	if($obj->ObjectType == "letterAttach")
-	{
-		$dt = PdoDataAccess::runquery("select * from DMS_documents "
-			. "where ObjectType=? AND ObjectID=? and DocumentID<>?", array(
-				"letterAttach",$obj->ObjectID, $obj->DocumentID
-			));
-		if(count($dt) == 0)
-		{
-			$letterObj = new OFC_letters($obj->ObjectID);
-			$letterObj->hasAttach = "NO";
-			$letterObj->EditLetter();
-		}
-	}
-	//---------------------------------------------
+	$dt = PdoDataAccess::runquery("select RowID from DMS_DocFiles where DocumentID=?", array($DocumentID));
+	foreach($dt as $row)
+		DMS_DocFiles::DeletePage($row["RowID"]);
 	
 	echo Response::createObjectiveResponse($result, "");
 	die();
