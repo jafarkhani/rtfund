@@ -65,7 +65,7 @@ $col->width = 50;
 $col->align = "center";
 
 if(!$IsSend)
-	$dg->addButton("", "تایید گروهی", "tick2", "function(){return MyFormObject.beforeChangeStatus('CONFIRM');}");
+	$dg->addButton("", "تایید گروهی", "tick2", "function(){return MyFormObject.beforeChangeStatus('CONFIRM','ALL');}");
 
 $dg->emptyTextOfHiddenColumns = true;
 $dg->height = 480;
@@ -100,7 +100,7 @@ function MyForm(){
 }
 
 MyForm.ObjectDescRender = function(value, p, record){
-	
+		
 	if(record.data.LoanRequestID == "0" || record.data.LoanRequestID == null)
 		return value;
 	
@@ -140,18 +140,31 @@ MyForm.prototype.OperationMenu = function(e){
 
 	record = this.grid.getSelectionModel().getLastSelected();
 	var op_menu = new Ext.menu.Menu();
-	 
-	op_menu.add({text: 'اطلاعات آیتم',iconCls: 'info2', 
-		handler : function(){ return MyFormObject.FormInfo(); }});
-	if(!this.IsSend && record.data.childs === false)
+		
+	if(!this.IsSend && (record.data.childs === false || record.data.childs == "") )
 	{		
+		op_menu.add({text: 'اطلاعات آیتم',iconCls: 'info2', 
+		handler : function(){ return MyFormObject.FormInfo(); }});
+	
 		op_menu.add({text: 'تایید درخواست',iconCls: 'tick', 
 		handler : function(){ return MyFormObject.beforeChangeStatus('CONFIRM'); }});
 
 		op_menu.add({text: 'رد درخواست',iconCls: 'cross',
 		handler : function(){ return MyFormObject.beforeChangeStatus('REJECT'); }});
 	}
-	else if(!this.IsSend) {		
+	else if(!this.IsSend ) {		
+		
+		op_menu.add({text: 'فرم ارزیابی ضمانتنامه',iconCls: 'info2', 
+		handler : function(){ 
+			
+			framework.OpenPage(MyFormObject.address_prefix + "../../loan/warrenty/IssuanceForm2.php", " فرم ارزیابی ضمانتنامه",
+					{
+						BID:0,
+						LetterNo:0,
+						ObjID : record.data.ObjectID
+					});
+		}});
+	
 		var pc = record.data.childs ; 
 		var res = pc.split(","); 
 				
@@ -188,7 +201,7 @@ MyForm.prototype.OperationMenu = function(e){
 
 MyForm.prototype.beforeChangeStatus = function(mode,childID){
 	
-	if(mode == "CONFIRM")
+	if(mode == "CONFIRM" && !(childID > 0))
 	{		
 		Ext.MessageBox.confirm("","آیا مایل به تایید می باشید؟", function(btn){
 			if(btn == "no")
