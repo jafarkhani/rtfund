@@ -4,14 +4,22 @@
 //	Date		: 1394.07
 //-----------------------------
 
-require_once '../../header.inc.php';
-require_once DOCUMENT_ROOT . '/framework/baseInfo/baseInfo.class.php';
+require_once 'header.inc.php';
 require_once inc_dataGrid;
-
+/*var_dump($_POST);
+echo '<br>';*/
+/*if(!empty($_POST["ObjectID"])){echo 'valueID is not set';}*/
 $ObjectType = $_POST["ObjectType"];
-$ObjectID = isset($_POST["ObjectID"]) ? $_POST["ObjectID"] : 0;
+if(isset($_POST["ObjectID"]) && !empty($_POST["ObjectID"])) {
+    /*echo 'okkkk';*/
+    $ObjectID = $_POST["ObjectID"];
+}else{
+     /*echo 'nooooo';*/
+     $ObjectID = 0;
+}  
 
 //---------------- RECOGNIZE ACCESS --------------------
+
 $access = false;
 switch($ObjectType)
 {
@@ -79,11 +87,10 @@ switch($ObjectType)
 	//......................................................
 	case "BeneficiaryDocs":
 	case "orgdoc":
-        case "safeBox":
-	case "meetingEvent":
-        case "agencydoc":
 	case "package":
 	case "asset":
+	case "extInteractions":  
+	case "IssuanceForm":
 		$access = true;
 		break;
 	//......................................................
@@ -100,6 +107,7 @@ switch($ObjectType)
 		if($_SESSION["USER"]["IsStaff"] == "YES" && session::IsFramework())
 			$access = true;
 		break;
+	
 	//......................................................
 	case "meeting":
 		require_once '../../meeting/meeting.class.php';
@@ -119,11 +127,38 @@ switch($ObjectType)
 		$obj = new MTG_meetings($robj->MeetingID);
 		$access = $obj->StatusID == MTG_STATUSID_RAW ? true : false;
 		break;
-
+		
+	case "ReqCheckList":
+	    if(isset($ObjectID) && !empty($ObjectID)){$access = true;}
+	    break;	
+		
 }
 //------------------------------------------------------
-$dg = new sadaf_datagrid("dg", $js_prefix_address . "dms.data.php?" .
-		"task=SelectAll&ObjectType=" . $ObjectType . "&ObjectID=" . $ObjectID, "grid_div");
+
+if ($ObjectType == 'extInteractions' ){
+    $dg = new sadaf_datagrid("dg", $js_prefix_address . "dms.data.php?" .
+        "task=SelectAl&ObjectType=" . $ObjectType . "&ObjectID=" . $ObjectID, "grid_div");
+}elseif ($ObjectType == 'ReqCheckList'){
+    $dg = new sadaf_datagrid("dg", $js_prefix_address . "dms.data.php?" .
+        "task=SelectAlll&ObjectType=" . $ObjectType . "&ObjectID=" . $ObjectID, "grid_div");
+}
+else{
+    $dg = new sadaf_datagrid("dg", $js_prefix_address . "dms.data.php?" .
+        "task=SelectAll&ObjectType=" . $ObjectType . "&ObjectID=" . $ObjectID, "grid_div");
+}
+
+//------------------------------------------------------
+
+/*if ($ObjectType == 'ReqCheckList'){
+    $dg = new sadaf_datagrid("dg", $js_prefix_address . "dms.data.php?" .
+        "task=SelectAl&ObjectType=" . $ObjectType . "&ObjectID=" . $ObjectID, "grid_div");
+}else{
+    $dg = new sadaf_datagrid("dg", $js_prefix_address . "dms.data.php?" .
+        "task=SelectAll&ObjectType=" . $ObjectType . "&ObjectID=" . $ObjectID, "grid_div");
+}*/
+
+/*$dg = new sadaf_datagrid("dg", $js_prefix_address . "dms.data.php?" .
+		"task=SelectAll&ObjectType=" . $ObjectType . "&ObjectID=" . $ObjectID, "grid_div");*/
 
 $dg->addColumn("", "DocumentID", "", true);
 $dg->addColumn("", "ObjectType", "", true);
@@ -146,14 +181,9 @@ $col->width = 80;
 
 $col = $dg->addColumn("اطلاعات مدرک", "paramValues", "");
 $col->renderer = "ManageDocument.ParamValueRender";
-$col->width = 90;
+$col->width = 130;
 
 $col = $dg->addColumn("عنوان مدرک ارسالی", "DocDesc", "");
-
-$col = $dg->addColumn("ثبت کننده", "regfullname", "");
-$col->width = 100;
-$col = $dg->addColumn("&#1578;&#1575;&#1585;&#1740;&#1582; &#1579;&#1576;&#1578;", "RegDate", GridColumn::ColumnType_date);
-$col->width = 80;
 
 if($ObjectType == "package")
 {
@@ -177,7 +207,7 @@ $col->width = 30;
 $col = $dg->addColumn("توضیحات کارشناس", "RejectDesc", "");
 //$col->renderer = "function(v,p,r){return ManageDocument.commentRender(v,p,r)}";
 $col->align = "center";
-$col->width = 100;
+$col->width = 120;
 
 if($access)
 {
@@ -191,14 +221,13 @@ if($access)
 	$dg->rowEditOkHandler = "function(){return ManageDocumentObject.SaveDocument();}";
 }
 
-if(session::IsFramework() && $access)
+if(session::IsFramework() && $access && $ObjectType != "IssuanceForm" )
 {
 	$col = $dg->addColumn("تایید/رد", "", "");
 	$col->renderer = "function(v,p,r){return ManageDocument.ConfirmRender(v,p,r)}";
 	$col->width = 60;
 	
-	if(BSC_jobs::GetModirAmelPerson()->PersonID == $_SESSION["USER"]["PersonID"])
-		$dg->addButton("", "برگشت از تایید", "return", "function(){ManageDocumentObject.UnConfirm();}");
+	$dg->addButton("", "برگشت از تایید", "return", "function(){ManageDocumentObject.UnConfirm();}");
 }
 
 $dg->EnableGrouping = true;
