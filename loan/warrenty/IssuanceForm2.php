@@ -29,21 +29,24 @@ function ListDate($BID = "") {
 			from BaseInfo bf 
 			where TypeID=74 AND InfoID=" . $TypeID;
 
-	$query1 = "select r.* , concat_ws(' ',fname,lname,CompanyName) fullname, 
+	$query1 = "select distinct r.* , concat_ws(' ',fname,lname,CompanyName) fullname, 
 				bf.InfoDesc TypeDesc ,
 				BranchName
 			from WAR_requests r 
 				left join BSC_branches using(BranchID)
 				left join BSC_persons p using(PersonID)
 				left join BaseInfo bf on(bf.TypeID=74 AND InfoID=r.TypeID)
-			where StatusID != 100 AND PersonID=" . $personid;
+				left join LON_BailCondition bc on r.PersonID = bc.PersonID AND bc.BID = ".$_REQUEST['BID']."
+								
+			where StatusID != 100 AND r.ReqDate < bc.ReqDate AND  r.PersonID=" . $personid;
 
 	$query2 = "select r.* 
 			from LON_requests r 
 			where (StatusID=70 OR StatusID=95 OR StatusID=101) AND LoanPersonID=" . $personid;
 	$temp0 = PdoDataAccess::runquery($query0);
-	$temp1 = PdoDataAccess::runquery($query1);
-	$temp2 = PdoDataAccess::runquery($query2);
+	$temp1 = PdoDataAccess::runquery($query1);	
+	
+	$temp2 = PdoDataAccess::runquery($query2);	
 	$temp3 = PdoDataAccess::runquery($query3);
 
 	foreach ($_POST as $key => $value) {
@@ -54,12 +57,12 @@ function ListDate($BID = "") {
 			$TypeItem[] = $exp_key[1];
 		}
 		if ($exp_key[0] == 'GuarAmount') {
-			$GuarAmount[] = $value;
+			$GuarAmount[] = str_replace(",","",$value) * 1 ;  
 			$AmountItem[] = $exp_key[1];
 		}
 	}
 	$GuarCount = count($TypeItem);
-
+	
 	$personName = (!empty($temp0)) ? $temp0[0]['fullname'] : '';
 	$warType = (!empty($temp3)) ? $temp3[0]['TypeDesc'] : '';
 	$tempCount1 = count($temp1);
@@ -75,7 +78,7 @@ function ListDate($BID = "") {
 	echo "<table style='border:2px groove #9BB1CD;border-collapse:collapse;width:100%'><tr>
 				<td width=60px><img src='/framework/icons/logo.jpg' style='width:120px'></td>
 				<td align='center' style='height:100px;vertical-align:middle;font-family:titr;font-size:15px'>
-					فرم صدور ضمانتنامه
+					گزارش ارزیابی ضمانت نامه
 				</td>
 				
 				<td width='200px' align='center' style='font-family:tahoma;font-size:11px'>کد فرم: KF-2030200F01/00
@@ -131,59 +134,61 @@ function ListDate($BID = "") {
 
 		<table>
 			<tr>
-				<td style="width: 40px;" rowspan="<?= $rowspan1 ?>"><span class="verticaltext"><b>این قسمت توسط واحد ارزیابی و نظارت تکمیل می‌گردد</b></span></td>
+				<td style="width: 40px;" rowspan="<?= $rowspan1 ?>"><span class="verticaltext"> </span></td>
 				<td rowspan="11" ><span><b>شرح درخواست</b></span></td>
 			</tr>
 			<tr>
 				<td><span><b>نام شخص حقیقی/ حقوقی</b></span></td>
-				<td colspan="5"><span style="width: 500px;"><?= $personName ?></span></td>
+				<td colspan="8"><span style="width: 500px;"><?= $personName ?></span></td>
 			</tr>
 			<tr>
-				<td><span><b>نوع ضمانتنامه</b></span></td>
-				<td colspan="5"><span><?= $warType ?></span></td>
+				<td><span><b>نوع ضمانت نامه</b></span></td>
+				<td colspan="8"><span><?= $warType ?></span></td>
 			</tr>
 			<tr>
 				<td><span><b>موضوع قرارداد</b></span></td>
-				<td colspan="5"><span><?= $_POST['contractTitle'] ?></span></td>
+				<td colspan="8"><span><?= $_POST['contractTitle'] ?></span></td>
 			</tr>
 			<tr>
 				<td><span><b>شرکت/ سازمان ضمانت‌گیرنده</b></span></td>
-				<td colspan="5"><span><?= $_POST['organization'] ?></span></td>
+				<td colspan="8"><span><?= $_POST['organization'] ?></span></td>
 			</tr>
 			<tr>
-				<td><span><b>مبلغ ضمانتنامه</b></span></td>
-				<td colspan="5"><span><?= number_format($_POST['warAmount']) ?></span></td>
+				<td><span><b>مبلغ ضمانت نامه</b></span></td>
+				<td colspan="8"><span><?= $_POST['warAmount'] ?></span></td>
 			</tr>
 			<tr>
-				<td><span><b>مدت ضمانتنامه</b></span></td>
-				<td colspan="5"><span><?= $_POST['warDate'] ?></span></td>
+				<td><span><b>مدت ضمانت نامه</b></span></td>
+				<td colspan="8"><span><?= $_POST['warDate'] ?></span></td>
 			</tr>
 			<tr>
-				<td><span><b>وثایق پیشنهادی</b></span></td>
-				<td colspan="5"><span><?= $_POST['ProposedGuarantee'] ?></span></td>
+				<td><span><b>وثایق لازم</b></span></td>
+				<td colspan="8"><span><?= $_POST['ProposedGuarantee'] ?></span></td>
 			</tr>			
 			<tr>
 				<td><span><b>توضیح تکمیلی</b></span></td>
-				<td colspan="5"><span><?= $_POST['SupplementaryExplanation'] ?></span></td>
+				<td colspan="8"><span><?= $_POST['SupplementaryExplanation'] ?></span></td>
 			</tr>
 			<tr>
 				<td><span><b>نوع کارفرما</b></span></td>
-				<td colspan="5"><span><?= $_POST['EmpType'] /* $ResParams[0]['et']*/  ?></span></td>
+				<td colspan="8"><span><?= $_POST['EmpType'] /* $ResParams[0]['et']*/  ?></span></td>
 			</tr>
 			<tr>
 				<td><span><b>آیا شرکت دانش بنیان می باشد؟</b> </span></td>
-				<td colspan="5"><span><?= ( $_REQUEST['KNB'] == true ) ? "بلی" : "خیر"  /*$ResParams[0]['nb']*/  ?></span></td>
+				<td colspan="8"><span><?= (( $_REQUEST['KNB'] === 'true' ) ? "بلی" : "خیر")  /*$ResParams[0]['nb']*/  ?></span></td>
 			</tr>			
 			<tr>
 				<td><span><b>مدارک پیوست فرم</b></span></td>
-				<td colspan="5"><span>1-نامه رسمی درخواست متقاضی</span><span>2-نامه رسمی درخواست ضمانت‌گیرنده</span></td>
+				<td colspan="8"><span>1-نامه رسمی درخواست متقاضی</span><span>2-نامه رسمی درخواست ضمانت‌گیرنده</span></td>
 			</tr>
 
 			<!--warrenty History-->
 			<tr>
 				<td rowspan="<?= $rowspan2 ?>"><b>سوابق ضمانت‌نامه‌های دریافتی</b></td>
+				<th><span>ردیف</span></th>
+				<th><span>کد ضمانت نامه </span></th>
 				<th><span>سال دریافت</span></th>
-				<th><span>عنوان ضمانتنامه</span></th>
+				<th><span>عنوان ضمانت نامه</span></th>
 				<th><span>ضمانت‌گیرنده</span></th>
 				<th><span>مبلغ (ریال)</span></th>
 				<th><span>تاریخ ابطال</span></th>
@@ -191,14 +196,18 @@ function ListDate($BID = "") {
 			</tr>
 
 			<?php
-			$activeAmount = 0;
-			$totActiveAmount = 0;
+			$activeAmount = $amount = 0;
+			$totActiveAmount = $i = 0;
 			foreach ($temp1 as $temp) {
 				$today = date("Y-m-d");
 				$activeAmount = ($temp['StatusID'] == 130 || $temp['EndDate'] < $today ) ? "0" : $temp['amount'];
 				$totActiveAmount += $activeAmount;
+				$amount += $temp['amount'];
+				$i++; 
 				?>
 				<tr>
+					<td><span><?= $i ?></span></td>
+					<td><span><?= $temp['RequestID'] ?></span></td>
 					<td><span><?= DateModules::miladi_to_shamsi($temp['StartDate']) ?></span></td>
 					<td><span><?= $temp['TypeDesc'] ?></span></td>
 					<td><span><?= $temp['organization'] ?></span></td>
@@ -210,13 +219,17 @@ function ListDate($BID = "") {
 			}
 			?>
 			<tr>
-				<td colspan="5"><span><b>جمع ضمانتنامه‌های دريافتي</b></span></td>
+				<td colspan="5"><span><b>جمع ضمانت نامه‌های دريافتي</b></span></td>
+				<td><span><b><?= number_format($amount) ?></b></span></td>
+				<td>&nbsp;</td>
 				<td><span><b><?= number_format($totActiveAmount) ?></b></span></td>
 			</tr>
 
 			<!--loan History-->
 			<tr>
 				<td rowspan="<?= $rowspan3 ?>"><span><b>سوابق تسهیلات دریافتی</b></span></td>
+				<th><span> ردیف</span></th>
+				<th><span>کد تسهیلات </span></th>
 				<th><span>سال دریافت</span></th>
 				<th><span>نوع تسهیلات</span></th>
 				<th colspan="2"><span>مبلغ (ریال)</span></th>
@@ -225,7 +238,7 @@ function ListDate($BID = "") {
 
 			<?php
 			$totPartAmount = 0;
-			$totTotalRemain = 0;
+			$totTotalRemain = $t = 0;
 			foreach ($temp2 as $temp) {
 				$RequestID = $temp["RequestID"];
 				$ReqObj = new LON_requests($RequestID);
@@ -236,7 +249,9 @@ function ListDate($BID = "") {
 				$totPartAmount += $partObj->PartAmount;
 				$totTotalRemain += $TotalRemain;
 				?>
-				<tr>
+				<tr> 
+					<td><span>$t</span></td>
+					<td><span><?= $RequestID ?></span></td>
 					<td><span><?= DateModules::miladi_to_shamsi($partObj->PartDate) ?></span></td>
 					<td><span><?= $ReqObj->_LoanDesc ?></span></td>
 					<td colspan="2"><span><?= number_format($partObj->PartAmount) ?></span></td>
@@ -246,16 +261,16 @@ function ListDate($BID = "") {
 			}
 			?>
 			<tr>
-				<td colspan="2"><span><b>جمع کل تسهیلات دريافتي</b></span></td>
+				<td colspan="4"><span><b>جمع کل تسهیلات دريافتي</b></span></td>
 				<td colspan="2"><span><b><?= number_format($totPartAmount) ?></b></span></td>
 				<td colspan="2"><span><b><?= number_format($totTotalRemain) ?></b></span></td>
 			</tr>
 			<!--required guarantee-->
 			<tr>
-				<td rowspan="<?= $rowspan4 ?>"><span><b>وثایق موردنیاز</b></span></td>
+				<td rowspan="<?= $rowspan4 ?>"><span><b>وثایق پیشنهادی مشتری</b></span></td>
 				<th colspan="1"><span>ردیف</span></th>
 				<th colspan="3"><span>نوع وثیقه</span></th>
-				<th colspan="2"><span>ارزش وثیقه (ریال)</span></th>
+				<th colspan="4"><span>ارزش وثیقه (ریال)</span></th>
 			</tr>
 			<?php
 			if (count($TypeItem) > 0 || count($AmountItem) > 0) {
@@ -267,7 +282,7 @@ function ListDate($BID = "") {
 					<tr>
 						<td><span><?= $i ?></span></td>
 						<td colspan="3"><span><?= $GuarType[$x] ?></span></td>
-						<td colspan="2"><span><?= number_format($GuarAmount[$x]) ?></span></td>
+						<td colspan="4"><span><?= number_format($GuarAmount[$x]) ?></span></td>
 					</tr>
 					<?php
 				}
@@ -280,22 +295,22 @@ function ListDate($BID = "") {
 
 			<tr>
 				<td colspan="4"><span><b>جمع کل وثایق</b></span></td>
-				<td colspan="3"><span><b><?= number_format(array_sum($GuarAmount)) ?></b></span></td>
+				<td colspan="4"><span><b><?= number_format(array_sum($GuarAmount)) ?></b></span></td>
 			</tr>
 
 			<!--additional comments and suggestions-->
 			<tr style="height: 100px;">
 				<td><b>نظرات کارشناس مالی</b></td>
-				<td colspan="6"><span><?= $_POST['CommentSuggest'] ?></td>
+				<td colspan="8"><span><?= $_POST['CommentSuggest'] ?></td>
 			</tr>
 			<!--additional comments and suggestions-->
 			<tr style="height: 100px;">
 				<td><b>نظرات مسئول مالی</b></td>
-				<td colspan="6"><span><?= $_POST['CommentSuggest2'] ?></td>
+				<td colspan="8"><span><?= $_POST['CommentSuggest2'] ?></td>
 			</tr>
 			<!--Bail Conditions-->
 			<tr>
-				<td colspan="7" style="text-align: right" ><span> 
+				<td colspan="10" style="text-align: right" ><span> 
 						<? if($ResParams[0]['param1'] == 1 ){
 						echo "<img src='/framework/icons/tick.gif' style='width:15px'>";
 
@@ -345,20 +360,20 @@ function ListDate($BID = "") {
 						</td>
 						</tr>
 						<tr>
-							<td><span><b>تکمیل‌کننده</b></span></td>
-							<td colspan="3" style="text-align: right"><span>نام و نام خانوادگی:</span></td>
-							<td colspan="3" style="text-align: right"><span>تاریخ و امضا:</span></td>
+							<td colspan="2" ><span><b>تکمیل‌کننده</b></span></td>
+							<td colspan="4" style="text-align: right"><span>نام و نام خانوادگی:</span></td>
+							<td colspan="6" style="text-align: right"><span>تاریخ و امضا:</span></td>
 						</tr>
 						<tr>
 							<td colspan="2"><span><b>نظر واحد حسابداری</b></span></td>
-							<td colspan="3" style="text-align: right"><span></span></td>
-							<td colspan="3" style="text-align: right">تاریخ و امضا:</td>
+							<td colspan="4" style="text-align: right"><span></span></td>
+							<td colspan="6" style="text-align: right">تاریخ و امضا:</td>
 
 						</tr>
 						<tr>
 							<td colspan="2"><span><b>نظر مدیرعامل</b></span></td>
-							<td colspan="3" style="text-align: right"><span></span></td>
-							<td colspan="3" style="text-align: right">تاریخ و امضا:</td>
+							<td colspan="4" style="text-align: right"><span></span></td>
+							<td colspan="6" style="text-align: right">تاریخ و امضا:</td>
 						</tr>
 		</table>
 	</div>
@@ -376,19 +391,39 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 {
 	
 	$qry = " select li.* , b.PersonID , b.BailType BailType , b.subject, b.LetterNo, 
-		bi.BailType BailType2, bi.BailValue
+		bi.BailType BailType2, bi.BailValue, bi.BIID BIID
 				from LON_IssuanceInfo li
 						  inner join  LON_BailCondition b on li.BID = b.BID 
 						  left join   LON_BailInfo bi on bi.BID = li.BID
 						  
 			 where li.IID = ? " ; 
 	$resInfo = PdoDataAccess::runquery($qry,array($_REQUEST["ObjID"])) ; 
-	 
+	
 }
 	
 
 /* require_once getenv("DOCUMENT_ROOT") . '/framework/ReportDB/Filter_person.php'; */
 ?>
+<style>
+a{
+	color: #2c6699;
+}
+a:link {
+  text-decoration: none;
+}
+
+a:visited {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:active {
+  text-decoration: underline;
+}
+</style>
 <script>
     WarrentyReport_total.prototype = {
         TabID: '<?= $_REQUEST["ExtTabID"] ?>',
@@ -399,6 +434,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 		PST: "<?= ( (!empty($_REQUEST["PST"]) && $_REQUEST["PST"] =='خام') ? '1' :  '0' )?>",
         address_prefix: "<?= $js_prefix_address ?>",
         pageIndex: 1,
+		CPID :  "<?= $_SESSION["USER"]["PersonID"]  ?>",
         get: function (elementID) {
             return findChild(this.TabID, elementID);
         }
@@ -417,7 +453,8 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
     }
 
     function WarrentyReport_total()
-    {		
+    {	
+	
         this.formPanel = new Ext.form.Panel({
             renderTo: this.get("main"),
             frame: true,
@@ -426,7 +463,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                 columns: 2
             },
             defaults: {
-                width: 365
+                width: 355
             },
             bodyStyle: "text-align:right;padding:5px",
             title: "فرم صدور ضمانت نامه",
@@ -465,7 +502,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                     name: "TypeID",
                     itemId: "TypeID",
                     allowBlank: false,
-                    fieldLabel: "نوع ضمانتنامه"
+                    fieldLabel: "نوع ضمانت نامه"
                 }, {
                     xtype: "textfield",
                     name: "contractTitle",
@@ -479,7 +516,7 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 					allowBlank: false,
 					itemId: "organization"
                 }, {
-                    xtype: "numberfield",
+                    xtype: "currencyfield",
                     name: "warAmount",
 					itemId: "warAmount",
 					allowBlank: false,
@@ -490,10 +527,10 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                     name: "warDate",
 					allowBlank: false,
 					itemId: "warDate",
-                    fieldLabel: "مدت ضمانتنامه"
+                    fieldLabel: "مدت ضمانت نامه"
                 }, {
                     xtype: "textfield",
-                    fieldLabel: "وثايق پيشنهادي",
+                    fieldLabel: "وثايق لازم",
 					allowBlank: false,
                     name: "ProposedGuarantee",
 					itemId: "ProposedGuarantee"
@@ -546,13 +583,13 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 					itemId: "EmpType"
                 },
                 {
-                    xtype: "fieldset",					
-                    title: "وثایق موردنیاز",
+                    xtype: "fieldset",
+                    title: "وثایق پیشنهادی مشتری",
                     layout: "column",
 					itemId : "fs_Guars",
                     columns: 2,
                     colspan: 2,
-                    width: 730,
+                    width: 750,
                     items: [{
                             xtype: "displayfield",
                             hideTrigger: true,							
@@ -560,7 +597,15 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                             width: 80,
                             fieldCls: "blueText",
                             value: "وثیقه [ 1 ]"
-                        }, {
+                        }, 
+						{
+							xtype: "numberfield",
+							hidden : true,	
+							width: 80,
+							name: "GuarID_1" ,
+							itemId: "GuarID_1" 						
+						},
+						{
                             xtype: "textfield",
 							allowBlank: false,
                             width: 300,
@@ -569,11 +614,11 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 							itemId: "GuarType_1"
                         },
                         {
-                            xtype: "numberfield",
+                            xtype: "currencyfield",
                             width: 300,
 							allowBlank: false,
 							hideTrigger: true,	
-                            fieldLabel: "ارزش وثیقه(به ریال)",
+                            fieldLabel: "ارزش وثیقه (ریال)" ,
                             name: "GuarAmount_1",
 							itemId: "GuarAmount_1"
                         }, {
@@ -592,38 +637,57 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                                         width: 80,
                                         fieldCls: "blueText",
                                         value: "وثیقه [ " + me.pageIndex + " ]"
-                                    }, {
+                                    },
+									{
+										xtype: "numberfield",
+										hidden : true,	
+										width: 80,
+										name: "GuarID_" + me.pageIndex ,
+										itemId: "GuarID_" + me.pageIndex						
+									}
+									, {
                                         xtype: "textfield",
                                         width: 300,
                                         fieldLabel: "نوع وثیقه",
                                         name: "GuarType_" + me.pageIndex
                                     }, {
-                                        xtype: "textfield",
+                                        xtype: "currencyfield",
                                         width: 300,
-                                        fieldLabel: "ارزش وثیقه(به ریال)",
+                                        fieldLabel: "ارزش وثیقه (ریال)",
                                         name: "GuarAmount_" + me.pageIndex
                                     }]);
                             }
                         }] 
-                }, {
+                }
+				,{
                     xtype: "textarea",
-                    width: 700,
+                    width: 750,
                     colspan: 2,
-                    fieldLabel: "نظرات کارشناس مالی",
-					allowBlank: false,
+                    fieldLabel: "نظرات کارشناس مالی",					
                     name: "CommentSuggest",
 					itemId: "CommentSuggest"
                 }
-				, {
+			, {
                     xtype: "textarea",
-                    width: 700,
+                    width: 750,
                     colspan: 2,
-                    fieldLabel: "نظرات مسئول مالی",
-					allowBlank: false,
+                    fieldLabel: "نظرات مسئول مالی",					
                     name: "CommentSuggest2",
 					itemId: "CommentSuggest2"
-                }
+			},
+			{
+                    xtype: "displayfield",
+                    hideTrigger: true,
+					allowBlank: false,
+                    labelWidth: 50,
+                    width: 400,
+                    fieldCls: "blueText",
+                    value: "<a href=javascript:void() \n\
+							onclick='WarrentyReport_totalObj.showReport()';>\n\
+							<img src='/office/icons/summary.png' width='20' height='20' > &nbsp;گزارش ارزیابی ضمانت نامه &nbsp; </a>"
 
+			}
+				
             ],
             buttons: [{
                     text: (( this.PST ==  '1' ) ? "ذخیره / ارسال" : "ذخیره" ) ,
@@ -657,14 +721,28 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
                             }
                         });
                     }
-                },
+                }/*,
                 {
-                    text: "چاپ ضمانتنامه",
+                    text: "مشاهده گزارش",
                     handler: Ext.bind(this.showReport, this),
                     iconCls: "report"
-                }]
+                }*/]
         });
-
+		
+		if(this.CPID != 3341 && this.CPID != 2265 )
+		{
+			this.formPanel.down('[itemId=CommentSuggest2]').disable() ; 
+			this.formPanel.down('[itemId=CommentSuggest]').disable() ; 
+		}
+		else if(this.CPID == 3341) 
+		{
+			this.formPanel.down('[itemId=CommentSuggest2]').disable() ; 
+		}
+		else if(this.CPID == 2265) 
+		{
+			this.formPanel.down('[itemId=CommentSuggest]').disable() ; 
+		}
+		
         this.formPanel.getEl().addKeyListener(Ext.EventObject.ENTER, function (keynumber, e) {
 
             WarrentyReport_totalObj.showReport();
@@ -672,13 +750,12 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
             e.stopEvent();
             return false;
         });
-
+		
 		if(this.ObjID > 0 ) 
 		{		
-			
-			this.formPanel.down('[itemId=PersonID]').setValue(this.PID);
-			//this.formPanel.down('[itemId=PersonID]').getStore().load();
 		
+			this.formPanel.down('[itemId=PersonID]').setValue(this.PID);
+			
 		this.formPanel.down("[name=PersonID]").getStore().load({
 			params : {
 				PersonID : this.PID
@@ -715,14 +792,21 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 				
 				if(i > 0){
 					el = this.formPanel.down("[itemId=fs_Guars]");
-					el.insert(el.items.length-1,[{
+					el.insert(el.items.length-1,[						
+						{
                             xtype: "displayfield",
                             hideTrigger: true,							
                             labelWidth: 50,
                             width: 80,
                             fieldCls: "blueText",
-                            value: "وثیقه [ 1 ]"
-                        }, {
+                            value: "وثیقه [ " + (i+1) + " ]"
+                        },{
+							xtype: "numberfield",
+                            hidden : true,	
+							width: 80,
+                            name: "GuarID_" + (i+1),
+							itemId: "GuarID_" + (i+1)						
+						}, {
                             xtype: "textfield",
 							allowBlank: false,
                             width: 300,
@@ -731,22 +815,25 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 							itemId: "GuarType_" + (i+1)
                         },
                         {
-                            xtype: "numberfield",
+                            xtype: "currencyfield",
                             width: 300,
 							allowBlank: false,
 							hideTrigger: true,	
-                            fieldLabel: "ارزش وثیقه(به ریال)",
+                            fieldLabel: "ارزش وثیقه (ریال)",
                             name: "GuarAmount_" + (i+1),
 							itemId: "GuarAmount_" + (i+1)
-                        }]);
-				}
-			
+                        }
+						]);
+				}		
 				
+				this.formPanel.down('[name=GuarID_'+ (i+1) +']').setValue("<?= $resInfo[$i]["BIID"] ?>");
 				this.formPanel.down('[name=GuarType_'+ (i+1) +']').setValue("<?= $resInfo[$i]["BailType2"] ?>");
 				this.formPanel.down('[name=GuarAmount_'+ (i+1) +']').setValue("<?= $resInfo[$i]["BailValue"]?>");				
 			<?php			
 			}
 			?>
+
+			
 		}
 		else {
 	
@@ -779,6 +866,10 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 
 			this.formPanel.down('[itemId=CommentSuggest]').setValue("<?= $_REQUEST["EC"] ?>");
 			this.formPanel.down('[itemId=CommentSuggest2]').setValue("<?= $_REQUEST["EC2"] ?>");
+			
+
+	
+	
 		}
 		
     }
