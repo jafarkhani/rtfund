@@ -25,7 +25,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
             },
             collapsible: true,
             frame: true,
-            title: 'چک لیست امکان صدور ضمانت نامه',
+            title: 'فرم امکان صدور ضمانت نامه',
             bodyPadding: '2 2 0',
             width: 680,
             fieldDefaults: {
@@ -44,7 +44,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
                         },
                         fields: ['PersonID', 'fullname']
 						}),
-						fieldLabel: "نام شخص حقيقي/حقوقي",
+						fieldLabel: "نام شخص حقيقي/ حقوقي",
 						displayField: "fullname",
 						pageSize: 20,
 						width: 400,
@@ -68,13 +68,13 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 						allowBlank: false,
 						width: 350,
 						colspan: 2,
-						fieldLabel: "نوع ضمانتنامه"
+						fieldLabel: "نوع ضمانت نامه"
 					},
 					{
 						xtype: "textfield",
 						name: "subject",
 						colspan: 2,
-						width: 460,
+						width: 600,
 						fieldLabel: "موضوع قرارداد"
 					},{
 						xtype: "textfield",
@@ -84,7 +84,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 					},
 					{
 						xtype: 'checkbox',
-						boxLabel: 'مبلغ ضمانت‌نامه‌های درخواستی کمتر از 80% سرمایه صندوق است',						
+						boxLabel: 'مبلغ ضمانت‌نامه‌های درخواستی کمتر از 80% سرمایه صندوق است.[بند6-5 آیین نامه صدور ضمانت نامه]',						
 						style: 'margin:10px',
 						colspan: 2,
 						name: 'param1',
@@ -92,7 +92,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 					},
 					{
 						xtype: 'checkbox',
-						boxLabel: ' مجموع ضمانت‌نامه‌های فعال شرکت از 50% سرمایه صندوق کمتر است.   ',						
+						boxLabel: ' مجموع ضمانت‌نامه‌های فعال شرکت از 50% سرمایه صندوق کمتر است. [بند 6-2 آیین نامه صدور ضمانت نامه/تبصره 2]   ',						
 						style: 'margin:10px',
 						colspan: 2,
 						name: 'param2',
@@ -100,7 +100,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 					},
 					{
 						xtype: 'checkbox',
-						boxLabel: 'مجموع ضمانت‌نامه‌های صادره فعال صندوق کمتر از 12 برابر سرمایه صندوق است.   ',						
+						boxLabel: 'مجموع ضمانت‌نامه‌های صادره فعال صندوق کمتر از 12 برابر سرمایه صندوق است. [بند6-5 آیین نامه صدور ضمانت نامه]  ',						
 						style: 'margin:10px',
 						colspan: 2,
 						name: 'param3',
@@ -108,7 +108,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 					},
 					{
 						xtype: 'checkbox',
-						boxLabel: 'مجموع ضمانت‌نامه‌های فعالی که یکی از ضامنین آن هیات‌مدیره شرکت درخواست‌کننده است، کمتر از 15 میلیاردریال است. ',						
+						boxLabel: 'مجموع ضمانت‌نامه‌های فعالی که یکی از ضامنین آن هیات‌مدیره شرکت درخواست‌کننده است، کمتر از 15 میلیاردریال است. [آیین نامه تضامین پیوست جدول 3 یادآوری(مصوبه 188-7)]',						
 						style: 'margin:10px',
 						colspan: 2,
 						name: 'param4',
@@ -116,7 +116,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 					},
 					{
 						xtype: 'checkbox',
-						boxLabel: 'تعداد ضمانت‌نامه‌های صادره برای هر ضمانت‌خواه حداکثر 30% تعداد کل ضمانت‌نامه‌های صادره باشد.   ',						
+						boxLabel: 'تعداد ضمانت‌نامه‌های صادره برای هر ضمانت‌خواه حداکثر 30% تعداد کل ضمانت‌نامه‌های صادره باشد. [نامه 20713]  ',						
 						style: 'margin:10px',
 						colspan: 2,
 						name: 'param5',
@@ -188,7 +188,7 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
         this.formPanel.center();
     }
 
-
+/*
     WelfareCenters.opRender = function (value, p, record)
     {
         var st = "";
@@ -208,6 +208,32 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
 
         return st;
     }
+*/	
+	WelfareCenters.OperationRender = function(value, p, record){
+	
+		return "<div  title='عملیات' class='setting' onclick='WelfareCentersObject.OperationMenu(event);' " +
+			"style='background-repeat:no-repeat;background-position:center;" +
+			"cursor:pointer;width:100%;height:16'></div>";
+	}
+	
+	WelfareCenters.prototype.OperationMenu = function(e){
+
+		record = this.grid.getSelectionModel().getLastSelected();
+		var op_menu = new Ext.menu.Menu();
+
+		op_menu.add({text: 'صدور معرفی نامه',iconCls: 'sign', 
+					 handler : function(){ return WelfareCentersObject.IssueWarrenty(); }});		
+		op_menu.add({text: 'حذف اطلاعات',iconCls: 'remove', 
+					 handler : function(){ return WelfareCentersObject.deleteWFC(); }});
+		op_menu.add({text: 'ویرایش اطلاعات',iconCls: 'edit', 
+					 handler : function(){ return WelfareCentersObject.editWFC(); }});
+	
+		op_menu.add({text: 'سابقه درخواست',iconCls: 'history', 
+			handler : function(){ return WelfareCentersObject.ShowHistory(); }});
+
+		op_menu.showAt(e.pageX-120, e.pageY);
+	}
+
 
     WelfareCenters.prototype.IssueWarrenty = function ()
     {		
@@ -219,16 +245,18 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
                     PID: record.data.PersonID,
                     BT: record.data.BailType,
 					ST: record.data.subject,
-					LNo:record.data.LetterNo,
+					LetterNo:record.data.LetterNo,
 					RG:record.data.RelatedOrg,
 					AM:record.data.amount,
 					DU:record.data.duration,
 					SB:record.data.SugBail,
 					CO: record.data.comments,
 					EC:record.data.ExtraComments,
+					EC2:record.data.ExtraComments2,
 					KB:record.data.KnowledgeBase,
 					ET:record.data.EmpType,
-					ObjID : 0 
+					PST:record.data.ProcessStatus,
+					ObjID : record.data.IID 
                 });
     }
 
@@ -275,6 +303,51 @@ InputValidation::validate($_REQUEST["ExtTabID"], InputValidation::Pattern_EnAlph
             }
         });
     }
+	
+	
+	WelfareCenters.prototype.ShowHistory = function(){
+		
+		record = this.grid.getSelectionModel().getLastSelected();
+		
+		if(!this.HistoryWin)
+		{
+			this.HistoryWin = new Ext.window.Window({
+				title: 'سابقه گردش',
+				modal : true,
+				autoScroll : true,
+				width: 700,
+				height : 500,
+				closeAction : "hide",
+				loader : {
+					url : this.address_prefix + "../../office/workflow/history.php",
+					method : "post",
+					params : {
+							FlowID : 95,
+							ObjectID : record.data.IID ,
+							TrackHis : 1 
+					},
+					scripts : true
+				},
+				buttons : [{
+						text : "بازگشت",
+						iconCls : "undo",
+						handler : function(){
+							this.up('window').hide();
+						}
+					}]
+			});
+			Ext.getCmp(this.TabID).add(this.HistoryWin);
+		}
+		this.HistoryWin.show();
+		this.HistoryWin.center();
+		this.HistoryWin.loader.load({
+			params : {
+				FlowID : 95,
+				ObjectID : WelfareCentersObject.grid.getSelectionModel().getLastSelected().data.IID ,
+				TrackHis : 1 
+			}
+		});
+	}
 
 </script>
 
