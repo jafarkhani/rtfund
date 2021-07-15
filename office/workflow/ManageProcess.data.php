@@ -8,6 +8,7 @@ require_once '../header.inc.php';
 require_once inc_response;
 require_once inc_dataReader;
 require_once 'TreeModules.class.php';
+require_once 'wfm.class.php';
 
 
 $task = isset($_POST["task"]) ? $_POST["task"] : (isset($_GET["task"]) ? $_GET["task"] : "");
@@ -25,6 +26,12 @@ switch ($task)
 	
 	case "PersonStore" :
 		  PersonStore() ;
+		
+	case "DeleteFolder" :
+		  DeleteFolder() ; 
+	
+	case "selectPrc" :
+		  selectPrc() ; 
 		
 	    
 }
@@ -115,6 +122,24 @@ function JobStore() {
 	}
 	
 	$dt = PdoDataAccess::runquery(" select JobID,concat(JobID,'-',PostName) title from BSC_jobs join BSC_posts using(PostID) " , array());
+	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
+	die();
+}
+
+function DeleteFolder(){
+	
+	$FolderID = $_POST["FolderID"];	
+	$result = WFM_FlowSteps::RemoveFlowStep($FolderID);
+	
+	echo Response::createObjectiveResponse($result, "");
+	die();
+}
+
+function selectPrc(){
+	
+	$dt = PdoDataAccess::runquery(" select  param5 InfoID  , InfoDesc, param4 , param6 SubProcessTitle
+									from BaseInfo
+									where TypeID=11 and param7 = 1 ");
 	echo dataReader::getJsonData($dt, count($dt), $_GET["callback"]);
 	die();
 }
