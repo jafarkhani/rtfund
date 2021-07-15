@@ -17,6 +17,7 @@ class manage_BailCondition extends PdoDataAccess {
 	public $param4;
 	public $param5;
 	public $LetterNo ; 
+	public $ReqDate ; 
 
 	function __construct($BID = "") {
 
@@ -35,14 +36,21 @@ class manage_BailCondition extends PdoDataAccess {
 
 	static function GetAll($where, $whereParams = array()) {
 
-		$query = " select  bc.* , li.RelatedOrg, amount , duration , SugBail , comments , ExtraComments , "
-				. "		   KnowledgeBase , EmpType , bi.InfoDesc BailTypeTitle ,  concat_ws(' ',fname,lname,CompanyName)  AS fullname  "
+		$query = " select  bc.* ,li.IID ,  li.RelatedOrg, li.amount , li.duration , li.SugBail , li.comments , li.ExtraComments ,li.ExtraComments2 , "
+				. "		   li.KnowledgeBase , li.EmpType , bi.InfoDesc BailTypeTitle ,  concat_ws(' ',fname,lname,CompanyName)  AS fullname ,"
+				. "		   if( wf.IsEnded = 'YES', 'خاتمه یافته' , if(t.ob = 1 ,'ارسال شده',if(t.ObjectID is null ,'خام','جاری' )) )  ProcessStatus "
 				. "	from LON_BailCondition bc "
 				. "	left join BSC_persons p on(p.PersonID=bc.PersonID) "
 				. " left join LON_IssuanceInfo li on bc.BID = li.BID "
-				. " inner join BaseInfo bi on bi.typeID=74 AND bi.IsActive='YES' AND bi.InfoID = bc.BailType " . $where;
+				. " inner join BaseInfo bi on bi.typeID=74 AND bi.IsActive='YES' AND bi.InfoID = bc.BailType "
+				. " left join ( SELECT ObjectID , count(ObjectID) ob ,Max(RowID) RID, IsEnded , IsLastRow 
+								FROM WFM_FlowRows
+								where FlowID = 95
+								group by ObjectID ) t  on li.IID = t.ObjectID 
+					left join WFM_FlowRows wf on wf.RowID = t.RID " . $where;
 		$temp = parent::runquery($query, $whereParams);
 		
+	 
 		for($i=0;$i<count($temp);$i++){
 			
 			if( $temp[$i]['param1'] == 1 && $temp[$i]['param2'] == 1 && 
@@ -66,6 +74,7 @@ class manage_BailCondition extends PdoDataAccess {
 	}
 
 	function Add() {
+		
 		$return = parent::insert("LON_BailCondition", $this);
 
 		if ($return === false)
@@ -98,17 +107,20 @@ class manage_BailCondition extends PdoDataAccess {
 		return true;
 	}
 
-	static function Remove($WCID) {
+	static function Remove($BID) {
 
-		$result = parent::delete("HTL_WelfareCenters", "WCID=:WCID ", array(":WCID" => $WCID));
-
+		$result = parent::delete("LON_BailCondition", "BID=:BID ", array(":BID" => $BID));
+		if ($result === false)
+			return false;
+		
+		$result = parent::delete("LON_IssuanceInfo", "BID=:BID ", array(":BID" => $BID));
 		if ($result === false)
 			return false;
 
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_delete;
-		$daObj->MainObjectID = $WCID;
-		$daObj->TableName = "cost_centers";
+		$daObj->MainObjectID = $BID;
+		$daObj->TableName = "LON_BailCondition";
 		$daObj->execute();
 
 		return true;
