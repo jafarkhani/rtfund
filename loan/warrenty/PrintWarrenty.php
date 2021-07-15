@@ -106,7 +106,7 @@ for ($i = 0; $i < count($contentArr); $i++) {
 			</div>
 			<div class='context' style="height: 600px">
 				<?= $content ?>
-				<center><div class='sign' align="center"><br><br>
+				<center <? echo ($ReqObj->TypeID == 3 || $ReqObj->TypeID == 7) ? "style='margin-top:-50px'" : ""?>><div class='sign' align="center"><br><br>
 					صندوق پژوهش و فناوری خراسان رضوی<br><br>
 					<div style="float: right" >مدیر عامل  </div>
 					<div style="float: left" >عضو هیات مدیره  </div>
