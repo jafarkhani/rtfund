@@ -340,6 +340,236 @@ function SaveDocReal() {
 }
 //...............................................................................
 
+//............for upload basic doc in portal.....................................
+function SaveDocNotReal() {
+	/*var_dump($_POST);
+    echo '<br>';
+    var_dump($_FILES);*/
+	foreach($_FILES as $name => $file)
+	{
+		$num = substr($name, strrpos($name, '-' )+1);
+		if(!empty($file["tmp_name"]))
+		{
+			$st = preg_split("/\./", $file["name"]);
+			$extension = strtolower($st [count($st) - 1]);
+			if (in_array($extension, array("jpg", "jpeg", "gif", "png", "pdf",
+					"xls", "xlsm", "xlsx", "csv", "doc", "docx", "rar", "zip")) === false)
+			{
+				Response::createObjectiveResponse(false, "فرمت فایل ارسالی نامعتبر است");
+				die();
+			}
+		}
+	}
+	/*echo $num;
+    echo '<br>';*/
+	//..............................................
+
+	$obj = new DMS_documents();
+	PdoDataAccess::FillObjectByArray($obj, $_POST);
+	$obj->ObjectID = $_POST["ObjectID"];
+	$obj->ObjectID2 = isset($_POST["ObjectID2"]) ? $_POST["ObjectID2"] : "0";
+	$obj->ObjectType = $_POST["ObjectType"];
+	$obj->DocType = 144;
+
+	if($obj->DocMode == "ELEC")
+		$obj->place = PDONULL;
+
+	if (empty($obj->DocumentID))
+	{
+		$result = $obj->AddDocument();
+		//new added
+		$exitDocumentID = $result[1][0];
+		$obj->DocumentID = $exitDocumentID;
+		//end new added
+	}
+	else
+	{
+		$oldObj = new DMS_documents($obj->DocumentID);
+		if($oldObj->IsConfirm == "YES")
+		{
+			echo Response::createObjectiveResponse(false, "");
+			die();
+		}
+		$obj->IsConfirm = "NOTSET";
+
+		$result = $obj->EditDocument();
+	}
+	if(!$result)
+	{
+		//print_r(ExceptionHandler::PopAllExceptions());
+		echo Response::createObjectiveResponse($result, "");
+		die();
+	}
+
+	//----------------------------------------
+	foreach($_FILES as $name => $file)
+	{
+		/*echo '<br>';
+        var_dump('name = '.$name);
+        echo '<br>';
+        var_dump($file);
+        echo '<br>';*/
+		if(empty($file["tmp_name"]))
+			continue;
+
+		$strNum = substr($name, strrpos($name, '-' )+1);
+		for ($i=1; $i<=$num; $i++){
+
+			if ($strNum == $i){
+				/*echo $i;
+                echo '<br>';*/
+				$st = preg_split("/\./", $file["name"]);
+				$extension = strtolower($st [count($st) - 1]);
+
+				$obj2 = new DMS_DocFiles();
+				$obj2->DocumentID = $obj->DocumentID;
+				$PNo = str_replace("baseDoc_", "", $name);
+				$obj2->PageNo = str_replace("baseDoc_", "", $name);
+				$obj2->PageNo = ($obj2->PageNo)+(2*($i-1));
+				$obj2->PageNo = $obj2->PageNo*1 == 0 ? 1 : $obj2->PageNo;
+				$obj2->FileType = $extension;
+				$obj2->FileContent = substr(fread(fopen($file['tmp_name'], 'r'), $file['size']), 0, 200);
+
+				$dt = PdoDataAccess::runquery("select RowID from DMS_DocFiles where DocumentID=? AND PageNo=?",
+					array($obj2->DocumentID, $obj2->PageNo));
+
+				foreach($dt as $row)
+					DMS_DocFiles::DeletePage($row["RowID"]);
+				/*var_dump($obj2);*/
+				$obj2->AddPage();
+
+				$fp = fopen(getenv("DOCUMENT_ROOT") . "/storage/documents/". $obj2->RowID . "." . $extension, "w");
+				fwrite($fp, substr(fread(fopen($file['tmp_name'], 'r'), $file['size']),200) );
+				fclose($fp);
+			}
+
+		}
+		/*$st = preg_split("/\./", $file["name"]);
+        $extension = strtolower($st [count($st) - 1]);
+
+        $obj2 = new DMS_DocFiles();
+        $obj2->DocumentID = $obj->DocumentID;
+        $PNo = str_replace("baseDoc_", "", $name);
+        $obj2->PageNo = str_replace("baseDoc_", "", $name);
+        $obj2->PageNo = $obj2->PageNo*1 == 0 ? 1 : $obj2->PageNo;
+        $obj2->FileType = $extension;
+        $obj2->FileContent = substr(fread(fopen($file['tmp_name'], 'r'), $file['size']), 0, 200);
+
+        $dt = PdoDataAccess::runquery("select RowID from DMS_DocFiles where DocumentID=? AND PageNo=?",
+            array($obj2->DocumentID, $obj2->PageNo));
+
+        foreach($dt as $row)
+            DMS_DocFiles::DeletePage($row["RowID"]);
+
+        $obj2->AddPage();
+
+        $fp = fopen(getenv("DOCUMENT_ROOT") . "/storage/documents/". $obj2->RowID . "." . $extension, "w");
+        fwrite($fp, substr(fread(fopen($file['tmp_name'], 'r'), $file['size']),200) );
+        fclose($fp);*/
+	}
+
+	//print_r(ExceptionHandler::PopAllExceptions());
+	echo Response::createObjectiveResponse($result, "");
+	die();
+
+
+
+}
+function SaveDocReal() {
+	/*var_dump($_POST);
+    echo '<br>';
+    var_dump($_FILES);*/
+	foreach($_FILES as $file)
+	{
+		if(!empty($file["tmp_name"]))
+		{
+			$st = preg_split("/\./", $file["name"]);
+			$extension = strtolower($st [count($st) - 1]);
+			if (in_array($extension, array("jpg", "jpeg", "gif", "png", "pdf",
+					"xls", "xlsm", "xlsx", "csv", "doc", "docx", "rar", "zip")) === false)
+			{
+				Response::createObjectiveResponse(false, "فرمت فایل ارسالی نامعتبر است");
+				die();
+			}
+		}
+	}
+	//..............................................
+
+	$obj = new DMS_documents();
+	PdoDataAccess::FillObjectByArray($obj, $_POST);
+	$obj->ObjectID = $_POST["ObjectID"];
+	$obj->ObjectID2 = isset($_POST["ObjectID2"]) ? $_POST["ObjectID2"] : "0";
+	$obj->ObjectType = $_POST["ObjectType"];
+	$obj->DocType = 144;
+
+	if($obj->DocMode == "ELEC")
+		$obj->place = PDONULL;
+	/*var_dump($obj);*/
+	if (empty($obj->DocumentID))
+	{
+		$result = $obj->AddDocument();
+		//new added
+		$exitDocumentID = $result[1][0];
+		$obj->DocumentID = $exitDocumentID;
+		//end new added
+	}
+	else
+	{
+		$oldObj = new DMS_documents($obj->DocumentID);
+		if($oldObj->IsConfirm == "YES")
+		{
+			echo Response::createObjectiveResponse(false, "");
+			die();
+		}
+		$obj->IsConfirm = "NOTSET";
+
+		$result = $obj->EditDocument();
+	}
+	if(!$result)
+	{
+		//print_r(ExceptionHandler::PopAllExceptions());
+		echo Response::createObjectiveResponse($result, "");
+		die();
+	}
+
+	//----------------------------------------
+	foreach($_FILES as $name => $file)
+	{
+		if(empty($file["tmp_name"]))
+			continue;
+
+		$st = preg_split("/\./", $file["name"]);
+		$extension = strtolower($st [count($st) - 1]);
+
+		$obj2 = new DMS_DocFiles();
+		$obj2->DocumentID = $obj->DocumentID;
+		$obj2->PageNo = str_replace("baseDoc_", "", $name);
+		$obj2->PageNo = $obj2->PageNo*1 == 0 ? 1 : $obj2->PageNo;
+		$obj2->FileType = $extension;
+		$obj2->FileContent = substr(fread(fopen($file['tmp_name'], 'r'), $file['size']), 0, 200);
+
+		$dt = PdoDataAccess::runquery("select RowID from DMS_DocFiles where DocumentID=? AND PageNo=?",
+			array($obj2->DocumentID, $obj2->PageNo));
+
+		foreach($dt as $row)
+			DMS_DocFiles::DeletePage($row["RowID"]);
+
+		$obj2->AddPage();
+
+		$fp = fopen(getenv("DOCUMENT_ROOT") . "/storage/documents/". $obj2->RowID . "." . $extension, "w");
+		fwrite($fp, substr(fread(fopen($file['tmp_name'], 'r'), $file['size']),200) );
+		fclose($fp);
+	}
+
+	//print_r(ExceptionHandler::PopAllExceptions());
+	echo Response::createObjectiveResponse($result, "");
+	die();
+
+
+
+}
+//...............................................................................
+
 function SaveDocument() {
 
 	foreach($_FILES as $file)
