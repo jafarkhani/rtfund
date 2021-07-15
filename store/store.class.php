@@ -72,6 +72,8 @@ class STO_Assets extends OperationClass {
     public $details;
     public $BuyDate;
     public $StatusID;
+    public $NetPeriod; //new added
+    public $NetMethod; //new added
 
     function __construct($AssetID = "") {
 	
@@ -96,6 +98,78 @@ class STO_Assets extends OperationClass {
         return parent::runquery_fetchMode($query, $whereParam, $pdo);
     }
 }
+
+//new added
+class STO_AssetEvent extends OperationClass{
+
+    const TableName = "STO_AssetEvent";
+    const TableKey = "eventID";
+
+    public $eventID;
+    public $AssetID;
+    public $actionType;
+    public $actionDesc;
+    public $referDate;
+    public $actionDate;
+    public $actionPID;
+    public $FollowUpDate;
+    public $FollowUpPID;
+    public $FollowUpDesc;
+    public $RegPID;
+
+    function __construct($id = ""){
+
+        $this->DT_referDate = DataMember::CreateDMA(DataMember::DT_DATE);
+        $this->DT_actionDate = DataMember::CreateDMA(DataMember::DT_DATE);
+        $this->DT_FollowUpDate = DataMember::CreateDMA(DataMember::DT_DATE);
+
+        parent::__construct($id);
+    }
+
+    static function Get($where = '', $whereParams = array(), $pdo = null) {
+
+        return PdoDataAccess::runquery_fetchMode("
+			select e.*, concat_ws(' ',p1.CompanyName,p1.fname,p1.lname) actionFullname, 
+				concat_ws(' ',p2.CompanyName,p2.fname,p2.lname) FollowUpFullname,
+				concat_ws(' ',p3.CompanyName,p3.fname,p3.lname) RegFullname
+			from STO_AssetEvent e 
+				left join BSC_persons p1 on(p1.PersonID = e.actionPID)
+				left join BSC_persons p2 on(p2.PersonID = e.FollowUpPID)
+				left join BSC_persons p3 on(p3.PersonID = e.RegPID)
+			where 1=1 " . $where, $whereParams, $pdo);
+    }
+}
+class STO_AssetNet extends OperationClass{
+
+    const TableName = "STO_AssetNet";
+    const TableKey = "netID";
+
+    public $netID;
+    public $AssetID;
+    public $NetPeriod;
+    public $NetMethod;
+    public $RegPID;
+    public $RegDate;
+
+    function __construct($id = ""){
+
+        $this->DT_RegDate = DataMember::CreateDMA(DataMember::DT_DATE);
+
+        parent::__construct($id);
+    }
+
+    static function Get($where = '', $whereParams = array(), $pdo = null) {
+
+        return PdoDataAccess::runquery_fetchMode("
+			select n.*, concat_ws(' ',p1.CompanyName,p1.fname,p1.lname) RegFullname 
+				
+			from STO_AssetNet n 
+				left join BSC_persons p1 on(p1.PersonID = n.RegPID)
+				
+			where 1=1 " . $where, $whereParams, $pdo);
+    }
+}
+
 
 class STO_AssetProperties extends OperationClass {
 

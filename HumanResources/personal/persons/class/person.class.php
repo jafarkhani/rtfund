@@ -128,7 +128,6 @@ public $employ_date; //new added
 		             
         $query .= ($where != "") ? " AND " . $where : "";
             
-		parent::runquery($query,$whereParam);
 	
 	return parent::runquery($query,$whereParam);
 	}
@@ -292,7 +291,9 @@ public $employ_date; //new added
 	 }
 	 
 	function EditPerson()
-	{    
+	{   
+		
+		
 	 	$whereParams = array();
 	 	$whereParams[":pid"] = $this->PersonID;
 
@@ -306,11 +307,14 @@ public $employ_date; //new added
 				return false;
 			}			
 					
-				/*	PdoDataAccess::update("HRM_persons",$this," PersonID=:pid", $whereParams) ; 
-					echo PdoDataAccess::GetLatestQueryString() ;
-die() ;*/
-	 	if(PdoDataAccess::update("HRM_persons",$this," PersonID=:pid", $whereParams) === false)
-	 		return false;
+					
+	 	if(PdoDataAccess::update("HRM_persons",$this," PersonID=:pid", $whereParams) === false) {
+		
+			echo PdoDataAccess::GetLatestQueryString() ;
+			die();
+			return false;
+		
+		}
 
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_update;

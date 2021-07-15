@@ -33,7 +33,18 @@ switch ($task) {
 	case "SelectAllAssetFlow":
 	case "SaveFlow":
 	case "DeleteFlow":
-		
+
+
+    //new added
+    case "GetEvents";
+    case "SaveEvents";
+    case "DeleteEvents";
+
+    case "GetNets";
+    case "SaveNets";
+    case "DeleteNets";
+        //end new added
+
 		$task();
 };
 
@@ -279,5 +290,84 @@ function DeleteFlow() {
     Response::createObjectiveResponse($result, '');
     die();
 }
+
+//........new added....................................
+
+function GetEvents(){
+
+    $temp = STO_AssetEvent::Get("AND AssetID=?", array($_REQUEST["AssetID"]));
+    //print_r(ExceptionHandler::PopAllExceptions());
+    $res = $temp->fetchAll();
+    echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
+    die();
+}
+
+function SaveEvents(){
+    $obj = new STO_AssetEvent();
+    PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
+
+    if(empty($obj->FollowUpPID))
+        $obj->FollowUpPID = $_SESSION["USER"]["PersonID"];
+
+    if(empty($obj->eventID))
+    {
+        $obj->RegPID = $_SESSION["USER"]["PersonID"];
+        $result = $obj->Add();
+    }
+    else
+        $result = $obj->Edit();
+
+    echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+    die();
+}
+
+function DeleteEvents(){
+
+    $obj = new STO_AssetEvent();
+    $obj->eventID = $_POST["eventID"];
+    $result = $obj->Remove();
+    echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+    die();
+}
+
+
+function GetNets(){
+
+    $temp = STO_AssetNet::Get("AND AssetID=?", array($_REQUEST["AssetID"]));
+    //print_r(ExceptionHandler::PopAllExceptions());
+    $res = $temp->fetchAll();
+
+    echo dataReader::getJsonData($res, $temp->rowCount(), $_GET["callback"]);
+    die();
+}
+
+function SaveNets(){
+
+    $obj = new STO_AssetNet();
+    PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);
+
+    if(empty($obj->eventID))
+    {
+        $obj->RegPID = $_SESSION["USER"]["PersonID"];
+        $obj->RegDate = PDONOW;
+        $result = $obj->Add();
+    }
+    else
+        $result = $obj->Edit();
+
+    echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+    die();
+}
+
+function DeleteNets(){
+
+    $obj = new STO_AssetNet();
+    $obj->netID = $_POST["netID"];
+    $result = $obj->Remove();
+    echo Response::createObjectiveResponse($result, ExceptionHandler::GetExceptionsToString());
+    die();
+}
+
+//---------end new added-------------------------------
 
 ?>

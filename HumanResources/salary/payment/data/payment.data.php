@@ -206,7 +206,7 @@ function confirmation() {
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
 			}
-			if (!ImportDoc::RegisterSalaryDoc($obj, $pdo)) { 
+			if (!RegisterSalaryDoc($obj, $pdo)) {
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
@@ -221,7 +221,7 @@ function confirmation() {
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
 			}
-			if (!ImportDoc::ReturnSalaryDoc($obj, $pdo)) {
+			if (!ReturnSalaryDoc($obj, $pdo)) {
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
@@ -232,7 +232,7 @@ function confirmation() {
 			
 		//------------- pay salary -------------
 		case "4":
-			if (!ImportDoc::RegisterPaySalaryDoc($obj, $pdo)) {
+			if (!RegisterPaySalaryDoc($obj, $pdo)) {
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();
@@ -243,7 +243,7 @@ function confirmation() {
 		
 		//------------- return pay salary -------------
 		case "3":
-			if (!ImportDoc::ReturnPaySalaryDoc($obj, $pdo)) {
+			if (!ReturnPaySalaryDoc($obj, $pdo)) {
 				//print_r(ExceptionHandler::PopAllExceptions());
 				echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
 				die();

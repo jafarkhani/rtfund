@@ -1430,25 +1430,17 @@ class LON_Computes extends PdoDataAccess{
 
 		/*@var $partObj LON_ReqParts */
 		
-		/*if(!empty($ComputeDate))
+		$LastPay = LON_payments::GetLastPayDate($partObj->RequestID);
+		$ComputeDate = DateModules::miladi_to_shamsi($LastPay);
+		$amount = LON_requests::GetPurePayedAmount($partObj->RequestID, $partObj, true);
+		if($amount === false)
 		{
-			$dt = LON_requests::GetPureAmount($partObj->RequestID, null, null, 
-					DateModules::shamsi_to_miladi($ComputeDate, "-"));
-			$amount = $dt["PureAmount"];
+			return false;
 		}
-		else
-		{*/
-			$LastPay = LON_payments::GetLastPayDate($partObj->RequestID);
-			$ComputeDate = DateModules::miladi_to_shamsi($LastPay);
-			$amount = LON_requests::GetPurePayedAmount($partObj->RequestID, $partObj, true);
-			if($amount === false)
-			{
-				return false;
-			}
-			if($amount > $partObj->PartAmount)
-				$amount = $partObj->PartAmount;
-			$TotalPureAmount = $amount;
-		/*}*/
+		if($amount > $partObj->PartAmount)
+			$amount = $partObj->PartAmount;
+		$TotalPureAmount = $amount;
+
 		//------------- compute percents of each installment amount ----------------
 		$zarib = 1;
 		$sum = 0;
@@ -1506,58 +1498,112 @@ class LON_Computes extends PdoDataAccess{
 			$x = round($amount*$paymentZarib - $totalSubs)*$zarib;
 
 		//-------  update installment Amounts ------------
+		$totalInstallmentAmounts = 0;
 		for($i=0; $i<count($installmentArray);$i++)
 		{
 			if($ComputeWage == "YES")
 				$installmentArray[$i]["InstallmentAmount"] = $x*$installmentArray[$i]["percent"];
 			else if($i == count($installmentArray)-1)
 				$installmentArray[$i]["InstallmentAmount"] = $x;
+			
+			$totalInstallmentAmounts += $installmentArray[$i]["InstallmentAmount"];
 		}
+		$totalWage = $totalInstallmentAmounts - $partObj->PartAmount;
 		//------ compute wages of installments -----------
 		
-		// compute wage for payment steps 
-		$paymentWage = 0;
-		$TotalPayedAmount = $pays[0]["PurePayAmount"];
-		if(count($pays) > 1)
-		{
+		if($partObj->RequestID == "2572" ){
+			$index = 0;
+			$payindex = 1;
+			$U = $N = $totalWage;
 			$pays = array_reverse($pays);
-			$total = 0;
-			$totalZ = 0;
-			for($i=0; $i<count($pays)-1; $i++)
-			{
-				if($i == 0)
-					$total += $pays[$i]["PurePayAmount"] ;//- $result["CustomerDelay"];
-				else
-					$total += $pays[$i]["PurePayAmount"];
+			$currentRow = $pays[0];
+			$supposePay = true;
+			$R = $B = 0;
+			while($index < count($installmentArray)){
+
+				$nextInst = &$installmentArray[$index];
+				$nextPay = $payindex >= count($pays) ? null : $pays[$payindex];
+				$nextSupposedPay = $nextPay && $nextPay["PurePayDate"] < DateModules::shamsi_to_miladi($nextInst["InstallmentDate"],"-") ? true : false;
 				
-				$days = DateModules::GDateMinusGDate($pays[$i+1]["PurePayDate"], $pays[$i]["PurePayDate"]);
-				$Z = ($total + $totalZ)*$partObj->CustomerWage*$days/36500;
-				$totalZ += $Z;
-				$paymentWage += $Z;
-				$TotalPayedAmount += $pays[$i]["PurePayAmount"];
+				$startdate = $nextSupposedPay ? $nextPay["PurePayDate"] : DateModules::shamsi_to_miladi($nextInst["InstallmentDate"], "-");
+				$enddate = $supposePay ? $currentRow["PurePayDate"] : DateModules::shamsi_to_miladi($currentRow["InstallmentDate"], "-");
+				$days = DateModules::GDateMinusGDate( $startdate, $enddate);
+
+				$B = $supposePay ? $B + $currentRow["PurePayAmount"] : $B - $currentRow["InstallmentAmount"] + $currentRow["PureWage"];
+				$U = $supposePay ? $U : $U - $currentRow["PureWage"];
+				$N = $supposePay ? $N - $R : $U;
+				$i = $partObj->CustomerWage*$days/36500;
+
+				$R = ($B + $U - $N)*$i;
+
+				if($nextSupposedPay){
+					$payObj = new LON_payments($nextPay["PayID"]);
+					$payObj->PayIncome = $R;
+					$payObj->Edit();
+				}
+
+				if(!isset($nextInst["PureWage"]))
+					$nextInst["PureWage"] = 0;
+				$nextInst["PureWage"] += $R;
+
+				if(!$nextSupposedPay){
+					$index++;
+				}
+				else{
+					$payindex++;
+				}
+				$currentRow = $nextSupposedPay ? $nextPay : $nextInst;
+				$supposePay = $nextSupposedPay;
 			}
 		}
-		$paymentWage = round($paymentWage);
-		//................................
-		$remainPure = $TotalPayedAmount;
-		$totalWage = 0;
-		$totalInstallmentAmounts = 0;
-		for($i=0; $i < count($installmentArray); $i++)
-		{
-			$days = DateModules::JDateMinusJDate($installmentArray[$i]["InstallmentDate"],$ComputeDate);
+		else {
+		
+		
 
-			if($i == 0)
-				$installmentArray[$i]["PureWage"] = round(
-					($remainPure + $paymentWage)*
-					$partObj->CustomerWage*$days/36500) + $paymentWage;   
-			else
-				$installmentArray[$i]["PureWage"] = round(
-					$remainPure*$partObj->CustomerWage*$days/36500);  
-			
-			$remainPure -= $installmentArray[$i]["InstallmentAmount"] - $installmentArray[$i]["PureWage"];
-			$ComputeDate  = $installmentArray[$i]["InstallmentDate"];
-			$totalWage += $installmentArray[$i]["PureWage"];
-			$totalInstallmentAmounts += $installmentArray[$i]["InstallmentAmount"];
+			// compute wage for payment steps 
+			$paymentWage = 0;
+			$TotalPayedAmount = $pays[0]["PurePayAmount"];
+			if(count($pays) > 1)
+			{
+				$pays = array_reverse($pays);
+				$total = 0;
+				$totalZ = 0;
+				for($i=0; $i<count($pays)-1; $i++)
+				{
+					if($i == 0)
+						$total += $pays[$i]["PurePayAmount"] ;//- $result["CustomerDelay"];
+					else
+						$total += $pays[$i]["PurePayAmount"];
+
+					$days = DateModules::GDateMinusGDate($pays[$i+1]["PurePayDate"], $pays[$i]["PurePayDate"]);
+					$Z = ($total + $totalZ)*$partObj->CustomerWage*$days/36500;
+					$totalZ += $Z;
+					$paymentWage += $Z;
+					$TotalPayedAmount += $pays[$i]["PurePayAmount"];
+				}
+			}
+			$paymentWage = round($paymentWage);
+			//................................
+			$remainPure = $TotalPayedAmount;
+			$totalWage = 0;
+			$totalInstallmentAmounts = 0;
+			for($i=0; $i < count($installmentArray); $i++)
+			{
+				$days = DateModules::JDateMinusJDate($installmentArray[$i]["InstallmentDate"],$ComputeDate);
+
+				if($i == 0)
+					$installmentArray[$i]["PureWage"] = round(
+						($remainPure + $paymentWage)*
+						$partObj->CustomerWage*$days/36500) + $paymentWage;   
+				else
+					$installmentArray[$i]["PureWage"] = round(
+						$remainPure*$partObj->CustomerWage*$days/36500);  
+
+				$remainPure -= $installmentArray[$i]["InstallmentAmount"] - $installmentArray[$i]["PureWage"];
+				$ComputeDate  = $installmentArray[$i]["InstallmentDate"];
+				$totalWage += $installmentArray[$i]["PureWage"];
+				$totalInstallmentAmounts += $installmentArray[$i]["InstallmentAmount"];
+			}
 		}
 		//----------------- rounding up to 1000 --------------------	
 		if($roundUp)
@@ -2194,19 +2240,17 @@ class LON_Computes extends PdoDataAccess{
 	 * @return array
 	 */
 	static function ComputePures($RequestID){
-		
 		$PartObj = LON_ReqParts::GetValidPartObj($RequestID);
 		$temp = LON_installments::GetValidInstallments($RequestID);
-
+		
 		//.............................
 		$returnArr = array();
 		$pays = LON_payments::Get(" AND p.RequestID=?", array($RequestID), " order by PayDate");
 		$pays = $pays->fetchAll();
 		$totalPure = 0;
 		$totalZ = 0;
-		for($i=0; $i<count($pays); $i++)
+		/*for($i=0; $i<count($pays); $i++)
 		{
-			$totalPure += $pays[$i]["PurePayAmount"]/* - ($i==0 ? $extra : 0)*/;
 			$returnArr[] = array(
 				"InstallmentDate" => $pays[$i]["PurePayDate"],
 				"InstallmentAmount" => 0,
@@ -2230,8 +2274,47 @@ class LON_Computes extends PdoDataAccess{
 				"pure" => $row["InstallmentAmount"] - $row["PureWage"],
 				"totalPure" => $totalPure 
 			);
-		}
+		}*/
 		
+		$payIndex = 0;
+		for($i=0; $i< count($temp); $i++)
+		{
+			if($payIndex < count($pays) && $pays[$payIndex]["PurePayDate"] < $temp[$i]["InstallmentDate"]){
+				$totalPure += $pays[$payIndex]["PurePayAmount"];
+				$returnArr[] = array(
+					"InstallmentDate" => $pays[$payIndex]["PurePayDate"],
+					"InstallmentAmount" => 0,
+					"wage" => 0,
+					"income" => $pays[$payIndex]["PayIncome"],
+					"pure" => 0,
+					"totalPure" => $totalPure + $totalZ
+				);
+				$days = DateModules::GDateMinusGDate(
+					$payIndex+1 <count($pays) ? $pays[$payIndex+1]["PurePayDate"] : $temp[$i]["InstallmentDate"],$pays[$payIndex]["PurePayDate"]);
+				$totalZ += ($totalPure + $totalZ)*$days*$PartObj->CustomerWage/36500;
+				
+				if(!isset($temp[$i]["income"]))
+					$temp[$i]["income"] = $temp[$i]["PureWage"];
+				
+				$temp[$i]["income"] -= $pays[$payIndex]["PayIncome"];
+				$i--;
+				$payIndex++;
+				continue;
+			}
+			
+			$row = $temp[$i];
+			if(!isset($row["income"]))
+				$row["income"] = $temp[$i]["PureWage"];
+			$totalPure -= $row["InstallmentAmount"] - $row["PureWage"];
+			$returnArr[] = array(
+				"InstallmentDate" => $row["InstallmentDate"],
+				"InstallmentAmount" => $row["InstallmentAmount"],
+				"wage" => $row["PureWage"],
+				"income" => $row["income"],
+				"pure" => $row["InstallmentAmount"] - $row["PureWage"],
+				"totalPure" => $totalPure 
+			);
+		}
 		return $returnArr;
 
 	}
@@ -3529,6 +3612,7 @@ class LON_payments extends OperationClass{
 	public $PayType;
 	public $PayDate;
 	public $PayAmount; 
+	public $PayIncome;
 	public $RealPayedDate;
 	
 	public $OldFundDelayAmount;
@@ -3557,6 +3641,21 @@ class LON_payments extends OperationClass{
 		
 		return parent::runquery_fetchMode("
 			select p.*,
+				PayAmount - ifnull(OldFundDelayAmount,0) 
+						- ifnull(OldAgentDelayAmount,0)
+						- ifnull(OldFundWage,0)
+						- ifnull(OldAgentWage,0)as PurePayAmount,
+				if(RealPayedDate is null, PayDate, RealPayedDate) as PurePayDate
+				
+			from LON_payments p
+			
+			where 1=1 " . $where .  
+			" group by p.PayID " . $order, $whereParams);
+	}
+	static function GetWithDoc($where = '', $whereParams = array(), $order = "") {
+		
+		return parent::runquery_fetchMode("
+			select p.*,
 				d.DocID,
 				d.LocalNo,
 				d.StatusID,
@@ -3572,6 +3671,7 @@ class LON_payments extends OperationClass{
 			where 1=1 " . $where .  
 			" group by p.PayID " . $order, $whereParams);
 	}
+	
 	
 	function CheckPartAmount(){
 		
@@ -4180,6 +4280,45 @@ class LON_Letters extends OperationClass{
 		$pdo->commit();
 		return $LetterObj->LetterID;
 	}
+}
+
+class LON_legalActions extends OperationClass{
+
+	const TableName = "LON_legalActions";
+	const TableKey = "legalActionID";
+
+	public $legalActionID;
+	public $RequestID;
+	public $ReferDate;
+	public $DeliverDoc;
+	public $branch;
+	public $fileNum;
+	public $actionTaken;
+	public $latestDoc;
+	public $actionAhead;
+	public $RegDate;
+
+	function __construct($id = '') {
+
+		$this->DT_RegDate = DataMember::CreateDMA(DataMember::DT_DATE);
+		$this->DT_ReferDate = DataMember::CreateDMA(DataMember::DT_DATE);
+
+		parent::__construct($id);
+	}
+
+	static function Get($where = '', $whereParams = array(), $pdo = null) {
+
+		return PdoDataAccess::runquery_fetchMode("
+			select la.*, concat_ws(' ',p1.fname,p1.lname,p1.CompanyName) LoanFullname 
+			, concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) ReqFullname 
+			
+			from LON_legalActions la
+			join LON_requests r using(RequestID)
+			left join BSC_persons p1 on(p1.PersonID=r.LoanPersonID)
+			left join BSC_persons p2 on(p2.PersonID=r.ReqPersonID)				
+			where 1=1 AND " . $where ." group by RequestID " , $whereParams, $pdo);
+	}
+
 }
 
 ?>

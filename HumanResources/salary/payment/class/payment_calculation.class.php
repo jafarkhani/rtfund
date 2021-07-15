@@ -615,16 +615,16 @@ $Remainder = $this->subRow['receipt'] ;
 		
 		$param1 = $this->sum_insure_include;
 		/*در صورتي که مجمع حقوق م مزاياي مشمول بيمه از حداکثر دستمزد ماهانه بيشتر شود همان حداکثر در نظر گرفته مي شود*/
-		if($param1 > $this->salary_params[SPT_MAX_DAILY_SALARY_INSURE_INCLUDE][PERSON_TYPE_ALL]['value'] * $this->__MONTH_LENGTH) {
-			$param1 = $this->salary_params[SPT_MAX_DAILY_SALARY_INSURE_INCLUDE][PERSON_TYPE_ALL]['value'] * $this->__MONTH_LENGTH;
+		if($param1 > $this->salary_params[SPT_MAX_DAILY_SALARY_INSURE_INCLUDE][HR_WORKER]['value'] * $this->__MONTH_LENGTH) {
+			$param1 = $this->salary_params[SPT_MAX_DAILY_SALARY_INSURE_INCLUDE][HR_WORKER]['value'] * $this->__MONTH_LENGTH;
 		}
 
 		//نرخ بيمه سهم کارفرما
-		$employer_insure_value = $this->salary_params[SPT_SOCIAL_SUPPLY_INSURE_EMPLOYER_VALUE][PERSON_TYPE_ALL]['value'];
+		$employer_insure_value = $this->salary_params[SPT_SOCIAL_SUPPLY_INSURE_EMPLOYER_VALUE][HR_WORKER]['value'];
 		//نرخ بيمه بيکاري
-		$unemployment_insure_value = $this->salary_params[SPT_UNEMPLOYMENT_INSURANCE_VALUE][PERSON_TYPE_ALL]['value'];
+		$unemployment_insure_value = $this->salary_params[SPT_UNEMPLOYMENT_INSURANCE_VALUE][HR_WORKER]['value'];
 		//نرخ بيمه سهم شخص
-		$person_insure_value = $this->salary_params[SPT_SOCIAL_SUPPLY_INSURE_PERSON_VALUE][PERSON_TYPE_ALL]['value'];
+		$person_insure_value = $this->salary_params[SPT_SOCIAL_SUPPLY_INSURE_PERSON_VALUE][HR_WORKER]['value'];
 
 		$param2 = round($employer_insure_value * $param1);
 
@@ -639,7 +639,7 @@ $Remainder = $this->subRow['receipt'] ;
 		    }
 		  
 		$value = round($person_insure_value * $param1);
-
+ 
 		$this->payment_items[$key] = array(
 		'pay_year' => $this->__YEAR,
 		'pay_month' => $this->__MONTH,
@@ -801,7 +801,7 @@ $Remainder = $this->subRow['receipt'] ;
 				}
 			
 			}
-		
+		//bahar
 //..........................
 	/*	$year_avg_tax_include = ( (($this->cur_staff_id == $this->taxRow['staff_id']) ? $this->taxRow['sum_tax_include'] : 0 ) + 
 		$this->sum_tax_include + $this->taxHisRow['payed_tax_value'] - ( empty($this->payment_items[7]['get_value']) ? 0 : (($this->payment_items[7]['get_value'] * 2) / 7 ) ) ) / ($this->__MONTH - $this->__START_NORMALIZE_TAX_MONTH + 1); */
@@ -810,13 +810,13 @@ $Remainder = $this->subRow['receipt'] ;
                                 $this->sum_tax_include + $this->taxHisRow['payed_tax_value'] - 
                               ( empty($this->payment_items[7]['get_value']) ? (0 + $this->taxRow['sum_BimeMoaf'] ) : (($this->payment_items[7]['get_value'] * 2) / 7 ) + $this->taxRow['sum_BimeMoaf'] ) ) / ($this->__MONTH - $this->__START_NORMALIZE_TAX_MONTH + 1);
     
-		$sum_normalized_tax = $tax_table_type_id = 0; //متغيري جهت نگهداري ماليات تعديل شده براي cur_staff در تمام طول سال
+	$sum_normalized_tax = $tax_table_type_id = 0; //متغيري جهت نگهداري ماليات تعديل شده براي cur_staff در تمام طول سال
 		
-/*	 
+	/* 
 echo $this->taxRow['sum_tax_include'] .'--sti---'. 
      $this->sum_tax_include.'---stiii---'. (($this->payment_items[7]['get_value'] * 2) / 7 ) .'--ptv--'.$this->taxRow['sum_BimeMoaf'].'--bimeMoaf-'.
-  ($this->__MONTH - $this->__START_NORMALIZE_TAX_MONTH + 1).'---m---'.$year_avg_tax_include ;  
-die();*/
+    ($this->__MONTH - $this->__START_NORMALIZE_TAX_MONTH + 1).'---m---'.$year_avg_tax_include ;  
+die(); */
 
 		reset($this->tax_tables);
 
@@ -865,12 +865,12 @@ die();*/
 				
 			}
 		}
-	
-		/*echo $this->sum_tax_include .'---<br>'.
+	/*
+		echo $this->sum_tax_include .'---<br>'.
                      $sum_normalized_tax .'****'.
                      $this->taxRow['sum_tax'];
-		die();*/
-	
+		die();
+	*/
 	//	$this->__START_NORMALIZE_TAX_MONTH =  1 ;
 		
 		$normalized_tax = $sum_normalized_tax - $this->taxRow['sum_tax'];
@@ -3058,7 +3058,7 @@ return true ;
 
 			GROUP BY staff_id
                         ");
-			
+					
 	}
 	
 	/* اجراي query مربوط به استخراج سابقه مالياتي*/
@@ -3086,9 +3086,7 @@ return true ;
 																
 													WHERE ".$w."
 													ORDER BY sth.staff_id,sth.start_date			
-													");	
-													
-			  
+													");														 
 													
 	}
 	
@@ -3129,7 +3127,7 @@ return true ;
 																		'to_value' => $tmp_rs[$i]['to_value'],
 																		'coeficient'   => $tmp_rs[$i]['coeficient']);
 		}
-		
+				
 	}
 	
 	/* اجراي query براي استخراج سرفصل ماليات و بازنشتگي وبيمه*/
@@ -3199,7 +3197,7 @@ return true ;
 			
 		}*/
 			$own_normal = $this->insureRow['own_normal'];
-			//baharrr $this->staffRow['person_type']
+			
 			$normal_value = (isset($this->salary_params[SPT_NORMAL_INSURE_VALUE][PERSON_TYPE_ALL]['value'])) ? $this->salary_params[SPT_NORMAL_INSURE_VALUE][PERSON_TYPE_ALL]['value'] : 0  ;
 			$first_surplus_value = (isset($this->salary_params[SPT_FIRST_SURPLUS_INSURE_VALUE][PERSON_TYPE_ALL]['value'])) ? $this->salary_params[SPT_FIRST_SURPLUS_INSURE_VALUE][PERSON_TYPE_ALL]['value'] : 0 ;
 			$second_surplus_value = (isset($this->salary_params[SPT_SECOND_SURPLUS_INSURE_VALUE][PERSON_TYPE_ALL]['value'])) ? $this->salary_params[SPT_SECOND_SURPLUS_INSURE_VALUE][PERSON_TYPE_ALL]['value'] : 0 ;

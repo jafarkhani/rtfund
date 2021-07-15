@@ -11,6 +11,7 @@ class manage_Session extends PdoDataAccess
 	public $salary_item_type_id;
 	public $TotalHour;
 	public $SessionDate ; 
+	public $comments ; 
         
 	function __construct($bank_id = "")
 	 {
@@ -22,7 +23,7 @@ class manage_Session extends PdoDataAccess
 	 {	 
 		 
         $query = " select p.pfname , p.plname , s.PersonID , TotalHour , SessionDate , 
-						  SessionID , s.salary_item_type_id,sit.full_title
+						  SessionID , s.salary_item_type_id,sit.full_title , s.comments
 					from HRM_sessions s
 						 inner join HRM_persons p on s.PersonID = p.refPersonID
 						 inner join HRM_salary_item_types sit on s.salary_item_type_id = sit.salary_item_type_id

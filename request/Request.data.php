@@ -45,14 +45,31 @@ function SaveCustomerRequest(){
         $obj->StatusID = 2;
         $obj->IsRegister = 'Yes';
         $obj->IsPresent = 'No';
+		$obj->FlowID = 90; 
         /*$obj->IsInfoORService = 'Service';*/
 
     if($obj->IDReq > 0){
-        $result = $obj->EditReq();
+        $result = $obj->EditReq();				
     }
-    else{
+    else{		
         $result = $obj->AddReq();
-    }
+		}
+			
+	/* گردش فرم */  
+	/*$dt = WFM_FlowRows::GetFlowInfo($formObj->FlowID, $ReqObj->RequestID);
+	if(!$dt["IsStarted"])
+		$result2 = WFM_FlowRows::StartFlow($formObj->FlowID, $ReqObj->RequestID);
+	else*/
+	require_once '../office/workflow/form.class.php';
+
+	$result2 = WFM_requests::ConfirmRequest($obj->IDReq,"CONFIRM" , "true");
+
+	if(!$result2)
+	{
+		echo Response::createObjectiveResponse(false, ExceptionHandler::GetExceptionsToString());
+		die();
+	}
+	 
 //-----------  save Letter pic ----------------
     if(!empty($_FILES['LetterPic']['tmp_name']))
     {

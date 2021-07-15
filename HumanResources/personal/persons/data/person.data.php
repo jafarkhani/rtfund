@@ -348,7 +348,7 @@ $obj->employ_date = DateModules::Shamsi_to_Miladi($_POST["employ_date"]);
 		}
 					
 	} else {
-						
+					
 		$qry = " select s.* 
 			                from HRM_persons p inner join HRM_staff s 
 												on p.personid = s.personid and p.person_type = s.person_type
@@ -356,8 +356,6 @@ $obj->employ_date = DateModules::Shamsi_to_Miladi($_POST["employ_date"]);
 			              where p.personid = ".$obj->PersonID ; 
 		$ptres = PdoDataAccess::runquery($qry) ; 
 		
-//	echo PdoDataAccess::GetLatestQueryString() ;
-
 		$return = $obj->EditPerson();
 	
 		$staffObject = new manage_staff($obj->PersonID, $obj->person_type);

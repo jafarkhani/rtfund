@@ -30,10 +30,11 @@ else
 	$personID ="";
 
 if(!empty($personID))
-{  
+{ 
+	
 	$obj = manage_person::SearchPerson($personID);    
 	$SummeryInfo = manage_person::GetAllPersons("p.personid = :PID  ",array(":PID" => $personID));
-  
+	
         $staffInfo = new manage_staff("", "", $SummeryInfo[0]["staff_id"]);       
         //print_r($obj) ;   die() ; 
 

@@ -25,9 +25,9 @@ class request extends PdoDataAccess{
     public $referPersonID;
     public $referDesc;
     public $Poll;
-public $LetterPic;
-
-
+	public $LetterPic;
+	public $FlowID;
+			
 	function __construct($IDReq = "") {
         $this->DT_referalDate = DataMember::CreateDMA(DataMember::DT_DATE);
 		if($IDReq != "")
@@ -50,10 +50,13 @@ public $LetterPic;
                         return false;
                     }
                 }*/
-        if(!parent::insert("request",$this, $pdo))
-            return false;
+        if(!parent::insert("request",$this, $pdo)){
+		
+			return false;
+		
+		}
+		
         $this->IDReq = parent::InsertID($pdo);
-
         $daObj = new DataAudit();
         $daObj->ActionType = DataAudit::Action_add;
         $daObj->MainObjectID = $this->IDReq;

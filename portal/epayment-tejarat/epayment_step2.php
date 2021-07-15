@@ -157,7 +157,7 @@ else if ($_REQUEST["resultCode"] == 100) {
 			$DocRegResult = RegDoc($PayObj->RequestID, $PayObj->amount, $referenceId);
 			if(!$DocRegResult)
 			{
-				$PayObj->error = json_encode(ExceptionHandler::PopAllExceptions());
+				$PayObj->error = ExceptionHandler::GetExceptionsToString();
 				$PayObj->Edit();
 			}
 			

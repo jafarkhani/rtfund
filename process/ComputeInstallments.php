@@ -10,10 +10,12 @@ header("X-Accel-Buffering: no");
 ob_start();
 set_time_limit(0);
 
-$dt = PdoDataAccess::runquery("select * from LON_ReqParts join LON_requests using(RequestID) 
-    join LON_loans using(LoanID)
-   left join (select SourceID1 from ACC_DocItems join ACC_docs using(DocID) where eventID=2001)t on(SourceID1=RequestID)
-    where ChangeDate>0 and ReqPersonID=1001 AND StatusID=70 AND GroupID=2 AND t.SourceID1 is null
+$dt = PdoDataAccess::runquery("select * from LON_requests 
+	where RequestID in (
+	2096,2097,2103,2144,2150,2175,2176,2179,2188,2199,2200,2207,2212,2213,2215,2217,2218,2220,2221,2222,2223,2229,
+	2233,2235,2240,2243,2249,2256,2263,2265,2266,2267,2274,2284,2285,2289,2292,2303,2308,2309,2310,2311,2312,2315,2316,
+	2318,2319,2325,2328,2330,2331,2333,2337,2340,2344,2345,2348,2349,2352,2360,2362,2369,2373,2374,2376,2377,2379,2385,2387,
+	2396,2397,2399,2400,2402,2403,2406,2408,2415,2417,2419,2421,2425,2428,2436,2443,2448,2452,2458,2464)
     "); 
 flush();
 ob_flush();
@@ -21,56 +23,7 @@ $i=0;
 foreach($dt as $row)
 {
 	$RequestID = $row["RequestID"];
-	$EventID = LON_requests::GetEventID($RequestID, "LoanChange");
-	if(!$EventID){
-		echo $RequestID . " : no event" ;
-		continue;
-	}
-		
-	$pdo = PdoDataAccess::getPdoObject();
-	$pdo->beginTransaction();
-	
-	
-	$dt = PdoDataAccess::runquery("select * from LON_ReqParts 
-		where requestID=? order by PartID desc", array($RequestID), $pdo);
-	
-	$newpart = new LON_ReqParts($dt[0]["PartID"]);
-	$newpart->RequestID = 0;
-	$newpart->EditPart($pdo);
-	
-	$prePart = new LON_ReqParts($dt[1]["PartID"]);
-	$prePart->IsHistory = "NO";
-	$prePart->EditPart($pdo);
-	
-	$dt = PdoDataAccess::runquery("update LON_installments set RequestID=2487,partID=?
-		where RequestID=? AND IsDelayed='NO' AND history='No'", array(
-			$newpart->PartID,
-			$RequestID
-		), $pdo);
-		
-	LON_installments::ComputeInstallments($RequestID, $pdo);
-	
-	$newpart->RequestID = $RequestID;
-	$newpart->EditPart($pdo);
-	
-	$prePart->IsHistory = "YES";
-	$prePart->EditPart($pdo);
-	
-	PdoDataAccess::runquery("update LON_installments set history='YES' where RequestID=? AND PartID<>?",
-				array($RequestID, $newpart->PartID));
-	
-	PdoDataAccess::runquery("update LON_installments set RequestID=?
-		where RequestID=2487", array(	$RequestID	), $pdo);
-	
-	
-	$eventobj = new ExecuteEvent($EventID);
-	$eventobj->Sources = array($RequestID, $newpart->PartID);
-	$result = $eventobj->RegisterEventDoc($pdo);
-
-	if(ExceptionHandler::GetExceptionCount() > 0)
-		$pdo->rollBack ();
-	else
-		$pdo->commit();
+	LON_installments::ComputeInstallments($RequestID, null, true);
 	
 	echo $RequestID . " : " . "<br><br>";
 	print_r(ExceptionHandler::PopAllExceptions());

@@ -199,7 +199,7 @@ left join (
 				group by ObjectID
 			)t2 on(t2.ObjectID=r.RequestID)	
 
-		where r.RequestID>0 $where
+		where r.RequestID>0  $where
 		group by r.RequestID 
 		order by r.RequestID", $whereParam);
 	
@@ -213,7 +213,6 @@ left join (
 	}
 	
 	$levels = PdoDataAccess::runquery("select * from ACC_CostCodeParamItems where ParamID=" . ACC_COST_PARAM_LOAN_LEVEL);
-	
 	$returnArr = array();
 	foreach($dt as $row)
 	{
@@ -326,7 +325,7 @@ left join (
 			
 			$tDays = DateModules::GDateMinusGDate($PureArr[$i]["InstallmentDate"],$prevDate);
 			$wage = round(($PureArr[$i]["wage"]/$tDays));
-			$FundWage = round(($partObj->FundWage/$partObj->CustomerWage))*$wage;
+			$FundWage = $partObj->CustomerWage == 0 ? 0 : round(($partObj->FundWage/$partObj->CustomerWage))*$wage;
 			$AgentWage = $wage - $FundWage;
 			$startDay = max($prevDate,$StartDate);
 			$enDay = min($PureArr[$i]["InstallmentDate"], $toDate);

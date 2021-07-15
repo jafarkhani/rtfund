@@ -111,7 +111,7 @@ if (isset($_GET['showRes']) && $_GET['showRes'] == 1) {
 						  text-align: center;width: 50%;padding: 2px;}
 		.reportGenerator .header {color: white;font-weight: bold;background-color:#4D7094}
 		.reportGenerator .header1 {color: white;font-weight: bold;background-color:#465E86}		
-		.reportGenerator td {border: 1px solid #555555;height: 20px; text-align:center;}
+		.reportGenerator td {border: 1px solid #555555;height: 20px;}
 	</style>
 	<?php
 	echo '<META http-equiv=Content-Type content="text/html; charset=UTF-8" ><body dir="rtl"><center>';

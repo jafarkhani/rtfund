@@ -88,9 +88,14 @@ switch($ObjectType)
 	case "BeneficiaryDocs":
 	case "orgdoc":
 	case "package":
+    case "writs": // new added for ahkam in modiriyat personel
+    case "LegalActions": // new added for eghdamate hoghoghi
 	case "asset":
-	case "extInteractions":  
-	case "IssuanceForm":
+    case "extInteractions":
+    case "IssuanceForm":
+    case "PersonBasicDoc":        //new added for basic doc in portal
+    case "ReqProfessionalDoc":    //new added for professional doc in my request in portal
+
 		$access = true;
 		break;
 	//......................................................
@@ -184,6 +189,11 @@ $col->renderer = "ManageDocument.ParamValueRender";
 $col->width = 130;
 
 $col = $dg->addColumn("عنوان مدرک ارسالی", "DocDesc", "");
+
+$col = $dg->addColumn("ثبت کننده", "regfullname", "");
+$col->width = 100;
+$col = $dg->addColumn("تاریخ ثبت", "RegDate", GridColumn::ColumnType_date);
+$col->width = 80;
 
 if($ObjectType == "package")
 {

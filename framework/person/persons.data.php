@@ -123,6 +123,7 @@ function selectPersons(){
 			case "IsStaff":		$where .= " AND IsStaff='YES'";break;
 			case "IsSupporter":	$where .= " AND IsSupporter='YES'";break;
 			case "IsExpert":	$where .= " AND IsExpert='YES'";break;
+            case "IsAsker":	    $where .= " AND (PersonID=0 OR PersonID=1003 OR PersonID=2051 OR PersonID=1001 OR PersonID=1002 OR PersonID=2345)";break;
 		}
 	}
 	
@@ -396,7 +397,25 @@ function ConfirmPendingPerson(){
 	$obj = new BSC_persons($PersonID);
 	$obj->IsActive = $mode == "1" ? "YES" : "NO";
 	$result = $obj->EditPerson();
-	
+
+    $mobile = $obj->mobile;
+    if($mobile == ""){
+        echo Response::createObjectiveResponse(false, "مشتری فاقد شماره موبایل یا شماره پیامک می باشد.");
+        die();
+    }else{
+        require_once 'sms.php';
+        $context = 'کاربر گرامی: ثبت نام شما با موفقیت انجام گردید. شما می توانید از زبانه درخواست ارایه خدمت، تصویر نامه درخواست به همراه معرفی نامه/نامه کارفرمای خود را بارگزاری نمایید. صندوق پژوهش و فناوری خراسان';
+        $resultant = ariana2_sendSMS($mobile, $context, "number", $SendError);
+        if(!$resultant)
+        {
+            $SendError .= "ارسال پیامک انجام نگردید.";
+        }
+        if($SendError != ""){
+            echo Response::createObjectiveResponse(false, $SendError);
+            die();
+        }
+    }
+
 	if($mode == "1")
 	{
 		$result = SendEmail($obj->email, "تایید ثبت نام در صندوق پژوهش و فناوری خراسان رضوی", 

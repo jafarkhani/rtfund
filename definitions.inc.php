@@ -136,6 +136,7 @@ define("BLOCKID_LOAN","8");
 define("FLOWID_LOAN","1");
 define("FLOWID_WFM_FORM","5");
 define("FLOWID_WARRENTY", "4");
+define("FLOWID_WARRENTY_NEW", "52");  /*new added*/
 define("FLOWID_CONTRACT","2");
 define("FLOWID_ACCDOC","8");
 

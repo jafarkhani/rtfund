@@ -66,4 +66,46 @@ class ACC_BudgetAlloc extends OperationClass {
 	}
 }
 
+//new added class
+class ACC_BudgetApproved extends OperationClass {
+
+    const TableName = "ACC_BudgetApproved";
+    const TableKey = "ApprovedID";
+
+    public $ApprovedID;
+    public $BudgetID;
+    public $CycleID;
+    public $approvedAmount;
+    public $PrevisionAmount;
+
+    function __construct($id = '') {
+
+        /*$this->DT_AllocDate = DataMember::CreateDMA(DataMember::DT_DATE);*/
+        return parent::__construct($id);
+    }
+
+    static function Get($where = '', $whereParams = array(), $pdo = null) {
+
+        return PdoDataAccess::runquery_fetchMode("
+			select aba.*, ab.BudgetDesc, ac.CycleYear
+				from ACC_BudgetApproved aba
+				join ACC_budgets ab using(BudgetID)
+				join ACC_cycles ac using(CycleID)
+				where 1=1 " . $where, $whereParams, $pdo);
+    }
+}
+
+//new added class
+class ACC_BudgetsArchive extends OperationClass {
+
+    const TableName = "ACC_BudgetsArchive";
+    const TableKey = "BudgetArchiveID";
+
+    public $BudgetArchiveID;
+    public $ParentID;
+    public $BudgetDesc;
+    public $OperationalDef;
+    public $CycleID;
+}
+
 ?>

@@ -97,10 +97,12 @@ if (isset($_REQUEST["show"])) {
                         SUM(if( sit.salary_item_type_id = 14 , (pit.pay_value + pit.diff_pay_value * pit.diff_value_coef) , 0  )) item2_2 ,
                         SUM(if( sit.salary_item_type_id = 15 , (pit.pay_value + pit.diff_pay_value * pit.diff_value_coef) , 0  )) item2_3 ,
                         SUM(if( sit.salary_item_type_id = 41 , (pit.pay_value + pit.diff_pay_value * pit.diff_value_coef) , 0  )) item2_4 ,
-                        SUM(if( sit.salary_item_type_id = 13 , pit.param2 , 0  )) Pitem2_1 ,
-                        SUM(if( sit.salary_item_type_id = 14 , pit.param2 , 0  )) Pitem2_2 ,
-                        SUM(if( sit.salary_item_type_id = 15 , pit.param2 , 0  )) Pitem2_3 ,
-                        SUM(if( sit.salary_item_type_id = 41 , pit.param2 , 0  )) Pitem2_4 
+                        
+
+						SUM(if( sit.salary_item_type_id = 13 , (SUBSTRING_INDEX(pit.param2,':',1) * 60 + SUBSTRING_INDEX(pit.param2,':',-1)) , 0  )) Pitem2_1 ,
+                        SUM(if( sit.salary_item_type_id = 14 , (SUBSTRING_INDEX(pit.param2,':',1) * 60 + SUBSTRING_INDEX(pit.param2,':',-1)) , 0  )) Pitem2_2 ,
+                        SUM(if( sit.salary_item_type_id = 15 , (SUBSTRING_INDEX(pit.param2,':',1) * 60 + SUBSTRING_INDEX(pit.param2,':',-1)) , 0  )) Pitem2_3 ,
+                        SUM(if( sit.salary_item_type_id = 41 , (SUBSTRING_INDEX(pit.param2,':',1) * 60 + SUBSTRING_INDEX(pit.param2,':',-1)) , 0  )) Pitem2_4 
 
 
 					from HRM_payment_items pit
@@ -147,7 +149,8 @@ if (isset($_REQUEST["show"])) {
 	echo "<table style='border:2px groove #9BB1CD;border-collapse:collapse;width:100%'><tr>
 	<td width=10px><img src='/framework/icons/logo.jpg' width='100px'></td>
 	<td align='center' style='font-family:b titr;font-size:15px'>گزارش لیست حقوق  و دستمزد ماهانه" .
-	"<br><br> " . DateModules::GetMonthName($dataTable[0]['pay_month']) . ' ماه &nbsp;&nbsp;' . $dataTable[0]['pay_year'] . " </td>				
+	"<br><br> از" . DateModules::GetMonthName($_POST['from_pay_month']) . ' ماه &nbsp;&nbsp;' . $_POST['from_pay_year']." 
+	 <br><br>تا &nbsp;&nbsp;&nbsp;&nbsp;" . DateModules::GetMonthName($_POST['to_pay_month']) . ' ماه &nbsp;&nbsp;' . $_POST['to_pay_year']. " </td>	
 	<td width='200px' align='center' style='font-family:B Nazanin;font-size:11px'>تاریخ تهیه گزارش : "
 	. DateModules::shNow() . "<br>";
 	echo "</td></tr></table>";
@@ -339,29 +342,34 @@ if (isset($_REQUEST["show"])) {
 			</tr >";
 
 		if ($G2 == 1) {
-			$st = preg_split("/\./", $dataTable[$i]['Pitem2_1']);
-			if (count($st) > 1 && $dataTable[$i]['Pitem2_1'] > 0)
-				$minSt1 = $st [count($st) - 2] . ":" . round($st [count($st) - 1] * 60 / 100);
+			
+			if ($dataTable[$i]['Pitem2_1'] > 0){
+				$minVal = $dataTable[$i]['Pitem2_1'] - ( intval($dataTable[$i]['Pitem2_1']/60)*60);
+				$minSt1 = (intval($dataTable[$i]['Pitem2_1']/60) . ":" . $minVal );			
+			}
 			else
-				$minSt1 = $dataTable[$i]['Pitem2_1'];
+				$minSt1 = 0 ;
 
-			$st = preg_split("/\./", $dataTable[$i]['Pitem2_2']);
-			if (count($st) > 1 && $dataTable[$i]['Pitem2_2'] > 0)
-				$minSt2 = $st [count($st) - 2] . ":" . round($st [count($st) - 1] * 60 / 100);
+			if ($dataTable[$i]['Pitem2_2'] > 0){
+				$minVal2 = $dataTable[$i]['Pitem2_2'] - ( intval($dataTable[$i]['Pitem2_2']/60)*60);
+				$minSt2 = (intval($dataTable[$i]['Pitem2_2']/60) . ":" . $minVal2 );			
+			}
 			else
-				$minSt2 = $dataTable[$i]['Pitem2_2'];
+				$minSt2 = 0 ;
 
-			$st = preg_split("/\./", $dataTable[$i]['Pitem2_4']);
-			if (count($st) > 1 && $dataTable[$i]['Pitem2_4'] > 0)
-				$minSt4 = $st [count($st) - 2] . ":" . round($st [count($st) - 1] * 60 / 100);
+			if ($dataTable[$i]['Pitem2_4'] > 0){
+				$minVal4 = $dataTable[$i]['Pitem2_4'] - ( intval($dataTable[$i]['Pitem2_4']/60)*60);
+				$minSt4 = (intval($dataTable[$i]['Pitem2_4']/60) . ":" . $minVal4 );			
+			}
 			else
-				$minSt4 = $dataTable[$i]['Pitem2_4'];
+				$minSt4 = 0 ;
 
-			$st = preg_split("/\./", $dataTable[$i]['Pitem2_3']);
-			if (count($st) > 1 && $dataTable[$i]['Pitem2_3'] > 0)
-				$minSt3 = $st [count($st) - 2] . ":" . round($st [count($st) - 1] * 60 / 100);
+			if ($dataTable[$i]['Pitem2_3'] > 0){
+				$minVal3 = $dataTable[$i]['Pitem2_3'] - ( intval($dataTable[$i]['Pitem2_3']/60)*60);
+				$minSt3 = (intval($dataTable[$i]['Pitem2_3']/60) . ":" . $minVal3 );			
+			}
 			else
-				$minSt3 = $dataTable[$i]['Pitem2_3'];
+				$minSt3 = 0 ;
 
 			echo '<tr ' . $style . ' >';
 			echo "<td>" . $minSt1 . "</td>";
@@ -371,11 +379,13 @@ if (isset($_REQUEST["show"])) {
 			echo '</tr>';
 		}
 		if ($G3 == 1) {
+			
 			echo '<tr  ' . $style . ' >';
 			echo "<td>" . $dataTable[$i]['Pitem3_1'] . "</td>";
 			echo '</tr>';
 		}
 		if ($G4 == 1) {
+			
 			echo '<tr  ' . $style . ' >';
 			echo "<td>" . $dataTable[$i]['Pitem4_1'] . "</td>";
 			echo "<td>" . $dataTable[$i]['Pitem4_2'] . "</td>";

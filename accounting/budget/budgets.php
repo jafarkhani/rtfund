@@ -48,7 +48,17 @@ function ACC_budgets() {
 				labelWidth: 40,
 				rows: 5,
 				width: 280
-			}, {
+			},{
+            xtype : "textfield",
+            name: "BudgetCoding",
+            itemId: "BudgetCoding",
+            fieldLabel: "کدینگ بودجه"
+        }, {
+            xtype : "textfield",
+            name: "orderKey",
+            itemId: "orderKey",
+            fieldLabel: "ترتیب"
+        }, {
 				xtype: "hidden",
 				itemId: "ParentID",
 				name: "ParentID"
@@ -162,7 +172,9 @@ ACC_budgets.prototype.BeforeSaveBbudgets = function (mode, obj){
 		this.infoPanel.getComponent("ParentID").setValue(record.raw.ParentID);
 		this.infoPanel.getComponent("BudgetDesc").setValue(record.raw.BudgetDesc);
 		this.infoPanel.getComponent("BudgetID").setValue(record.data.id);
-	} 
+		this.infoPanel.getComponent("BudgetCoding").setValue(record.raw.BudgetCoding);
+		this.infoPanel.getComponent("orderKey").setValue(record.raw.orderKey);
+	}
 	else 
 	{
 		this.infoPanel.getComponent("ParentID").setValue(record.data.id == "source" ? 0 : record.data.id);

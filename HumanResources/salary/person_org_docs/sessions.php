@@ -40,16 +40,20 @@ $col->renderer = "function(v){return MiladiToShamsi(v);}";
 $col->editor = ColumnEditor::SHDateField();
 $col->width = 90;
 
+$col = $dg->addColumn("توضیحات", "comments", "string");
+$col->editor =  ColumnEditor::TextField();
+$col->width = 180; 
+
 $col = $dg->addColumn("عملیات", "", "string");
 $col->renderer = "  function(v,p,r){  return bank.opRender(v,p,r);}";
-$col->width = 80; 
+$col->width = 60; 
 
 $dg->addButton = true;
 $dg->addHandler = " function(){  bankObject.AddBnak();}";
 
 $dg->pageSize = "15";
 $dg->EnableSearch = false ;
-$dg->width = 780;
+$dg->width = 820;
 $dg->height = 500;
 $dg->title = " حق الجلسه";
 $dg->autoExpandColumn = "PersonID";

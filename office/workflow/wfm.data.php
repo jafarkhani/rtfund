@@ -378,6 +378,7 @@ function ChangeStatus(){
 	
 	$pdo = PdoDataAccess::getPdoObject();
 	
+	
 	$errors = "";
 	foreach($RowIDs as $RowID)
 	{
@@ -387,6 +388,9 @@ function ChangeStatus(){
 		$SourceObj = new WFM_FlowRows($RowID);
 		$FlowObj = new WFM_flows($SourceObj->FlowID);
  
+		if( $SourceObj->FlowID == 95 )
+			continue;
+		
 		$newObj = new WFM_FlowRows();
 		$newObj->FlowID = $SourceObj->FlowID;
 		$newObj->ObjectID = $SourceObj->ObjectID;
