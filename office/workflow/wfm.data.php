@@ -101,24 +101,12 @@ function SelectSteps(){
 	die();
 }
 
-function SaveStep(){
+function SaveStep(){	
 	
 	$obj = new WFM_FlowSteps();
+	PdoDataAccess::FillObjectByArray($obj, $_POST);
 	
-	if(empty($_POST['StepParentID'])) {		
-		PdoDataAccess::FillObjectByJsonData($obj, $_POST["record"]);			
-	}	
-	else {
-		PdoDataAccess::FillObjectByArray($obj, $_POST);
-		
-		if($_POST['StepParentID'] == 'src' ) {
-			
-			$PID = PdoDataAccess::runquery("select StepParentID from WFM_FlowSteps where FlowID=? AND StepID = 0 ", 
-											array($obj->FlowID));
-			$obj->StepParentID = $PID[0]['StepParentID']; 
-		}
-		
-	}
+	$obj->StepParentID = $obj->StepParentID == "src" ? "0" : $obj->StepParentID;		
 	
 	if($obj->PersonID == null)
 		$obj->PersonID = PDONULL;
@@ -127,20 +115,31 @@ function SaveStep(){
 	if($obj->JobID == null)
 		$obj->JobID = PDONULL;
 	
+	if(!empty($_REQUEST['ReturnStep']) && $_REQUEST['ReturnStep'] == 'src' )
+	{
+	
+		$qry = " select StepRowID  from WFM_flowsteps where FlowID = ?  and (StepParentID is null or StepParentID =0 ) "  ;
+		$res = PdoDataAccess::runquery($qry , array($obj->FlowID) )  ; 
+		
+		$obj->ReturnStep = $res[0]['StepRowID'];
+	}
+	
 	if($obj->StepRowID > 0)
 		$result = $obj->EditFlowStep();
 	else
 	{		
+	
 		$dt = PdoDataAccess::runquery("select ifnull(max(StepID),0) from WFM_FlowSteps where FlowID=? AND IsActive='YES' AND IsOuter='NO'", 
 				array($obj->FlowID));
 		$obj->StepID = $dt[0][0]*1 + 1;
-		
+	
 		$result = $obj->AddFlowStep();
+		
 	}
 	
-	//print_r(ExceptionHandler::PopAllExceptions());
-	echo Response::createObjectiveResponse($result, "");
+	echo Response::createObjectiveResponse($result, $result ? $obj->StepRowID : "");
 	die();
+		
 }
 
 function DeleteStep(){
@@ -208,6 +207,9 @@ function SelectAllForms(){
 				
 			when b.param4='accdoc' 
 				then concat_ws(' ','سند شماره',ad.LocalNo,adb.BranchName)
+				
+			when b.param4='IssuanceForm' 
+				then concat_ws(' ','فرم صدور ضمانت نامه ',ad.LocalNo,adb.BranchName)
 		end";
 		
 	if(!empty($_GET["fields"]) && !empty($_GET["query"]))
@@ -240,7 +242,7 @@ function SelectAllForms(){
 			join BSC_jobs j using(PostID)
 			where s.IsActive='YES' AND j.PersonID=:pid
 
-			", array(":pid" => $_SESSION["USER"]["PersonID"]));
+			", array(":pid" => 2265 /*$_SESSION["USER"]["PersonID"]*/ ));
 		
 		if(count($dt) == 0)
 		{
@@ -267,7 +269,7 @@ function SelectAllForms(){
 		$join = " join (
 					select f.FlowID,ObjectID,ObjectID2,f.ActionDate
 					from WFM_FlowRows f join WFM_FlowSteps s using(StepRowID)
-					where s.StepID<>0 AND f.PersonID=". $_SESSION["USER"]["PersonID"]." 
+					where s.StepID<>0 AND f.PersonID=  ". $_SESSION["USER"]["PersonID"] ." 
 						AND (f.IsEnded='YES' OR f.IsLastRow='NO')
 						
 				)fr2 on(fr2.FlowID=fr.FlowID
@@ -321,11 +323,14 @@ function SelectAllForms(){
 				left join ACC_docs ad on(b.param4='accdoc' AND ad.DocID=fr.ObjectID)
 				left join BSC_branches adb on(adb.BranchID=ad.BranchID)
 	
+				
+				left join LON_IssuanceInfo li on(b.param4='IssuanceForm' AND li.IID=fr.ObjectID) 
+
 				where fr.IsLastRow='YES' " . $where . dataReader::makeOrder();
 	$temp = PdoDataAccess::runquery_fetchMode($query, $param);
 	/*
 	echo PdoDataAccess::GetLatestQueryString();
-	print_r(ExceptionHandler::PopAllExceptions());
+	print_r(ExceptionHandler::PopAllExceptions()); 
 	*/
 	$no = $temp->rowCount();
 	$temp = PdoDataAccess::fetchAll($temp, $_GET["start"], $_GET["limit"]);
@@ -333,7 +338,7 @@ function SelectAllForms(){
 	//----------------- get loan RequestID -----------------------
 	for($i=0; $i<count($temp); $i++)
 	{
-		if($temp[$i]["param4"] != "form")
+		if($temp[$i]["param4"] != "form" && $temp[$i]["param4"] != "IssuanceForm" )
 		{
 			$temp[$i]["LoanRequestID"] = 0;
 			continue;
@@ -345,15 +350,15 @@ function SelectAllForms(){
 		
 		/*******************************get childs*******************/		
 		$AllChild = "";
-		$ChildDt = PdoDataAccess::runquery(" select StepRowID, StepDesc from WFM_FlowSteps where StepParentID = ? " , array($temp[$i]['StepRowID']) ) ; 
-				
+		$ChildDt = PdoDataAccess::runquery(" select StepRowID, StepDesc, status from WFM_FlowSteps where StepParentID = ? " , array($temp[$i]['StepRowID']) ) ; 
+	
 		for($j=0;$j<count($ChildDt);$j++) 
 		{
-			$AllChild .= $ChildDt[$j]['StepRowID'].'-'.$ChildDt[$j]['StepDesc']."," ; 
+			$AllChild .= $ChildDt[$j]['StepRowID'].'-'.$ChildDt[$j]['StepDesc'].'-'.$ChildDt[$j]['status']."," ; 
 		}
 				
 		$temp[$i]["childs"] = substr($AllChild,0,-1) ;	
-		
+	
 		/************************************************************/
 	}
 	//------------------------------------------------------------
@@ -394,24 +399,27 @@ function ChangeStatus(){
 		
 		if(isset($_POST["StepID"]))
 			$StepID = $_POST["StepID"];
+		
 		if($_POST["ChildID"] > 0 ) 
-		{			
-			
-			$resStep = PdoDataAccess::runquery(" select fs.StepID StepID , fs.LastStep, bfs.StepID PStepID
+		{					
+			$resStep = PdoDataAccess::runquery(" select fs.StepID StepID , fs.LastStep, bfs.StepID PStepID , 
+													if( fs.ReturnStep > 0 , rs.StepID , 0 ) ReturnStep 
 												 from WFM_FlowSteps fs
 															inner join WFM_FlowSteps fst on fs.StepParentID = fst.StepRowID
 															left join WFM_FlowSteps bfs on bfs.StepRowID = fst.StepParentID
+															left join WFM_FlowSteps rs on rs.StepRowID = fs.ReturnStep
 
 												 where fs.StepRowID = ? " , array($_POST["ChildID"])) ;	
-			
-			$StepID = $SourceObj->ActionType == "CONFIRM" ? $resStep[0]['StepID'] : $resStep[0]['PStepID'];
+		
+			$StepID = $newObj->ActionType == "CONFIRM" ? $resStep[0]['StepID'] : $resStep[0]['PStepID'];
+			$StepID = $newObj->ActionType == "RETURN" ? $resStep[0]['ReturnStep'] : $StepID ;
 			
 			if( $resStep[0]['LastStep'] == 1 ) 
 				$newObj->IsEnded = "YES";
 		}			
 		else 
 			$StepID = $SourceObj->ActionType == "CONFIRM" ? $SourceObj->_StepID+1 : $SourceObj->_StepID-1;
-
+		
 		//.............................................
 		if($newObj->ActionType == "CONFIRM" && $_POST["ChildID"] == 0 )
 		{
@@ -423,7 +431,7 @@ function ChangeStatus(){
 		
 		//.............................................
 		$result = $newObj->AddFlowRow($StepID, $pdo , $_POST["ChildID"] );	
-		
+			echo "--bahar---" ; die() ; 
 		if(!$result)
 		{
 			$pdo->rollBack();
