@@ -63,10 +63,10 @@ $col = $dg->addColumn("سازمان مربوطه", "organization");
 $col->renderer = "WarrentyRequest.OrgRender";
 
 $col = $dg->addColumn("تاریخ شروع", "StartDate", GridColumn::ColumnType_date);
-$col->width = 100;
+$col->width = 70;
 
 $col = $dg->addColumn("تاریخ پایان", "EndDate", GridColumn::ColumnType_date);
-$col->width = 100;
+$col->width = 70;
 
 $col = $dg->addColumn("بلوکه", "IsBlock");
 $col->renderer = "function(v){return (v == 'YES') ? '√' : '';}";
