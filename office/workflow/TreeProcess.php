@@ -59,6 +59,24 @@ require_once("../header.inc.php");
 				renderTo: this.get("tree-div")
         });
 		
+		this.tree2 = Ext.create('Ext.tree.Panel', {
+				title: "گردش فرآیند",
+				store: new Ext.data.TreeStore({
+					proxy: {
+						type: 'ajax',						
+						url: this.address_prefix + "ManageProcess.data.php?task=GetTreeNodes&ParentID=" + this.FlowID ,
+					},
+					root: {
+						text: 'گردش فرایند',
+						id: 'src',
+						expanded: true
+					}
+				}),
+				width:  350,
+				height: 550,
+				renderTo: this.get("tree-div")
+        });
+		
         this.PostStore = new Ext.data.Store({
             proxy: {
                 type: 'jsonp',
@@ -199,7 +217,7 @@ require_once("../header.inc.php");
                     colspan: 2,
                     width: 420,
                     fieldLabel: "چرخه فرآیند",
-                    store: this.tree.store
+                    store: this.tree2.store
                 }
 
 
@@ -370,6 +388,41 @@ require_once("../header.inc.php");
 		});
 	
     }
+	
+	
+	ManageProcess.prototype.DeleteFolder = function(){
+
+			Ext.MessageBox.confirm(""," آیا مایل به حذف پوشه می باشید؟",
+				function(btn){
+					if(btn == "no")
+						return;
+										
+					me = ManageProcessObj;
+					var record = me.tree.getSelectionModel().getSelection()[0];
+					if(record.hasChildNodes())
+					{
+						Ext.MessageBox.alert("","این پوشه دارای زیر پوشه می باشد و قادر به حذف آن نمی باشید.");
+						return;
+					}
+					Ext.Ajax.request({
+						url : me.address_prefix + "ManageProcess.data.php",
+						method : "POST",
+						params : {
+							task : "DeleteFolder",
+							FolderID : record.data.id
+						},
+						success : function(response){
+							result = Ext.decode(response.responseText);
+							if(!result.success)
+							{
+								Ext.MessageBox.alert("","عملیات مورد نظر با شکست مواجه شد");
+								return;
+							}				
+							record.remove();
+						}
+					})
+				});
+}
 
 
 </script>
