@@ -100,6 +100,7 @@ class WFM_FlowSteps extends PdoDataAccess {
 	public $IsActive;
 	public $IsOuter;
 	public $StepParentID;
+	public $ReturnStep;
 
 	static function GetAll($where = "", $whereParam = array()) {
 		
@@ -122,7 +123,7 @@ class WFM_FlowSteps extends PdoDataAccess {
 		}
 
 		$this->StepRowID = parent::InsertID($pdo);
-	
+		
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_add;
 		$daObj->MainObjectID = $this->StepRowID;
@@ -135,10 +136,16 @@ class WFM_FlowSteps extends PdoDataAccess {
 
 	function EditFlowStep($pdo = null) {
 		
+		if( $this->StepParentID == 0 )
+			$this->StepID =0 ;
+		
 		if (parent::update("WFM_FlowSteps", $this, " StepRowID=:srid", 
-				array(":srid" => $this->StepRowID), $pdo) === false) 				
-			return false;
-
+				array(":srid" => $this->StepRowID), $pdo) === false) { 								
+			
+			return false; 
+				
+		}
+		
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_update;
 		$daObj->MainObjectID = $this->StepRowID;
@@ -247,7 +254,7 @@ class WFM_FlowRows extends PdoDataAccess {
 	}
 	
 	function AddFlowRow($StepID , $pdo = null , $ChildID = null ) {
-		
+	
 		PdoDataAccess::runquery("update WFM_FlowRows set IsLastRow='NO' "
 				. " where FlowID=? AND ObjectID=? AND ObjectID2=?", 
 				array($this->FlowID, $this->ObjectID, $this->ObjectID2), $pdo);
@@ -265,6 +272,8 @@ class WFM_FlowRows extends PdoDataAccess {
 		$this->StepRowID = $dt[0]["StepRowID"];	
 		$this->StepDesc = $dt[0]["StepDesc"];	
 		//..............................................
+	//baharrrrr
+		
 		
 		if (!parent::insert("WFM_FlowRows", $this, $pdo)) {
 			return false;
