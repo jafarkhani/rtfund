@@ -101,6 +101,7 @@ class WFM_FlowSteps extends PdoDataAccess {
 	public $IsOuter;
 	public $StepParentID;
 	public $ReturnStep;
+    public $LastStep;
 
 	static function GetAll($where = "", $whereParam = array()) {
 		
@@ -121,8 +122,11 @@ class WFM_FlowSteps extends PdoDataAccess {
 		if (!parent::insert("WFM_FlowSteps", $this, $pdo)) {			
 			return false;
 		}
-
+ 
 		$this->StepRowID = parent::InsertID($pdo);
+		
+		$query = " update WFM_FlowSteps set LastStep = 0 where StepRowID = ".$this->StepParentID ; 		
+		PdoDataAccess::runquery($query) ; 
 		
 		$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_add;
@@ -138,6 +142,8 @@ class WFM_FlowSteps extends PdoDataAccess {
 		
 		if( $this->StepParentID == 0 )
 			$this->StepID =0 ;
+		
+		$this->status = ($this->ReturnStep > 0 ? 'RETURN' : 'CONFIRM' ) ;  ;  
 		
 		if (parent::update("WFM_FlowSteps", $this, " StepRowID=:srid", 
 				array(":srid" => $this->StepRowID), $pdo) === false) { 								
@@ -167,15 +173,31 @@ class WFM_FlowSteps extends PdoDataAccess {
 			where FlowID=? AND StepRowID=?",array($info[0]["FlowID"], $StepRowID));
 		if(count($dt) > 0)
 		{
+			
 			ExceptionHandler::PushException("FlowRowExists");
 			return false;
 		}
+			
+		$DT2 = PdoDataAccess::runquery(" select IsTree from WFM_flows where FlowID = ? " , array($info[0]["FlowID"]) );
 		
-		parent::runquery("update WFM_FlowSteps set IsActive='NO', StepID=-1 where StepRowID=?", array($StepRowID));
+		if($DT2[0]['IsTree'] == 'YES'){
+			$qry = " select StepRowID from WFM_FlowSteps where StepParentID = ".$info[0]["StepParentID"]  ;
+			$resP = PdoDataAccess::runquery($qry) ; 
+			
+			if(count($resP) == 1 ) 
+				parent::runquery("update WFM_FlowSteps set LastStep = 1 where StepRowID=? AND ReturnStep = 0 ", array($info[0]["StepParentID"]));
+			
+			parent::runquery("delete from WFM_FlowSteps  where StepRowID=?", array($StepRowID));
+		}
+		else 
+		{
+			parent::runquery("update WFM_FlowSteps set IsActive='NO', StepID=-1 where StepRowID=?", array($StepRowID));
 	
-		PdoDataAccess::runquery("update WFM_FlowSteps set StepID=StepID-1 
-			where IsOuter='NO' AND StepID>? AND FlowID=?",
-			array($info[0]["StepID"], $info[0]["FlowID"]));
+			PdoDataAccess::runquery("update WFM_FlowSteps set StepID=StepID-1 
+				where IsOuter='NO' AND StepID>? AND FlowID=?",
+				array($info[0]["StepID"], $info[0]["FlowID"]));
+		}
+		
 	 	
 	 	$daObj = new DataAudit();
 		$daObj->ActionType = DataAudit::Action_delete;
@@ -258,27 +280,44 @@ class WFM_FlowRows extends PdoDataAccess {
 		PdoDataAccess::runquery("update WFM_FlowRows set IsLastRow='NO' "
 				. " where FlowID=? AND ObjectID=? AND ObjectID2=?", 
 				array($this->FlowID, $this->ObjectID, $this->ObjectID2), $pdo);
-		
+	
 		/*var_dump($this->FlowID);var_dump($StepID);*/
-		//.......... get StepRowID ...................
-		$dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
-			where IsActive='YES' AND FlowID=? AND StepID=?" , array($this->FlowID, $StepID));
 		
-		if(count($dt) == 0)
-		{
-			ExceptionHandler::PushException("خطا در تعریف وضعیت ها");
-			return false;
+		if($ChildID > 0 ) {
+			//.......... get StepRowID ...................
+			$dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
+				where IsActive='YES' AND FlowID=? AND StepRowID =?" , array($this->FlowID, $ChildID));
+			//echo PdoDataAccess::GetLatestQueryString().'----<br>' ; 	
+			if(count($dt) == 0)
+			{
+				ExceptionHandler::PushException("خطا در تعریف وضعیت ها");
+				return false;
+			}
+		
 		}
+		else {
+			//.......... get StepRowID ...................
+			$dt = PdoDataAccess::runquery("select StepRowID, StepDesc from WFM_FlowSteps 
+				where IsActive='YES' AND FlowID=? AND StepID=?" , array($this->FlowID, $StepID));
+			//echo PdoDataAccess::GetLatestQueryString().'----<br>' ; 	
+			if(count($dt) == 0)
+			{
+				ExceptionHandler::PushException("خطا در تعریف وضعیت ها");
+				return false;
+			}
+				
+		}
+		
 		$this->StepRowID = $dt[0]["StepRowID"];	
-		$this->StepDesc = $dt[0]["StepDesc"];	
+		$this->StepDesc = $dt[0]["StepDesc"];
+		
 		//..............................................
-	//baharrrrr
-		
-		
+	//parent::insert("WFM_FlowRows", $this, $pdo) ; 
+	//echo PdoDataAccess::GetLatestQueryString().'----<br>' ; 
 		if (!parent::insert("WFM_FlowRows", $this, $pdo)) {
 			return false;
 		}
-
+//die() ; 
 		$this->UpdateSourceStatus($StepID);
 		
 		$this->RowID = parent::InsertID($pdo);		
@@ -321,7 +360,7 @@ class WFM_FlowRows extends PdoDataAccess {
                 $FormTitle=$resultant[0]['FormTitle'];
                 $_POST['MsgTitle']='تایید فرم';
                 $_POST['MsgDesc']="با سلام. فرم ".$FormTitle."  شما با شماره ".$RequestNo." مورد تایید قرار گرفت.";
-                $_POST['PersonID']=1000;
+                $_POST['PersonID']= $_SESSION["USER"]["PersonID"];  
 
                 
                 $obj = new OFC_messages();
@@ -688,6 +727,7 @@ static function StartFloww($FlowID, $ObjectID, $objectID2 = 0){
 			where fr.FlowID=? AND ObjectID=? AND objectID2=? AND fr.IsLastRow='YES'
 			", array($FlowID, $ObjectID, $objectID2));
 		
+	
 		$StepDesc = "";
 		if(count($dt) > 0)
 		{
