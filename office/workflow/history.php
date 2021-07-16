@@ -53,7 +53,6 @@ if(count($Logs) == 0)
 else 
 {
 
-	
 	for ($i=0; $i<count($Logs); $i++)
 	{
 		$backgroundColor = ($i%2 == 1 ? "style='background-color:#efefef'" : "");
@@ -123,8 +122,7 @@ else
 				where fs.IsActive='YES' AND fs.FlowID=:FID AND ".$WhereClause ;
 		$nextOne = PdoDataAccess::runquery($query, $whereParam);
 		
-		
-		if(count($nextOne)>0)
+		if(count($nextOne)>0 || ( !empty($_REQUEST['TrackHis']) && $_REQUEST['TrackHis'] == 1 ) )
 		{
 			
 			if($Logs[0]["IsTree"] != 'YES') 
@@ -153,6 +151,7 @@ else
 			}
 			else {
 				
+			
 				$query = "  SELECT fs.StepDesc,ps.PostName,
 								   concat_ws(' ',p.fname, p.lname,p.CompanyName) fullname ,
 								   fs2.StepDesc StepDesc2 ,ps2.PostName PostName2,
