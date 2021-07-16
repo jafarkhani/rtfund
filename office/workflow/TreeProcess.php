@@ -14,9 +14,11 @@ require_once("../header.inc.php");
 			</td>
 			<td valign="top" style="padding-right: 5px">
 				<!------------------------------------------------>
+				<div><img src='/office/workflow/bpmn/follow.png' style='width:430px;height:120px' 
+						  onclick="window.open('/office/workflow/bpmn/follow.png');"></div>
 				<div id="DIV_NewUnit" >
-					<div id="PNL_NewUnit">
-					</div>
+					<div id="PNL_NewUnit">						
+					</div>					
 				</div>
 				<!------------------------------------------------>
 			</td>
