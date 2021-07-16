@@ -27,20 +27,33 @@ function GetData() {
 	$where = "";
 	$whereParam = array();
 		
-	if (!empty($_POST["SubProcessID"])) {
+	if (!empty($_POST["SubProcessID"])  ) {
 		//.................. secure section .....................
 		InputValidation::validate($_REQUEST['SubProcessID'], InputValidation::Pattern_Num);
 
-		$where .= " AND f.FlowID = :fId ";
-		$param[":fId"] = $_POST['SubProcessID'];
+		if(!empty($_POST["ProcessStatus"]) && $_POST["ProcessStatus"] != 1)
+		{
+			$where .= " AND f.FlowID = :fId ";
+			$param[":fId"] = $_POST['SubProcessID'];
+		}
 	}
 	
 	if (!empty($_POST["ProcessStatus"])) {
 		//.................. secure section .....................
-		InputValidation::validate($_REQUEST['ProcessStatus'], InputValidation::Pattern_EnAlphaNum);
-
-		$where .= " AND f.IsEnded = :SId ";
-		$param[":SId"] = $_POST['ProcessStatus'];
+		InputValidation::validate($_REQUEST['ProcessStatus'], InputValidation::Pattern_Num);
+				
+		if( $_POST["ProcessStatus"] == 1 ) // خام
+			$where .= " AND li.IID IS NULL ";
+				
+		elseif( $_POST["ProcessStatus"] == 2 )  // ارسال شده
+			$where .= " AND f.IsLastRow= 'YES' AND f.StepRowID =  383 "; 
+		
+		elseif( $_POST["ProcessStatus"] == 3 )  // جاری
+			$where .= " AND f.IsLastRow= 'YES' AND f.IsEnded = 'NO' "; 
+		
+		elseif( $_POST["ProcessStatus"] == 4 ) // خاتمه یافته
+			$where .= " AND f.IsLastRow= 'YES' AND f.IsEnded = 'YES' ";
+		
 	}
 
 
@@ -70,7 +83,7 @@ function GetData() {
 
 	if (!empty($_POST["PersonID2"])) {
 
-		$where .= " AND fs.PersonID <= :NPID ";
+		$where .= " AND fs.PersonID = :NPID ";
 		$param[":NPID"] = DateModules::shamsi_to_miladi($_POST['PersonID2']);
 	}
 
@@ -149,27 +162,22 @@ function GetData() {
 								concat_ws(' ',p.fname,p.lname,p.CompanyName) nextConfFullname , 
 								concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) PFullname
 
-								FROM WFM_FlowRows f
-								/*inner join (
-									SELECT  FlowID , ObjectID ,  MIN(RowID) mr , ActionDate
-									FROM WFM_FlowRows
-									group by FlowID , ObjectID
-								) t on f.FlowID = t.FlowID and f.ObjectID = t.ObjectID
-								*/
-								inner join LON_IssuanceInfo li on f.ObjectID = li.IID 
-								inner join LON_BailCondition bc on li.BID  = bc.BID
+								FROM LON_BailCondition bc  
+										LEFT join LON_IssuanceInfo li on bc.BID  = li.BID
+										LEFT join WFM_FlowRows f on f.ObjectID = li.IID 
+				
 								inner join BSC_persons bp on(bp.PersonID=bc.PersonID)
 								left join WFM_FlowSteps fs on fs.FlowID = f.FlowID and fs.StepParentID = f.StepRowID
 								left join BSC_persons p on fs.PersonID = p.PersonID
-								inner join BSC_persons p2 on f.PersonID = p2.PersonID
+								left join BSC_persons p2 on f.PersonID = p2.PersonID
 								
-								where (1=1) $where  AND f.IsLastRow= 'YES' /*AND f.ObjectID = 57*/
+								where (1=1) $where   /*AND f.ObjectID = 57*/
 
 								ORDER BY f.ObjectID desc,f.ActionDate desc
 
 				) tbl1
 				$JoinClause
-				where tbl1.FlowID = 95 /* AND tbl1.ObjectID = 57*/
+				/*where tbl1.FlowID = 95  AND tbl1.ObjectID = 57*/
                 
                 order by  tbl1.ObjectID  ";
 
@@ -177,7 +185,9 @@ function GetData() {
 
 	$dataTable = PdoDataAccess::runquery_fetchMode($query, $param);
 		
-		
+	echo PdoDataAccess::GetLatestQueryString();
+	die(); 	
+	
 	if ($_SESSION["USER"]["UserName"] == "admin") {
 		//echo PdoDataAccess::GetLatestQueryString();
 		//print_r(ExceptionHandler::PopAllExceptions());
@@ -236,7 +246,10 @@ function ListDate($IsDashboard = false) {
 		$rpg->addColumn("تاریخ شروع گردش", "Sdate", "ReportDateRender");
 		$rpg->addColumn("تاریخ پایان گردش", "Edate", "ReportDateRender");
 		$rpg->addColumn("مدت زمان گردش", "duration","TimeRender");
-		$rpg->addColumn("منتظر تایید/بررسی", "nextConfFullname");
+		
+		if( !empty($_POST["ProcessStatus"]) && $_POST["ProcessStatus"] != 4 )
+			$rpg->addColumn("منتظر تایید/بررسی", "nextConfFullname");
+		
 		$rpg->addColumn("آخرین  تایید کننده", "PFullname");
 	}
 
@@ -403,8 +416,10 @@ if (isset($_REQUEST["dashboard_show"])) {
                     colspan: 2,
                     store: new Ext.data.SimpleStore({
                         data: [
-                            ['NO', "جاری"],
-                            ['YES', "مختومه"]
+								['1', "خام"],
+								['2', "ارسال شده"],
+								['3', "جاری"],
+								['4', "خاتمه یافته"]
                         ],
                         fields: ['id', 'value']
                     }),
