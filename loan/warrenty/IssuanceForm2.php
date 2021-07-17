@@ -383,9 +383,10 @@ function ListDate($BID = "") {
 }
 
 if (isset($_REQUEST["show"])) {
-
+	
 	ListDate($_REQUEST['BID']);
 }
+
 
 if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 {
@@ -401,7 +402,6 @@ if(!empty($_REQUEST["ObjID"]) && $_REQUEST["ObjID"] > 0 )
 	
 }
 	
-
 /* require_once getenv("DOCUMENT_ROOT") . '/framework/ReportDB/Filter_person.php'; */
 ?>
 <style>
@@ -425,6 +425,7 @@ a:active {
 }
 </style>
 <script>
+	
     WarrentyReport_total.prototype = {
         TabID: '<?= $_REQUEST["ExtTabID"] ?>',
         BID: '<?= (!empty($_POST['BID']) ? $_POST['BID'] : $resInfo[0]['BID'] ) ?>',
@@ -439,7 +440,7 @@ a:active {
             return findChild(this.TabID, elementID);
         }
     }
-
+	
     WarrentyReport_total.prototype.showReport = function (btn, e)
     {
 		//alert(WarrentyReport_totalObj.formPanel.down('[itemId=KnowledgeBase]').getValue());
@@ -682,9 +683,9 @@ a:active {
                     labelWidth: 50,
                     width: 400,
                     fieldCls: "blueText",
-                    value: "<a href=javascript:void() \n\
-							onclick='WarrentyReport_totalObj.showReport()';>\n\
-							<img src='/office/icons/summary.png' width='20' height='20' > &nbsp;گزارش ارزیابی ضمانت نامه &nbsp; </a>"
+                    value:  "<a href=javascript:void()" +
+							"onclick='WarrentyReport_totalObj.showReport()';>" +
+							"<img src='/office/icons/summary.png' width='20' height='20' > &nbsp;گزارش ارزیابی ضمانت نامه &nbsp; </a>"
 
 			}
 				
