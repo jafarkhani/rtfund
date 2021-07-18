@@ -240,6 +240,7 @@ function ListDate($BID = "") {
 			$totPartAmount = 0;
 			$totTotalRemain = $t = 0;
 			foreach ($temp2 as $temp) {
+				$t++ ;
 				$RequestID = $temp["RequestID"];
 				$ReqObj = new LON_requests($RequestID);
 				$partObj = LON_ReqParts::GetValidPartObj($RequestID);
