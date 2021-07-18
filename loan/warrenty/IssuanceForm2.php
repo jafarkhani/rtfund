@@ -250,7 +250,7 @@ function ListDate($BID = "") {
 				$totTotalRemain += $TotalRemain;
 				?>
 				<tr> 
-					<td><span>$t</span></td>
+					<td><span><?= $t ?></span></td>
 					<td><span><?= $RequestID ?></span></td>
 					<td><span><?= DateModules::miladi_to_shamsi($partObj->PartDate) ?></span></td>
 					<td><span><?= $ReqObj->_LoanDesc ?></span></td>
