@@ -159,7 +159,9 @@ function GetData() {
 								f.IsEnded, ( TIMESTAMPDIFF(SECOND, bc.ReqDate ,f.ActionDate) / 60 ) duration ,
 								f.PersonID p1 , fs.PersonID nextConf , fs.PostID ,
 								concat_ws(' ',bp.fname,bp.lname,bp.CompanyName) CustomerName ,
-								concat_ws(' ',p.fname,p.lname,p.CompanyName) nextConfFullname , 
+								
+								concat_ws(' ',p.fname,p.lname,p.CompanyName,p3.fname,p3.lname,p3.CompanyName) nextConfFullname , 
+								
 								concat_ws(' ',p2.fname,p2.lname,p2.CompanyName) PFullname
 
 								FROM LON_BailCondition bc  
@@ -168,8 +170,12 @@ function GetData() {
 				
 								inner join BSC_persons bp on(bp.PersonID=bc.PersonID)
 								left join WFM_FlowSteps fs on fs.FlowID = f.FlowID and fs.StepParentID = f.StepRowID
+								left join WFM_FlowSteps fs2 on fs2.FlowID = f.FlowID and fs2.StepRowID = f.StepRowID
+								left join WFM_FlowSteps fs3 on fs2.FlowID = f.FlowID and fs2.ReturnStep = fs3.StepRowID
+
 								left join BSC_persons p on fs.PersonID = p.PersonID
 								left join BSC_persons p2 on f.PersonID = p2.PersonID
+								left join BSC_persons p3 on fs3.PersonID = p3.PersonID
 								
 								where (1=1) $where   /*AND f.ObjectID = 57*/
 
@@ -184,9 +190,6 @@ function GetData() {
 	//..................................................................
 
 	$dataTable = PdoDataAccess::runquery_fetchMode($query, $param);
-		
-	echo PdoDataAccess::GetLatestQueryString();
-	die(); 	
 	
 	if ($_SESSION["USER"]["UserName"] == "admin") {
 		//echo PdoDataAccess::GetLatestQueryString();
